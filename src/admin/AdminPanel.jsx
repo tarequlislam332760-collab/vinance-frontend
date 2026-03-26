@@ -7,8 +7,9 @@ import {
   ArrowDownCircle, MoreHorizontal, X 
 } from 'lucide-react';
 
-// ✅ আপনার লাইভ ব্যাকএন্ড লিঙ্ক (ফিক্স করা হয়েছে)
-const API_BASE_URL = "my-projact-sage.vercel.app";
+// ✅ আপনার লাইভ ব্যাকএন্ড লিঙ্ক (https:// সহ ফিক্স করা হয়েছে)
+const API_BASE_URL = "https://my-projact-sage.vercel.app";
+
 const AdminPanel = () => {
   const { token } = useContext(UserContext);
   const [users, setUsers] = useState([]);
@@ -17,6 +18,7 @@ const AdminPanel = () => {
   const [formData, setFormData] = useState({ name: '', balance: 0, role: 'user' });
 
   const fetchAll = async () => {
+    // টোকেন চেক করার জন্য লোকাল স্টোরেজ ও কন্টেক্সট দুটোই দেখা হচ্ছে
     const t = token || localStorage.getItem('token');
     if (!t) return;
     try {
@@ -26,12 +28,16 @@ const AdminPanel = () => {
       const statsRes = await axios.get(`${API_BASE_URL}/api/admin/stats`, {
         headers: { Authorization: `Bearer ${t}` }
       });
-      setUsers(usersRes.data);
-      setStats(statsRes.data);
-    } catch (err) { console.error("Fetch Error:", err.message); }
+      setUsers(usersRes.data || []);
+      setStats(statsRes.data || { users: 0, deposit: 0, withdraw: 0, profit: 0 });
+    } catch (err) { 
+      console.error("Fetch Error:", err.message); 
+    }
   };
 
-  useEffect(() => { fetchAll(); }, [token]);
+  useEffect(() => { 
+    fetchAll(); 
+  }, [token]);
 
   const handleEdit = (user) => {
     setEditingUser(user._id);
@@ -46,7 +52,9 @@ const AdminPanel = () => {
       setEditingUser(null);
       fetchAll();
       alert('User Updated Successfully!');
-    } catch (err) { alert('Update failed'); }
+    } catch (err) { 
+      alert(err.response?.data?.message || 'Update failed'); 
+    }
   };
 
   const handleDelete = async (id) => {
@@ -56,10 +64,11 @@ const AdminPanel = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchAll();
-    } catch (err) { alert('Delete failed'); }
+    } catch (err) { 
+      alert('Delete failed'); 
+    }
   };
 
-  // ✅ ব্যালেন্স আপডেট ফাংশনটি ব্যাকএন্ডের সাথে মিলিয়ে ফিক্স করা হয়েছে
   const updateBalance = async (id, type) => {
     const amount = prompt(`Enter amount to ${type}:`);
     if (!amount || isNaN(amount)) return;
@@ -74,7 +83,7 @@ const AdminPanel = () => {
       alert(`Successfully ${type === 'add' ? 'Added' : 'Deducted'} $${amount}`);
     } catch (err) { 
         console.error(err);
-        alert('Balance update failed'); 
+        alert(err.response?.data?.message || 'Balance update failed'); 
     }
   };
 
@@ -89,10 +98,10 @@ const AdminPanel = () => {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        <Card title="Total Traders" value={stats.users} icon={<Users size={20}/>} color="text-blue-500" />
-        <Card title="Total Deposits" value={`$${stats.deposit?.toLocaleString()}`} icon={<ArrowDownCircle size={20}/>} color="text-emerald-500" />
-        <Card title="Total Withdraws" value={`$${stats.withdraw?.toLocaleString()}`} icon={<ArrowUpCircle size={20}/>} color="text-red-500" />
-        <Card title="Net Profit" value={`$${stats.profit?.toLocaleString()}`} icon={<TrendingUp size={20}/>} color="text-yellow-500" />
+        <Card title="Total Traders" value={stats.users || 0} icon={<Users size={20}/>} color="text-blue-500" />
+        <Card title="Total Deposits" value={`$${(stats.deposit || 0).toLocaleString()}`} icon={<ArrowDownCircle size={20}/>} color="text-emerald-500" />
+        <Card title="Total Withdraws" value={`$${(stats.withdraw || 0).toLocaleString()}`} icon={<ArrowUpCircle size={20}/>} color="text-red-500" />
+        <Card title="Net Profit" value={`$${(stats.profit || 0).toLocaleString()}`} icon={<TrendingUp size={20}/>} color="text-yellow-500" />
       </div>
 
       {/* Users Table */}
@@ -117,7 +126,7 @@ const AdminPanel = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800/50">
-              {users.map(user => (
+              {users.length > 0 ? users.map(user => (
                 <tr key={user._id} className="hover:bg-white/[0.02] transition-colors group">
                   <td className="p-6">
                     {editingUser === user._id ? (
@@ -144,7 +153,7 @@ const AdminPanel = () => {
                         value={formData.balance} 
                         onChange={e => setFormData({ ...formData, balance: e.target.value })} 
                       />
-                    ) : `$${user.balance?.toLocaleString()}`}
+                    ) : `$${(user.balance || 0).toLocaleString()}`}
                   </td>
 
                   <td className="p-6">
@@ -180,7 +189,11 @@ const AdminPanel = () => {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )) : (
+                <tr>
+                  <td colSpan="4" className="p-10 text-center text-gray-500 text-xs font-bold uppercase tracking-widest">No Traders Found</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

@@ -3,8 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 
-// 🚀 আপনার নতুন Vercel ব্যাকএন্ড লিঙ্ক এখানে দিন
-const API_BASE_URL = "my-projact-sage.vercel.app";
+// 🚀 আপনার Vercel ব্যাকএন্ড লিঙ্ক (https:// সহ)
+const API_BASE_URL = "https://my-projact-sage.vercel.app";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -24,6 +24,7 @@ const Register = () => {
     setIsSubmitting(true);
     try {
       const { name, email, password } = formData;
+      // ✅ ব্যাকএন্ড লিঙ্কে https:// নিশ্চিত করা হয়েছে
       await axios.post(`${API_BASE_URL}/api/register`, { name, email, password });
       alert("Registration Successful! Please login.");
       navigate('/login');

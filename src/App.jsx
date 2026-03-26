@@ -14,14 +14,15 @@ import Deposit from './pages/Deposit';
 import Withdraw from './pages/Withdraw'; 
 import AdminPanel from './admin/AdminPanel';
 
-// 🚀 আপনার Vercel ব্যাকএন্ড লিঙ্ক (অবশ্যই https:// সহ)
-// আপনার আগের দেওয়া লিঙ্কটি ছিল: my-projact-sage.vercel.app
+// 🚀 আপনার সঠিক Vercel ব্যাকএন্ড লিঙ্ক
 const API_BASE_URL = "https://my-projact-sage.vercel.app"; 
 
-// --- Axios Default Configuration ---
-// এটি করলে প্রতিবার রিকোয়েস্টে পুরো লিঙ্ক লিখতে হবে না
+// --- Axios Instance ---
 const api = axios.create({
-  baseURL: API_BASE_URL
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
 // --- হেল্পার কম্পোনেন্ট ---
@@ -56,7 +57,6 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      // ✅ এখানে api ব্যবহার করা হয়েছে যা https:// সহ মেইন লিঙ্কে রিকোয়েস্ট পাঠাবে
       const res = await api.post(`/api/login`, { email, password });
       if (res.data.token) {
         login(res.data.user, res.data.token);
@@ -91,9 +91,8 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      // ✅ API রিকোয়েস্ট ফিক্স করা হয়েছে
-      await api.post(`/api/register`, formData);
-      alert("Registration Successful! Please Login.");
+      const res = await api.post(`/api/register`, formData);
+      alert(res.data.message || "Registration Successful!");
       navigate('/login');
     } catch (err) { 
       alert(err.response?.data?.message || "Registration failed!"); 
@@ -116,9 +115,7 @@ const Register = () => {
   );
 };
 
-// --- বাকি পেজগুলো (Dashboard, Market, TradePage, etc.) আপনার আগের কোড অনুযায়ী থাকবে ---
-// ... (আমি নিচে শুধু মেইন স্ট্রাকচার রাখছি যাতে কোডটি বড় না হয়ে যায়)
-
+// --- ড্যাশবোর্ড ---
 const Dashboard = ({ cryptoData }) => {
   const { user } = useContext(UserContext); 
   const navigate = useNavigate();
@@ -189,7 +186,10 @@ const TradePage = () => {
   const handleTrade = async (type) => {
     if (!amount || amount <= 0) return alert("Enter valid amount");
     try {
-      const res = await api.post(`/api/trade`, { type, amount, symbol: 'BTC' }, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await api.post(`/api/trade`, 
+        { type, amount: parseFloat(amount), symbol: 'BTC' }, 
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       alert(res.data.message);
       setUser({ ...user, balance: res.data.newBalance });
       setAmount('');

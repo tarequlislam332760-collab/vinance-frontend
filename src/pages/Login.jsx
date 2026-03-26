@@ -4,8 +4,8 @@ import axios from 'axios';
 import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { UserContext } from '../context/UserContext';
 
-// 🚀 আপনার নতুন Vercel ব্যাকএন্ড লিঙ্ক এখানে দিন
-const API_BASE_URL = "my-projact-sage.vercel.app"; 
+// 🚀 আপনার Vercel ব্যাকএন্ড লিঙ্ক (https:// সহ)
+const API_BASE_URL = "https://my-projact-sage.vercel.app"; 
 
 const Login = () => {
   const navigate = useNavigate();
@@ -25,9 +25,12 @@ const Login = () => {
     setIsSubmitting(true);
 
     try {
+      // ✅ লিঙ্কের সাথে https:// এবং সঠিক পাথ নিশ্চিত করা হয়েছে
       const res = await axios.post(`${API_BASE_URL}/api/login`, { email, password });
-      login(res.data.user, res.data.token); 
-      navigate('/'); 
+      if (res.data.token) {
+        login(res.data.user, res.data.token); 
+        navigate('/dashboard'); // সাধারণত লগইনের পর ড্যাশবোর্ডে যায়
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Invalid Email or Password");
     } finally {
