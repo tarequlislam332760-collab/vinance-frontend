@@ -4,8 +4,8 @@ import axios from 'axios';
 import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { UserContext } from '../context/UserContext';
 
-// 🔴 আপনার লাইভ ব্যাকএন্ড লিংক এখানে বসান
-const API_BASE_URL = "https://my-project.onrender.com"; 
+// ✅ আপনার লাইভ ব্যাকএন্ড লিংক ফিক্স করা হয়েছে
+const API_BASE_URL = "https://vinance-backend.onrender.com"; 
 
 const Login = () => {
   const navigate = useNavigate();
@@ -26,6 +26,7 @@ const Login = () => {
 
     try {
       const res = await axios.post(`${API_BASE_URL}/api/login`, { email, password });
+      // Saving user and token in context
       login(res.data.user, res.data.token); 
       navigate('/'); 
     } catch (err) {
@@ -36,10 +37,10 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6 relative">
+    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6 relative text-left">
       <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-yellow-500/10 rounded-full blur-[120px]"></div>
       
-      <div className="w-full max-w-md bg-[#1e2329] border border-gray-800 rounded-3xl p-10 shadow-2xl relative z-10 text-left">
+      <div className="w-full max-w-md bg-[#1e2329] border border-gray-800 rounded-3xl p-10 shadow-2xl relative z-10">
         <h1 className="text-3xl font-bold text-yellow-500 mb-2 italic">VINANCE</h1>
         <p className="text-gray-400 mb-8 font-medium">Log In to your account</p>
 

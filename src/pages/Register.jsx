@@ -3,8 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 
-// 🔴 আপনার লাইভ ব্যাকএন্ড লিংক এখানে বসান
-const API_BASE_URL = "https://my-project.onrender.com"; 
+// ✅ আপনার লাইভ ব্যাকএন্ড লিংক ফিক্স করা হয়েছে
+const API_BASE_URL = "https://vinance-backend.onrender.com"; 
 
 const Register = () => {
   const navigate = useNavigate();
@@ -33,6 +33,7 @@ const Register = () => {
     setIsSubmitting(true);
     try {
       const { name, email, password } = formData;
+      // API Call to Backend
       await axios.post(`${API_BASE_URL}/api/register`, { name, email, password });
       
       alert("Registration Successful! Please login.");
@@ -45,11 +46,11 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6 relative overflow-hidden text-left">
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-emerald-500/10 rounded-full blur-[120px]"></div>
       <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-yellow-500/10 rounded-full blur-[120px]"></div>
       
-      <div className="w-full max-w-md bg-[#1e2329] border border-gray-800 rounded-3xl p-10 shadow-2xl relative z-10 text-left">
+      <div className="w-full max-w-md bg-[#1e2329] border border-gray-800 rounded-3xl p-10 shadow-2xl relative z-10">
         <h1 className="text-3xl font-bold text-yellow-500 mb-2 italic">VINANCE</h1>
         <p className="text-gray-400 mb-8 font-medium">Create your trading account</p>
 

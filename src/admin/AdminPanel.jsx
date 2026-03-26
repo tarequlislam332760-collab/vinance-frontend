@@ -7,8 +7,8 @@ import {
   ArrowDownCircle, MoreHorizontal, X 
 } from 'lucide-react';
 
-// 🔴 এখানে আপনার লাইভ ব্যাকএন্ড লিংক বসান (যেমন: https://your-app.onrender.com)
-const API_BASE_URL = "https://my-project.onrender.com"; 
+// ✅ আপনার লাইভ ব্যাকএন্ড লিঙ্ক (ফিক্স করা হয়েছে)
+const API_BASE_URL = "https://vinance-backend.onrender.com"; 
 
 const AdminPanel = () => {
   const { token } = useContext(UserContext);
@@ -60,15 +60,23 @@ const AdminPanel = () => {
     } catch (err) { alert('Delete failed'); }
   };
 
+  // ✅ ব্যালেন্স আপডেট ফাংশনটি ব্যাকএন্ডের সাথে মিলিয়ে ফিক্স করা হয়েছে
   const updateBalance = async (id, type) => {
     const amount = prompt(`Enter amount to ${type}:`);
     if (!amount || isNaN(amount)) return;
     try {
-      await axios.post(`${API_BASE_URL}/api/admin/${type}-balance`, {
-        userId: id, amount: parseFloat(amount)
+      await axios.post(`${API_BASE_URL}/api/admin/update-balance`, {
+        userId: id, 
+        amount: parseFloat(amount),
+        type: type // 'add' অথবা 'deduct'
       }, { headers: { Authorization: `Bearer ${token}` } });
+      
       fetchAll();
-    } catch (err) { alert('Balance update failed'); }
+      alert(`Successfully ${type === 'add' ? 'Added' : 'Deducted'} $${amount}`);
+    } catch (err) { 
+        console.error(err);
+        alert('Balance update failed'); 
+    }
   };
 
   return (
