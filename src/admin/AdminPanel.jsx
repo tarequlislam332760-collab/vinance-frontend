@@ -8,8 +8,7 @@ import {
 } from 'lucide-react';
 
 // ✅ আপনার লাইভ ব্যাকএন্ড লিঙ্ক (https:// সহ ফিক্স করা হয়েছে)
-const API_BASE_URL = "https://my-projact-sage.vercel.app";
-
+const API_BASE_URL = "https://vinance-backend.vercel.app";
 const AdminPanel = () => {
   const { token } = useContext(UserContext);
   const [users, setUsers] = useState([]);

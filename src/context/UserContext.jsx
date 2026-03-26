@@ -3,6 +3,9 @@ import axios from 'axios';
 
 export const UserContext = createContext();
 
+// ১. আপনার ভেরসেল ব্যাকএন্ড লিঙ্কটি এখানে দিন (অবশ্যই শেষে /api ছাড়া)
+const API_BASE_URL = "https://vinance-backend.vercel.app"; 
+
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -12,7 +15,8 @@ export const UserProvider = ({ children }) => {
     const initApp = async () => {
       if (token) {
         try {
-          const res = await axios.get('http://localhost:5000/api/profile', {
+          // ২. লোকালহোস্টের বদলে ভেরিয়েবলটি ব্যবহার করা হয়েছে
+          const res = await axios.get(`${API_BASE_URL}/api/profile`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           setUser(res.data.user);
