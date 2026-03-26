@@ -1,0 +1,149 @@
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Menu, X, Bell, User, LogOut, Settings } from 'lucide-react';
+
+const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false); // মোবাইল মেনুর জন্য
+  const [scrolled, setScrolled] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false); // নোটিফিকেশনের জন্য
+  const [showProfile, setShowProfile] = useState(false); // প্রোফাইল ড্রপডাউনের জন্য
+
+  // স্ক্রল ইফেক্ট
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // নোটিফিকেশন ডাটা (এটি পরে আপনার ব্যাকেন্ড এপিআই থেকে আসবে)
+  const notifications = [
+    { id: 1, text: "Success! $5,000 demo balance added.", time: "2m ago" },
+    { id: 2, text: "Bitcoin price reached $70,880.", time: "1h ago" }
+  ];
+
+  return (
+    <nav className={`fixed w-full z-50 transition-all duration-300 ${
+      scrolled ? 'bg-[#0b0e11]/90 backdrop-blur-lg border-b border-gray-800 py-3' : 'bg-transparent py-5'
+    }`}>
+      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+        
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2 group">
+          <div className="w-10 h-10 bg-yellow-500 rounded-xl flex items-center justify-center rotate-3 group-hover:rotate-12 transition-transform shadow-lg shadow-yellow-500/20">
+            <span className="text-black font-black text-xl">V</span>
+          </div>
+          <span className="text-2xl font-black text-white tracking-tighter uppercase italic">
+            Vinance
+          </span>
+        </Link>
+
+        {/* Desktop Menu */}
+        <div className="hidden md:flex items-center gap-8">
+          <div className="flex items-center gap-6">
+            {['Markets', 'Trade', 'Features'].map((item) => (
+              <Link 
+                key={item} 
+                to={`/${item.toLowerCase()}`} 
+                className="text-sm font-bold text-gray-400 hover:text-yellow-500 transition-colors"
+              >
+                {item}
+              </Link>
+            ))}
+          </div>
+          
+          <div className="h-6 w-[1px] bg-gray-800 mx-2"></div>
+
+          {/* Icons & Actions */}
+          <div className="flex items-center gap-5 relative">
+            
+            {/* ১. সচল নোটিফিকেশন বাটন */}
+            <div className="relative">
+              <button 
+                onClick={() => { setShowNotifications(!showNotifications); setShowProfile(false); }}
+                className="text-gray-400 hover:text-yellow-500 transition-colors relative p-1"
+              >
+                <Bell size={22} />
+                {/* নোটিফিকেশন ব্যাজ */}
+                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-[#0b0e11]"></span>
+              </button>
+
+              {/* নোটিফিকেশন ড্রপডাউন মেনু */}
+              {showNotifications && (
+                <div className="absolute right-0 mt-4 w-72 bg-[#1e2329] border border-gray-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                  <div className="p-4 border-b border-gray-800 flex justify-between items-center">
+                    <span className="font-bold text-white">Notifications</span>
+                    <span className="text-[10px] bg-yellow-500/10 text-yellow-500 px-2 py-0.5 rounded-full">2 New</span>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {notifications.map(n => (
+                      <div key={n.id} className="p-4 border-b border-gray-800/50 hover:bg-gray-800/30 cursor-pointer transition-colors">
+                        <p className="text-sm text-gray-300 mb-1">{n.text}</p>
+                        <span className="text-[10px] text-gray-500">{n.time}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <button className="w-full py-3 text-xs font-bold text-yellow-500 hover:bg-yellow-500/5 transition-colors">View All Messages</button>
+                </div>
+              )}
+            </div>
+
+            {/* ২. প্রোফাইল মেনু (User Context এর সাথে যুক্ত করা সহজ হবে) */}
+            <div className="relative">
+              <button 
+                onClick={() => { setShowProfile(!showProfile); setShowNotifications(false); }}
+                className="w-9 h-9 bg-gray-800 rounded-full flex items-center justify-center text-gray-400 hover:text-white border border-gray-700 transition-all active:scale-95"
+              >
+                <User size={20} />
+              </button>
+
+              {showProfile && (
+                <div className="absolute right-0 mt-4 w-56 bg-[#1e2329] border border-gray-800 rounded-2xl shadow-2xl p-2 animate-in fade-in zoom-in duration-200">
+                  <Link to="/profile" className="flex items-center gap-3 p-3 text-sm font-bold text-gray-300 hover:bg-gray-800 rounded-xl transition-colors">
+                    <User size={16} /> My Profile
+                  </Link>
+                  <Link to="/wallet" className="flex items-center gap-3 p-3 text-sm font-bold text-gray-300 hover:bg-gray-800 rounded-xl transition-colors">
+                    <Settings size={16} /> Wallet Settings
+                  </Link>
+                  <div className="h-[1px] bg-gray-800 my-1 mx-2"></div>
+                  <button className="w-full flex items-center gap-3 p-3 text-sm font-bold text-red-500 hover:bg-red-500/10 rounded-xl transition-colors">
+                    <LogOut size={16} /> Log Out
+                  </button>
+                </div>
+              )}
+            </div>
+            
+            <Link 
+              to="/register" 
+              className="bg-yellow-500 text-black px-6 py-2.5 rounded-full text-sm font-bold hover:bg-yellow-400 transition-all shadow-xl active:scale-95 ml-2"
+            >
+              Get Started
+            </Link>
+          </div>
+        </div>
+
+        {/* Mobile Menu Button */}
+        <button 
+          className="md:hidden text-gray-400 hover:text-white"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? <X size={28} /> : <Menu size={28} />}
+        </button>
+      </div>
+
+      {/* Mobile Menu Dropdown */}
+      {isOpen && (
+        <div className="absolute top-full left-0 w-full bg-[#1e2329] border-b border-gray-800 p-6 flex flex-col gap-6 md:hidden">
+          <Link to="/markets" className="text-lg font-bold text-white">Markets</Link>
+          <Link to="/trade" className="text-lg font-bold text-white">Trade</Link>
+          <div className="h-[1px] bg-gray-800"></div>
+          <Link to="/login" className="text-lg font-bold text-gray-400">Log In</Link>
+          <Link to="/register" className="bg-yellow-500 text-black p-4 rounded-2xl text-center font-bold">Register Now</Link>
+        </div>
+      )}
+    </nav>
+  );
+};
+
+export default Navbar;
