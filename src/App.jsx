@@ -14,8 +14,15 @@ import Deposit from './pages/Deposit';
 import Withdraw from './pages/Withdraw'; 
 import AdminPanel from './admin/AdminPanel';
 
-// 🚀 আপনার Vercel ব্যাকএন্ড লিঙ্কটি এখানে দিন
-const API_BASE_URL = "my-projact-sage.vercel.app"; 
+// 🚀 আপনার Vercel ব্যাকএন্ড লিঙ্ক (অবশ্যই https:// সহ)
+// আপনার আগের দেওয়া লিঙ্কটি ছিল: my-projact-sage.vercel.app
+const API_BASE_URL = "https://my-projact-sage.vercel.app"; 
+
+// --- Axios Default Configuration ---
+// এটি করলে প্রতিবার রিকোয়েস্টে পুরো লিঙ্ক লিখতে হবে না
+const api = axios.create({
+  baseURL: API_BASE_URL
+});
 
 // --- হেল্পার কম্পোনেন্ট ---
 const NavItem = ({ to, icon, label }) => (
@@ -39,7 +46,7 @@ const TradingChart = () => (
   </div>
 );
 
-// --- লগইন পেজ (আপডেটেড) ---
+// --- লগইন পেজ ---
 const Login = () => {
   const { login } = useContext(UserContext);
   const navigate = useNavigate();
@@ -49,12 +56,15 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${API_BASE_URL}/api/login`, { email, password });
+      // ✅ এখানে api ব্যবহার করা হয়েছে যা https:// সহ মেইন লিঙ্কে রিকোয়েস্ট পাঠাবে
+      const res = await api.post(`/api/login`, { email, password });
       if (res.data.token) {
         login(res.data.user, res.data.token);
         navigate('/dashboard');
       }
-    } catch (err) { alert(err.response?.data?.message || "Login failed!"); }
+    } catch (err) { 
+      alert(err.response?.data?.message || "Login failed! Check your connection."); 
+    }
   };
 
   return (
@@ -73,7 +83,7 @@ const Login = () => {
   );
 };
 
-// --- রেজিস্টার পেজ (আপডেটেড) ---
+// --- রেজিস্টার পেজ ---
 const Register = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
@@ -81,10 +91,13 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API_BASE_URL}/api/register`, formData);
+      // ✅ API রিকোয়েস্ট ফিক্স করা হয়েছে
+      await api.post(`/api/register`, formData);
       alert("Registration Successful! Please Login.");
       navigate('/login');
-    } catch (err) { alert(err.response?.data?.message || "Registration failed!"); }
+    } catch (err) { 
+      alert(err.response?.data?.message || "Registration failed!"); 
+    }
   };
 
   return (
@@ -103,7 +116,9 @@ const Register = () => {
   );
 };
 
-// --- ড্যাশবোর্ড ---
+// --- বাকি পেজগুলো (Dashboard, Market, TradePage, etc.) আপনার আগের কোড অনুযায়ী থাকবে ---
+// ... (আমি নিচে শুধু মেইন স্ট্রাকচার রাখছি যাতে কোডটি বড় না হয়ে যায়)
+
 const Dashboard = ({ cryptoData }) => {
   const { user } = useContext(UserContext); 
   const navigate = useNavigate();
@@ -167,14 +182,14 @@ const Market = ({ cryptoData }) => {
   );
 };
 
-// --- ট্রেড পেজ (আপডেটেড) ---
+// --- ট্রেড পেজ ---
 const TradePage = () => {
   const [amount, setAmount] = useState('');
   const { user, token, setUser } = useContext(UserContext); 
   const handleTrade = async (type) => {
     if (!amount || amount <= 0) return alert("Enter valid amount");
     try {
-      const res = await axios.post(`${API_BASE_URL}/api/trade`, { type, amount, symbol: 'BTC' }, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await api.post(`/api/trade`, { type, amount, symbol: 'BTC' }, { headers: { Authorization: `Bearer ${token}` } });
       alert(res.data.message);
       setUser({ ...user, balance: res.data.newBalance });
       setAmount('');
@@ -199,7 +214,7 @@ const TradePage = () => {
   );
 };
 
-// --- ওয়ালেট পেজ ---
+// --- ওয়ালেট পেজ ---
 const WalletPage = () => {
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
@@ -217,7 +232,7 @@ const WalletPage = () => {
   );
 };
 
-// --- মেইন কন্টেন্ট ---
+// --- মেইন কন্টেন্ট এবং অ্যাপ রুটস ---
 const AppContent = ({ cryptoData }) => {
   const { token, logout, loading, user } = useContext(UserContext); 
   const location = useLocation();
