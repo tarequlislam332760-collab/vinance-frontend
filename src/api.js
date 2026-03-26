@@ -1,13 +1,13 @@
 import axios from 'axios';
 
-// 🔴 এখানে আপনার Render বা লাইভ ব্যাকএন্ড লিংকটি দিন
-const API_BASE_URL = "https://your-backend-api-link.onrender.com"; 
+// ✅ আপনার ভেরসেল ব্যাকএন্ড লিঙ্কটি এখানে দিন
+const API_BASE_URL = "https://vinance-backend.vercel.app"; 
 
 const API = axios.create({
   baseURL: API_BASE_URL,
 });
 
-// রিকোয়েস্ট পাঠানোর সময় অটোমেটিক টোকেন যোগ হবে
+// রিকোয়েস্ট পাঠানোর সময় অটোমেটিক টোকেন (JWT) যোগ হবে
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem('token');
   if (token) {
