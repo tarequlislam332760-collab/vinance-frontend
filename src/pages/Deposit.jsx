@@ -5,6 +5,9 @@ import { UserContext } from '../context/UserContext';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+// আপনার ব্যাকএন্ড লিঙ্কটি এখানে দিন
+const API_BASE_URL = "https://vinance-backend.vercel.app"; 
+
 const Deposit = () => {
   const navigate = useNavigate();
   const { user, token, setUser } = useContext(UserContext);
@@ -28,7 +31,7 @@ const Deposit = () => {
       setLoading(true);
       const config = { headers: { Authorization: `Bearer ${token}` } };
       const response = await axios.post(
-        'http://localhost:5000/api/deposit', 
+        `${API_BASE_URL}/api/deposit`, // লোকালহোস্ট পরিবর্তন করা হয়েছে
         { amount: parseFloat(amount) }, 
         config
       );

@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 
 // 🚀 আপনার Vercel ব্যাকএন্ড লিঙ্ক (https:// সহ)
-const API_BASE_URL = "https://my-projact-sage.vercel.app";
+const API_BASE_URL = "https://vinance-backend.vercel.app";
 
 const Register = () => {
   const navigate = useNavigate();

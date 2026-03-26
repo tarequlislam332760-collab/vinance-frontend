@@ -2,11 +2,14 @@ import React, { useState, useContext } from 'react';
 import { ArrowLeft, Wallet, AlertCircle, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
-import axios from 'axios'; // axios ইম্পোর্ট করুন
+import axios from 'axios';
+
+// আপনার ব্যাকএন্ড লিঙ্কটি এখানে দিন
+const API_BASE_URL = "https://vinance-backend.vercel.app"; 
 
 const Withdraw = () => {
   const navigate = useNavigate();
-  const { user, token, setUser } = useContext(UserContext); // token এবং setUser যোগ করা হয়েছে
+  const { user, token, setUser } = useContext(UserContext);
   const [amount, setAmount] = useState('');
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,13 +27,12 @@ const Withdraw = () => {
       const config = { headers: { Authorization: `Bearer ${token}` } };
       
       const response = await axios.post(
-        'http://localhost:5000/api/withdraw', 
+        `${API_BASE_URL}/api/withdraw`, // লোকালহোস্ট পরিবর্তন করা হয়েছে
         { amount: parseFloat(amount), address }, 
         config
       );
 
       if (response.data) {
-        // ড্যাশবোর্ডে ব্যালেন্স আপডেট করার জন্য
         setUser({ ...user, balance: response.data.newBalance });
         alert(`Withdrawal of $${amount} is successful!`);
         navigate('/dashboard');

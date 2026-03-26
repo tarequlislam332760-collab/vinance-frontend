@@ -1,21 +1,24 @@
-import React, { useState, useContext, useEffect } from 'react'; // ✅ useEffect যোগ করা হয়েছে
+import React, { useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { UserContext } from '../context/UserContext'; 
+
+// আপনার ভেরসেল ব্যাকএন্ড লিঙ্কটি এখানে দিন
+const API_BASE_URL = "https://vinance-backend.vercel.app"; 
 
 const TradePage = () => {
   const [tradeType, setTradeType] = useState('buy'); 
   const [amount, setAmount] = useState(''); 
   const { user, token, setUser } = useContext(UserContext);
   
-  // ✅ লাইভ প্রাইস স্টোর করার জন্য নতুন স্টেট
+  // লাইভ প্রাইস স্টোর করার স্টেট
   const [livePrice, setLivePrice] = useState(70880.45); 
 
-  // ✅ লাইভ প্রাইস ফেচ করার জন্য useEffect (প্রতি ৩০ সেকেন্ডে আপডেট হবে)
+  // লাইভ প্রাইস ফেচ করার জন্য useEffect
   useEffect(() => {
     const fetchLivePrice = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/crypto');
-        // আপনার ব্যাকএন্ড থেকে আসা BTC প্রাইস ফিল্টার করা হচ্ছে
+        // লোকালহোস্ট পরিবর্তন করে API_BASE_URL ব্যবহার করা হয়েছে
+        const res = await axios.get(`${API_BASE_URL}/api/crypto`);
         const btcData = res.data.find(coin => coin.symbol === 'BTC');
         if (btcData) {
           setLivePrice(btcData.price);
@@ -25,21 +28,22 @@ const TradePage = () => {
       }
     };
 
-    fetchLivePrice(); // পেজ লোড হলে কল হবে
-    const interval = setInterval(fetchLivePrice, 30000); // প্রতি ৩০ সেকেন্ড পরপর কল হবে
-    return () => clearInterval(interval); // পেজ থেকে চলে গেলে ইন্টারভাল বন্ধ হবে
+    fetchLivePrice(); 
+    const interval = setInterval(fetchLivePrice, 30000); 
+    return () => clearInterval(interval); 
   }, []);
 
   const handleTrade = async () => {
     if (!amount || amount <= 0) return alert("Please enter a valid amount");
 
     try {
-      const res = await axios.post('http://localhost:5000/api/trade', 
+      // লোকালহোস্ট পরিবর্তন করে API_BASE_URL ব্যবহার করা হয়েছে
+      const res = await axios.post(`${API_BASE_URL}/api/trade`, 
         { 
           type: tradeType, 
           amount: amount, 
           symbol: 'BTC',
-          price: livePrice // ✅ বর্তমান লাইভ প্রাইস পাঠানো হচ্ছে
+          price: livePrice 
         },
         { 
           headers: { Authorization: `Bearer ${token}` } 
@@ -50,7 +54,7 @@ const TradePage = () => {
       setUser(prev => ({ ...prev, balance: res.data.newBalance }));
       setAmount('');
     } catch (err) {
-      alert(err.response?.data?.message || "Trade failed. Is server running?");
+      alert(err.response?.data?.message || "Trade failed. Please check your connection.");
     }
   };
 
@@ -60,7 +64,6 @@ const TradePage = () => {
         <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-[#191d23]">
           <div className="flex items-center gap-4">
             <span className="font-bold text-lg text-white">BTC / USDT</span>
-            {/* ✅ এখানে লাইভ প্রাইস দেখানো হচ্ছে */}
             <span className="text-emerald-400 font-mono text-sm">${livePrice.toLocaleString()}</span>
           </div>
         </div>
@@ -83,7 +86,6 @@ const TradePage = () => {
           <div className="space-y-4">
             <div>
               <label className="text-xs text-gray-500 mb-1 block uppercase font-bold tracking-widest">Price (USDT)</label>
-              {/* ✅ ইনপুটেও লাইভ প্রাইস আপডেট হবে */}
               <input type="text" disabled className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl p-3 text-sm text-gray-400 font-mono" placeholder={livePrice.toLocaleString()} value={livePrice.toLocaleString()} />
             </div>
             <div>
