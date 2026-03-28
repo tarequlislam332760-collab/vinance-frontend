@@ -1,1 +1,47 @@
 @import "tailwindcss";
+
+/* Tailwind v4 Theme Configuration */
+@theme {
+  /* প্রধান কালারগুলো এখানে সেট করা হয়েছে */
+  --color-main-bg: #0b0e11;      /* একদম ডার্ক ব্যাকগ্রাউন্ড */
+  --color-card-bg: #1e2329;      /* কার্ড বা সেকশনের ব্যাকগ্রাউন্ড */
+  --color-primary: #f3ba2f;      /* বিন্যান্স গোল্ডেন কালার */
+  --color-primary-hover: #f0b90b;
+  --color-success: #0ecb81;      /* পজিটিভ/বাই কালার */
+  --color-danger: #f6465d;       /* নেগেটিভ/সেল কালার */
+  --color-border: #2b3139;       /* বর্ডার কালার */
+  
+  /* ফন্ট এবং অন্যান্য স্টাইল */
+  --font-mono: "Roboto Mono", monospace;
+}
+
+/* কাস্টম গ্লোবাল স্টাইল */
+@layer base {
+  body {
+    @apply bg-main-bg text-white antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* স্ক্রলবার কাস্টমাইজেশন (ডার্ক মোডের জন্য) */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0b0e11;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2b3139;
+    border-radius: 10px;
+  }
+}
+
+/* কাস্টম ইউটিলিটি ক্লাস (প্রয়োজন হলে) */
+@layer utilities {
+  .glass-effect {
+    @apply bg-opacity-10 backdrop-blur-md border border-white/10;
+  }
+  
+  .crypto-card {
+    @apply bg-card-bg border border-border rounded-[2rem] p-6 transition-all hover:border-primary/50;
+  }
+}

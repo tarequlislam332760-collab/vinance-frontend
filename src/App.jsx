@@ -14,6 +14,7 @@ import Deposit from './pages/Deposit';
 import Withdraw from './pages/Withdraw'; 
 import WalletPage from './pages/Wallet';
 
+// --- Register Component ---
 const Register = () => {
   const { API_URL } = useContext(UserContext);
   const navigate = useNavigate();
@@ -33,21 +34,22 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6 text-left">
-      <div className="w-full max-w-md bg-[#1e2329] border border-gray-800 rounded-3xl p-10 shadow-2xl">
-        <h1 className="text-3xl font-bold text-yellow-500 mb-6 italic uppercase tracking-tighter">VINANCE</h1>
+    <div className="min-h-screen bg-main-bg flex items-center justify-center p-6 text-left">
+      <div className="w-full max-w-md bg-card-bg border border-border rounded-3xl p-10 shadow-2xl">
+        <h1 className="text-3xl font-bold text-primary mb-6 italic uppercase tracking-tighter">VINANCE</h1>
         <form onSubmit={handleRegister} className="space-y-5">
-          <input type="text" placeholder="Full Name" required onChange={(e)=>setFormData({...formData, name: e.target.value})} className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl py-3 px-4 text-white outline-none focus:border-yellow-500" />
-          <input type="email" placeholder="Email" required onChange={(e)=>setFormData({...formData, email: e.target.value})} className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl py-3 px-4 text-white outline-none focus:border-yellow-500" />
-          <input type="password" placeholder="Password" required onChange={(e)=>setFormData({...formData, password: e.target.value})} className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl py-3 px-4 text-white outline-none focus:border-yellow-500" />
-          <button disabled={loading} className="w-full bg-yellow-500 text-black py-3.5 rounded-xl font-bold uppercase">{loading ? "Wait..." : "Register"}</button>
+          <input type="text" placeholder="Full Name" required onChange={(e)=>setFormData({...formData, name: e.target.value})} className="w-full bg-main-bg border border-border rounded-xl py-3 px-4 text-white outline-none focus:border-primary" />
+          <input type="email" placeholder="Email" required onChange={(e)=>setFormData({...formData, email: e.target.value})} className="w-full bg-main-bg border border-border rounded-xl py-3 px-4 text-white outline-none focus:border-primary" />
+          <input type="password" placeholder="Password" required onChange={(e)=>setFormData({...formData, password: e.target.value})} className="w-full bg-main-bg border border-border rounded-xl py-3 px-4 text-white outline-none focus:border-primary" />
+          <button disabled={loading} className="w-full bg-primary text-black py-3.5 rounded-xl font-bold uppercase hover:bg-primary-hover transition-colors">{loading ? "Wait..." : "Register"}</button>
         </form>
-        <p className="text-center mt-6 text-sm text-gray-400">Already have an account? <Link to="/login" className="text-yellow-500 hover:underline">Log In</Link></p>
+        <p className="text-center mt-6 text-sm text-gray-400">Already have an account? <Link to="/login" className="text-primary hover:underline">Log In</Link></p>
       </div>
     </div>
   );
 };
 
+// --- Login Component ---
 const Login = () => {
   const { setUser, setToken, refreshUser, API_URL } = useContext(UserContext);
   const navigate = useNavigate();
@@ -70,20 +72,21 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6 text-left">
-      <div className="w-full max-w-md bg-[#1e2329] border border-gray-800 rounded-3xl p-10 shadow-2xl">
-        <h1 className="text-3xl font-bold text-yellow-500 mb-6 italic uppercase tracking-tighter">VINANCE</h1>
+    <div className="min-h-screen bg-main-bg flex items-center justify-center p-6 text-left">
+      <div className="w-full max-w-md bg-card-bg border border-border rounded-3xl p-10 shadow-2xl">
+        <h1 className="text-3xl font-bold text-primary mb-6 italic uppercase tracking-tighter">VINANCE</h1>
         <form onSubmit={handleLogin} className="space-y-6">
-          <input type="email" placeholder="Email" required onChange={(e)=>setEmail(e.target.value)} className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl py-3 px-4 text-white outline-none focus:border-yellow-500" />
-          <input type="password" placeholder="Password" required onChange={(e)=>setPassword(e.target.value)} className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl py-3 px-4 text-white outline-none focus:border-yellow-500" />
-          <button type="submit" disabled={loading} className="w-full bg-yellow-500 text-black py-3.5 rounded-xl font-bold uppercase">{loading ? "Syncing..." : "Log In"}</button>
+          <input type="email" placeholder="Email" required onChange={(e)=>setEmail(e.target.value)} className="w-full bg-main-bg border border-border rounded-xl py-3 px-4 text-white outline-none focus:border-primary" />
+          <input type="password" placeholder="Password" required onChange={(e)=>setPassword(e.target.value)} className="w-full bg-main-bg border border-border rounded-xl py-3 px-4 text-white outline-none focus:border-primary" />
+          <button type="submit" disabled={loading} className="w-full bg-primary text-black py-3.5 rounded-xl font-bold uppercase hover:bg-primary-hover transition-colors">{loading ? "Syncing..." : "Log In"}</button>
         </form>
-        <p className="text-center mt-6 text-sm text-gray-400">Don't have an account? <Link to="/register" className="text-yellow-500 hover:underline">Register</Link></p>
+        <p className="text-center mt-6 text-sm text-gray-400">Don't have an account? <Link to="/register" className="text-primary hover:underline">Register</Link></p>
       </div>
     </div>
   );
 };
 
+// --- TradePage Component ---
 const TradePage = () => {
   const { coinSymbol } = useParams();
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
@@ -108,21 +111,21 @@ const TradePage = () => {
   };
 
   return (
-    <div className="p-4 md:p-8 flex flex-col lg:flex-row gap-6 text-left">
-      <div className="flex-1 bg-[#1e2329] border border-gray-800 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden h-[300px] md:h-[500px] shadow-2xl">
+    <div className="p-4 md:p-8 flex flex-col lg:flex-row gap-6 text-left bg-main-bg">
+      <div className="flex-1 bg-card-bg border border-border rounded-[2rem] overflow-hidden h-[300px] md:h-[500px] shadow-2xl">
         <iframe title="TV" src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${(coinSymbol || 'btc').toUpperCase()}USDT&theme=dark`} style={{ width: '100%', height: '100%', border: 'none' }}></iframe>
       </div>
-      <div className="w-full lg:w-96 bg-[#1e2329] border border-gray-800 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 shadow-2xl">
-        <div className="flex gap-2 mb-6 p-1 bg-[#0b0e11] rounded-2xl">
-          <button onClick={() => setTradeType('buy')} className={`flex-1 py-3 rounded-xl font-bold uppercase text-xs ${tradeType === 'buy' ? 'bg-emerald-500 text-black' : 'text-gray-500'}`}>Buy</button>
-          <button onClick={() => setTradeType('sell')} className={`flex-1 py-3 rounded-xl font-bold uppercase text-xs ${tradeType === 'sell' ? 'bg-red-500 text-white' : 'text-gray-500'}`}>Sell</button>
+      <div className="w-full lg:w-96 bg-card-bg border border-border rounded-[2rem] p-6 md:p-8 shadow-2xl">
+        <div className="flex gap-2 mb-6 p-1 bg-main-bg rounded-2xl">
+          <button onClick={() => setTradeType('buy')} className={`flex-1 py-3 rounded-xl font-bold uppercase text-xs ${tradeType === 'buy' ? 'bg-success text-black' : 'text-gray-500'}`}>Buy</button>
+          <button onClick={() => setTradeType('sell')} className={`flex-1 py-3 rounded-xl font-bold uppercase text-xs ${tradeType === 'sell' ? 'bg-danger text-white' : 'text-gray-500'}`}>Sell</button>
         </div>
         <div className="flex justify-between text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-widest">
             <span>Available Balance</span>
             <span className="text-white">${user?.balance?.toLocaleString(undefined, { minimumFractionDigits: 2 }) || '0.00'}</span>
         </div>
-        <input type="number" value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="0.00 USDT" className="w-full bg-[#0b0e11] border border-gray-800 rounded-2xl p-4 text-white outline-none mb-4 font-mono" />
-        <button disabled={loading} onClick={handleTrade} className={`w-full py-4 rounded-2xl font-bold uppercase tracking-widest ${tradeType === 'buy' ? 'bg-yellow-500 text-black' : 'bg-red-500 text-white'}`}>
+        <input type="number" value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="0.00 USDT" className="w-full bg-main-bg border border-border rounded-2xl p-4 text-white outline-none mb-4 font-mono" />
+        <button disabled={loading} onClick={handleTrade} className={`w-full py-4 rounded-2xl font-bold uppercase tracking-widest ${tradeType === 'buy' ? 'bg-primary text-black' : 'bg-danger text-white'}`}>
           {loading ? "Processing..." : `Execute ${tradeType}`}
         </button>
       </div>
@@ -130,6 +133,7 @@ const TradePage = () => {
   );
 };
 
+// --- Dashboard Component ---
 const Dashboard = ({ cryptoData }) => {
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
   const navigate = useNavigate();
@@ -147,12 +151,13 @@ const Dashboard = ({ cryptoData }) => {
       } catch (err) { console.warn("Activity fetching issue"); }
     };
     fetchTransactions();
-  }, [token, API_URL]);
+  }, [token, API_URL, refreshUser]);
 
   return (
-    <div className="p-4 md:p-8 text-left space-y-6 md:space-y-10">
-      <div className="bg-gradient-to-br from-[#1e2329] to-[#0b0e11] p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-gray-800 flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl relative overflow-hidden group">
-        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform hidden md:block"><Activity size={100} /></div>
+    <div className="p-4 md:p-8 text-left space-y-6 md:space-y-10 bg-main-bg min-h-screen">
+      {/* Updated Balance Card using your theme colors */}
+      <div className="bg-gradient-to-br from-card-bg to-main-bg p-6 md:p-8 rounded-[2.5rem] border border-border flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform hidden md:block text-primary"><Activity size={100} /></div>
         <div className="w-full md:w-auto z-10 text-center md:text-left">
           <p className="text-gray-500 text-[10px] uppercase tracking-[0.3em] font-black mb-2">Estimated Balance</p>
           <h1 className="text-3xl md:text-5xl font-mono font-black text-white tracking-tighter">
@@ -160,34 +165,34 @@ const Dashboard = ({ cryptoData }) => {
           </h1>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto z-10">
-          <button onClick={() => navigate('/deposit')} className="flex-1 bg-yellow-500 text-black px-8 py-3.5 md:py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg hover:bg-yellow-400 transition-all">Deposit</button>
-          <button onClick={() => navigate('/withdraw')} className="flex-1 bg-white/5 text-white px-8 py-3.5 md:py-4 rounded-2xl font-black border border-gray-800 uppercase text-xs tracking-widest hover:bg-white/10 transition-all">Withdraw</button>
+          <button onClick={() => navigate('/deposit')} className="flex-1 bg-primary text-black px-8 py-3.5 md:py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg hover:bg-primary-hover transition-all">Deposit</button>
+          <button onClick={() => navigate('/withdraw')} className="flex-1 bg-white/5 text-white px-8 py-3.5 md:py-4 rounded-2xl font-black border border-border uppercase text-xs tracking-widest hover:bg-white/10 transition-all">Withdraw</button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
         <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
           {cryptoData.map((coin) => (
-            <div key={coin.id} onClick={() => navigate(`/trade/${coin.symbol}`)} className="bg-[#1e2329] p-5 md:p-6 rounded-[2rem] border border-gray-800 cursor-pointer hover:border-yellow-500/50 transition-all group shadow-lg">
+            <div key={coin.id} onClick={() => navigate(`/trade/${coin.symbol}`)} className="bg-card-bg p-5 md:p-6 rounded-[2rem] border border-border cursor-pointer hover:border-primary/50 transition-all group shadow-lg">
               <div className="flex justify-between mb-4 text-[10px] font-black uppercase tracking-widest">
-                <span className="text-yellow-500">{coin.symbol.toUpperCase()}/USDT</span>
-                <span className={coin.up ? 'text-emerald-400' : 'text-red-400'}>{coin.change}%</span>
+                <span className="text-primary">{coin.symbol.toUpperCase()}/USDT</span>
+                <span className={coin.up ? 'text-success' : 'text-danger'}>{coin.change}%</span>
               </div>
               <p className="text-xl md:text-2xl font-black text-white tracking-tighter font-mono">${coin.price}</p>
             </div>
           ))}
         </div>
 
-        <div className="bg-[#1e2329] border border-gray-800 rounded-[2rem] md:rounded-[2.5rem] p-6 shadow-xl">
+        <div className="bg-card-bg border border-border rounded-[2.5rem] p-6 shadow-xl">
           <h3 className="text-white font-black uppercase text-[10px] mb-6 flex items-center gap-2 tracking-[0.2em]">
-            <Activity size={14} className="text-yellow-500" /> Recent Activity
+            <Activity size={14} className="text-primary" /> Recent Activity
           </h3>
           <div className="space-y-4">
             {transactions.length > 0 ? (
               transactions.slice(0, 5).map((trx) => (
-                <div key={trx._id} className="flex justify-between items-center p-3 hover:bg-white/[0.03] rounded-2xl border border-transparent hover:border-gray-800 transition-all">
+                <div key={trx._id} className="flex justify-between items-center p-3 hover:bg-white/[0.03] rounded-2xl border border-transparent hover:border-border transition-all">
                   <div className="flex items-center gap-2">
-                    <div className={trx.type === 'deposit' ? 'text-emerald-500' : 'text-red-500'}>
+                    <div className={trx.type === 'deposit' ? 'text-success' : 'text-danger'}>
                       {trx.type === 'deposit' ? <ArrowDownLeft size={14}/> : <ArrowUpRight size={14}/>}
                     </div>
                     <div>
@@ -197,7 +202,7 @@ const Dashboard = ({ cryptoData }) => {
                   </div>
                   <div className="text-right">
                     <p className="font-mono font-bold text-xs text-white">${trx.amount}</p>
-                    <p className={`text-[8px] font-black uppercase ${trx.status === 'completed' ? 'text-emerald-500' : 'text-yellow-500'}`}>{trx.status}</p>
+                    <p className={`text-[8px] font-black uppercase ${trx.status === 'completed' ? 'text-success' : 'text-primary'}`}>{trx.status}</p>
                   </div>
                 </div>
               ))
@@ -205,31 +210,32 @@ const Dashboard = ({ cryptoData }) => {
               <p className="text-center py-10 text-gray-600 text-[10px] font-black uppercase tracking-widest italic">No activity yet</p>
             )}
           </div>
-          <button onClick={() => navigate('/wallet')} className="w-full mt-6 py-3 text-[9px] font-black text-gray-500 uppercase tracking-widest border-t border-gray-800 hover:text-yellow-500 transition-all">View All History</button>
+          <button onClick={() => navigate('/wallet')} className="w-full mt-6 py-3 text-[9px] font-black text-gray-500 uppercase tracking-widest border-t border-border hover:text-primary transition-all">View All History</button>
         </div>
       </div>
     </div>
   );
 };
 
+// --- Market Component ---
 const Market = ({ cryptoData }) => {
   const navigate = useNavigate();
   return (
-    <div className="p-4 md:p-10 text-left pb-24 md:pb-10">
-      <div className="mb-10"><h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter flex items-center gap-3">Market <Activity className="text-yellow-500" size={32} /></h2></div>
-      <div className="bg-[#1e2329] rounded-[2rem] md:rounded-[2.5rem] border border-gray-800 overflow-hidden shadow-2xl">
+    <div className="p-4 md:p-10 text-left pb-24 md:pb-10 bg-main-bg">
+      <div className="mb-10"><h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter flex items-center gap-3">Market <Activity className="text-primary" size={32} /></h2></div>
+      <div className="bg-card-bg rounded-[2.5rem] border border-border overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[600px]">
-            <thead className="bg-[#0b0e11]/50 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+            <thead className="bg-main-bg/50 text-[10px] font-black text-gray-500 uppercase tracking-widest">
               <tr><th className="p-6 md:p-8 text-left">Asset</th><th className="p-6 md:p-8 text-left">Price</th><th className="p-6 md:p-8 text-left">24h Change</th><th className="p-8 text-right">Action</th></tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/50">
+            <tbody className="divide-y divide-border/50">
               {cryptoData.map((coin) => (
                 <tr key={coin.id} className="hover:bg-white/[0.03] group">
                   <td className="p-6 md:p-8 font-black text-white text-md md:text-lg uppercase">{coin.name} <span className="text-[10px] text-gray-500 ml-2">{coin.symbol.toUpperCase()}</span></td>
                   <td className="p-6 md:p-8 font-mono font-black text-md md:text-lg text-white">${coin.price}</td>
-                  <td className={`p-6 md:p-8 font-mono font-black ${coin.up ? 'text-emerald-400' : 'text-red-400'}`}>{coin.up ? '+' : ''}{coin.change}%</td>
-                  <td className="p-8 text-right"><button onClick={() => navigate(`/trade/${coin.symbol}`)} className="bg-yellow-500 text-black px-6 py-3 rounded-xl font-black text-[10px] uppercase">Trade</button></td>
+                  <td className={`p-6 md:p-8 font-mono font-black ${coin.up ? 'text-success' : 'text-danger'}`}>{coin.up ? '+' : ''}{coin.change}%</td>
+                  <td className="p-8 text-right"><button onClick={() => navigate(`/trade/${coin.symbol}`)} className="bg-primary text-black px-6 py-3 rounded-xl font-black text-[10px] uppercase">Trade</button></td>
                 </tr>
               ))}
             </tbody>
@@ -240,17 +246,19 @@ const Market = ({ cryptoData }) => {
   );
 };
 
+// --- Helper Navigation Item ---
 const NavItem = ({ to, icon, label }) => (
-  <NavLink to={to} className={({ isActive }) => `flex items-center gap-4 p-3.5 rounded-xl transition-all ${isActive ? 'text-yellow-500 bg-yellow-500/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+  <NavLink to={to} className={({ isActive }) => `flex items-center gap-4 p-3.5 rounded-xl transition-all ${isActive ? 'text-primary bg-primary/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
     {icon} <span className="hidden lg:inline font-black text-xs uppercase tracking-widest">{label}</span>
   </NavLink>
 );
 
+// --- Main Layout/AppContent ---
 const AppContent = ({ cryptoData }) => {
   const { user, token, logout, loading: authLoading } = useContext(UserContext);
   const location = useLocation();
 
-  if (authLoading) return <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center text-yellow-500 font-black text-4xl uppercase italic animate-pulse">VINANCE</div>;
+  if (authLoading) return <div className="min-h-screen bg-main-bg flex items-center justify-center text-primary font-black text-4xl uppercase italic animate-pulse">VINANCE</div>;
 
   const isAuthPage = ['/login', '/register'].includes(location.pathname);
   const isHomePage = location.pathname === '/';
@@ -258,10 +266,10 @@ const AppContent = ({ cryptoData }) => {
   if (!token && !isAuthPage && !isHomePage) return <Navigate to="/login" replace />;
 
   return (
-    <div className="min-h-screen bg-[#0b0e11] text-white flex flex-col md:flex-row overflow-hidden text-left">
+    <div className="min-h-screen bg-main-bg text-white flex flex-col md:flex-row overflow-hidden text-left">
       {token && !isHomePage && (
-        <aside className="w-20 lg:w-64 bg-[#1e2329] border-r border-gray-800 hidden md:flex flex-col p-4 h-screen sticky top-0 z-40">
-          <div className="mb-12 px-4 py-2 text-2xl font-black text-yellow-500 italic uppercase">VINANCE</div>
+        <aside className="w-20 lg:w-64 bg-card-bg border-r border-border hidden md:flex flex-col p-4 h-screen sticky top-0 z-40">
+          <div className="mb-12 px-4 py-2 text-2xl font-black text-primary italic uppercase">VINANCE</div>
           <nav className="space-y-3 flex-1">
             <NavItem to="/dashboard" icon={<LayoutDashboard size={20}/>} label="Dashboard" />
             <NavItem to="/market" icon={<BarChart3 size={20}/>} label="Market" />
@@ -269,7 +277,7 @@ const AppContent = ({ cryptoData }) => {
             <NavItem to="/wallet" icon={<Wallet size={20}/>} label="Wallet" />
             {user?.role === 'admin' && <NavItem to="/admin" icon={<ShieldCheck size={20}/>} label="Admin" />}
           </nav>
-          <button onClick={logout} className="p-4 text-gray-500 hover:text-red-500 flex items-center gap-4 font-bold border-t border-gray-800/50">
+          <button onClick={logout} className="p-4 text-gray-500 hover:text-danger flex items-center gap-4 font-bold border-t border-border/50">
             <LogOut size={20}/> <span className="hidden lg:inline text-[10px] font-black uppercase">Sign Out</span>
           </button>
         </aside>
@@ -277,13 +285,13 @@ const AppContent = ({ cryptoData }) => {
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
         {token && !isHomePage && (
-          <header className="h-16 border-b border-gray-800 bg-[#1e2329]/80 flex items-center justify-between px-6 sticky top-0 z-30 backdrop-blur-md">
-            <div className="font-black text-[9px] uppercase tracking-[0.2em]">User: <span className="text-yellow-500 ml-1">{user?.name}</span></div>
+          <header className="h-16 border-b border-border bg-card-bg/80 flex items-center justify-between px-6 sticky top-0 z-30 backdrop-blur-md">
+            <div className="font-black text-[9px] uppercase tracking-[0.2em]">User: <span className="text-primary ml-1">{user?.name}</span></div>
             <NotificationSystem />
           </header>
         )}
 
-        <div className={`flex-1 overflow-y-auto bg-[#0b0e11] ${token && !isHomePage ? 'pb-24 md:pb-8' : ''}`}>
+        <div className={`flex-1 overflow-y-auto bg-main-bg ${token && !isHomePage ? 'pb-24 md:pb-8' : ''}`}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -300,11 +308,11 @@ const AppContent = ({ cryptoData }) => {
       </main>
 
       {token && !isHomePage && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-[#1e2329] border-t border-gray-800 flex justify-around py-5 md:hidden z-50">
-          <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-yellow-500" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
-          <NavLink to="/market" className={({isActive})=> isActive ? "text-yellow-500" : "text-gray-400"}><BarChart3 size={22}/></NavLink>
-          <NavLink to="/trade/btc" className={({isActive})=> isActive ? "text-yellow-500" : "text-gray-400"}><TrendingUp size={22}/></NavLink>
-          <NavLink to="/wallet" className={({isActive})=> isActive ? "text-yellow-500" : "text-gray-400"}><Wallet size={22}/></NavLink>
+        <nav className="fixed bottom-0 left-0 right-0 bg-card-bg border-t border-border flex justify-around py-5 md:hidden z-50">
+          <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
+          <NavLink to="/market" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><BarChart3 size={22}/></NavLink>
+          <NavLink to="/trade/btc" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><TrendingUp size={22}/></NavLink>
+          <NavLink to="/wallet" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><Wallet size={22}/></NavLink>
         </nav>
       )}
     </div>
