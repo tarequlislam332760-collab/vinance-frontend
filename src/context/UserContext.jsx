@@ -8,9 +8,10 @@ export const UserProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
+  // --- আপডেট করা লিঙ্ক ---
   const API_URL = window.location.hostname === "localhost" 
     ? "http://localhost:5000" 
-    : "https://my-trading-backend-rji1.vercel.app"; // আপনার ভেরসেল ব্যাকএন্ড লিঙ্কটি এখানে দিন
+    : "https://vinance-backend.vercel.app"; // আমি আপনার সঠিক লিঙ্কটি এখানে বসিয়ে দিয়েছি
 
   const logout = useCallback(() => {
     localStorage.removeItem('token');
@@ -41,7 +42,6 @@ export const UserProvider = ({ children }) => {
     }
   }, [API_URL, logout]);
 
-  // যখনই টোকেন স্টেট চেঞ্জ হবে (লগইন বা আউট), তখনই প্রোফাইল রিলোড হবে
   useEffect(() => {
     refreshUser();
   }, [token, refreshUser]);
@@ -51,7 +51,7 @@ export const UserProvider = ({ children }) => {
       user, 
       token, 
       setUser, 
-      setToken, // এটি এক্সপোর্ট করা জরুরি যাতে Login.js থেকে কল করা যায়
+      setToken, 
       logout, 
       refreshUser, 
       API_URL, 
