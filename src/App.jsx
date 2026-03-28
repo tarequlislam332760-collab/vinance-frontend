@@ -112,7 +112,6 @@ const TradePage = () => {
 
   return (
     <div className="p-4 md:p-8 flex flex-col lg:flex-row gap-6 text-left bg-main-bg pb-32 md:pb-8">
-      {/* Mobile-friendly Height for Chart */}
       <div className="flex-1 bg-card-bg border border-border rounded-[2rem] overflow-hidden h-[400px] md:h-[500px] shadow-2xl">
         <iframe title="TV" src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${(coinSymbol || 'btc').toUpperCase()}USDT&theme=dark`} style={{ width: '100%', height: '100%', border: 'none' }}></iframe>
       </div>
@@ -134,8 +133,7 @@ const TradePage = () => {
   );
 };
 
-// --- Dashboard, Market, and AppContent remain largely same with mobile sign out added ---
-// (Dashboard and Market sections follow original structure)
+// --- Dashboard Component ---
 const Dashboard = ({ cryptoData }) => {
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
   const navigate = useNavigate();
@@ -171,7 +169,7 @@ const Dashboard = ({ cryptoData }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 pb-10">
         <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
           {cryptoData.map((coin) => (
             <div key={coin.id} onClick={() => navigate(`/trade/${coin.symbol}`)} className="bg-card-bg p-5 md:p-6 rounded-[2rem] border border-border cursor-pointer hover:border-primary/50 transition-all group shadow-lg">
@@ -184,7 +182,7 @@ const Dashboard = ({ cryptoData }) => {
           ))}
         </div>
 
-        <div className="bg-card-bg border border-border rounded-[2.5rem] p-6 shadow-xl">
+        <div className="bg-card-bg border border-border rounded-[2.5rem] p-6 shadow-xl h-fit">
           <h3 className="text-white font-black uppercase text-[10px] mb-6 flex items-center gap-2 tracking-[0.2em]">
             <Activity size={14} className="text-primary" /> Recent Activity
           </h3>
@@ -218,10 +216,11 @@ const Dashboard = ({ cryptoData }) => {
   );
 };
 
+// --- Market Component ---
 const Market = ({ cryptoData }) => {
   const navigate = useNavigate();
   return (
-    <div className="p-4 md:p-10 text-left pb-32 md:pb-10 bg-main-bg">
+    <div className="p-4 md:p-10 text-left pb-32 md:pb-10 bg-main-bg min-h-screen">
       <div className="mb-10"><h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter flex items-center gap-3">Market <Activity className="text-primary" size={32} /></h2></div>
       <div className="bg-card-bg rounded-[2.5rem] border border-border overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
@@ -252,6 +251,7 @@ const NavItem = ({ to, icon, label }) => (
   </NavLink>
 );
 
+// --- Main Layout/AppContent ---
 const AppContent = ({ cryptoData }) => {
   const { user, token, logout, loading: authLoading } = useContext(UserContext);
   const location = useLocation();
@@ -264,10 +264,11 @@ const AppContent = ({ cryptoData }) => {
   if (!token && !isAuthPage && !isHomePage) return <Navigate to="/login" replace />;
 
   return (
-    <div className="min-h-screen bg-main-bg text-white flex flex-col md:flex-row overflow-hidden text-left">
+    <div className="min-h-screen bg-main-bg text-white flex flex-col md:flex-row overflow-hidden text-left font-sans">
+      {/* Desktop Sidebar */}
       {token && !isHomePage && (
         <aside className="w-20 lg:w-64 bg-card-bg border-r border-border hidden md:flex flex-col p-4 h-screen sticky top-0 z-40">
-          <div className="mb-12 px-4 py-2 text-2xl font-black text-primary italic uppercase">VINANCE</div>
+          <div className="mb-12 px-4 py-2 text-2xl font-black text-primary italic uppercase tracking-tighter">VINANCE</div>
           <nav className="space-y-3 flex-1">
             <NavItem to="/dashboard" icon={<LayoutDashboard size={20}/>} label="Dashboard" />
             <NavItem to="/market" icon={<BarChart3 size={20}/>} label="Market" />
@@ -305,12 +306,19 @@ const AppContent = ({ cryptoData }) => {
         </div>
       </main>
 
-      {/* Mobile Nav with Sign Out */}
+      {/* Complete Mobile Bottom Navigation */}
       {token && !isHomePage && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-card-bg border-t border-border flex justify-around py-5 md:hidden z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
+        <nav className="fixed bottom-0 left-0 right-0 bg-card-bg border-t border-border flex justify-around items-center py-5 md:hidden z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
           <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
+          <NavLink to="/market" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><BarChart3 size={22}/></NavLink>
           <NavLink to="/trade/btc" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><TrendingUp size={22}/></NavLink>
           <NavLink to="/wallet" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><Wallet size={22}/></NavLink>
+          
+          {/* Admin Icon for Mobile */}
+          {user?.role === 'admin' && (
+            <NavLink to="/admin" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><ShieldCheck size={22}/></NavLink>
+          )}
+          
           {/* Sign Out for Mobile */}
           <button onClick={logout} className="text-gray-400 hover:text-danger"><LogOut size={22}/></button>
         </nav>
