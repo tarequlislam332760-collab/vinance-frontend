@@ -14,11 +14,12 @@ import Deposit from './pages/Deposit';
 import Withdraw from './pages/Withdraw'; 
 import WalletPage from './pages/Wallet';
 
-// --- API Configuration (Fixed for Localhost) ---
+// --- API Configuration (Updated for Your Vercel Backend) ---
 const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 
 const api = axios.create({
-  baseURL: isLocal ? "http://localhost:5000" : "https://my-trading-backend-rji1.vercel.app",
+  // আপনার নতুন ব্যাকএন্ড লিঙ্ক এখানে বসানো হয়েছে
+  baseURL: isLocal ? "http://localhost:5000" : "https://vinance-backend.vercel.app",
   withCredentials: true 
 });
 
@@ -101,7 +102,7 @@ const Login = () => {
   );
 };
 
-// --- ৩. ট্রেড পেজ (Fixed with Console Logs) ---
+// --- ৩. ট্রেড পেজ ---
 const TradePage = () => {
   const { coinSymbol } = useParams();
   const { user, refreshUser } = useContext(UserContext);
@@ -113,7 +114,6 @@ const TradePage = () => {
     if (!amount || parseFloat(amount) <= 0) return alert("Enter valid amount");
     setLoading(true);
     try {
-      console.log("🚀 Trade Sent:", { type: tradeType, amount, symbol: coinSymbol });
       const res = await api.post('/api/trade', { 
         type: tradeType, 
         amount: parseFloat(amount), 
@@ -123,7 +123,6 @@ const TradePage = () => {
       await refreshUser(); 
       setAmount('');
     } catch (err) { 
-      console.error("❌ Trade Error:", err.response?.data || err.message);
       alert(err.response?.data?.message || "Trade failed"); 
     } finally { setLoading(false); }
   };
