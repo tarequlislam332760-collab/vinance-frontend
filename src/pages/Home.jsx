@@ -4,25 +4,21 @@ import { Search, ArrowRight, Shield, Zap, Globe } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from "../components/Navbar";
 
-// ১. এই নিচের লিঙ্কটি আপনার নিজের Vercel Backend URL দিয়ে পরিবর্তন করুন
-const API_BASE_URL = "https://vinance-backend.vercel.app"; 
-
 const Home = () => {
   const [message, setMessage] = useState("");
-  const [stats, setStats] = useState(null); 
+  const [stats, setStats] = useState(null); // ব্যাকেন্ড থেকে আসা নাম্বারের জন্য
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    // ব্যাকএন্ড থেকে ডাটা আনা
+    // ১. ব্যাকেন্ড থেকে মেসেজ এবং প্ল্যাটফর্ম স্ট্যাটস (Numbers) আনা
     const fetchHomeData = async () => {
       try {
-        // localhost:5000 এর বদলে এখন Vercel লিঙ্ক ব্যবহার হচ্ছে
-        const messageRes = await axios.get(`${API_BASE_URL}/api/message`);
+        const messageRes = await axios.get('http://localhost:5000/api/message');
         setMessage(messageRes.data.message);
 
-        // যদি আপনার ব্যাকএন্ডে স্ট্যাটস এপিআই থাকে তবে এটি আনলক করতে পারেন
-        // const statsRes = await axios.get(`${API_BASE_URL}/api/stats`);
+        // যদি আপনার ব্যাকেন্ডে স্ট্যাটস এপিআই থাকে (যেমন: মোট কত আইটেম আছে)
+        // const statsRes = await axios.get('http://localhost:5000/api/stats');
         // setStats(statsRes.data);
       } catch (err) {
         console.error("Connection error:", err);
@@ -33,6 +29,7 @@ const Home = () => {
     fetchHomeData();
   }, []);
 
+  // সার্চ হ্যান্ডলার
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -54,8 +51,8 @@ const Home = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <header className="pt-32 pb-20 px-6 border-b border-gray-900 text-center">
-        <div className="max-w-5xl mx-auto">
+      <header className="pt-32 pb-20 px-6 border-b border-gray-900">
+        <div className="max-w-5xl mx-auto text-center">
           {message && (
             <div className="inline-block bg-yellow-500/10 text-yellow-500 text-[10px] md:text-xs font-bold px-4 py-1.5 rounded-full mb-6 border border-yellow-500/20 uppercase tracking-[0.2em] animate-pulse">
               {message}
@@ -72,6 +69,7 @@ const Home = () => {
             Join thousands of traders and developers today.
           </p>
 
+          {/* সার্চ বক্স এখন কাজ করবে */}
           <form onSubmit={handleSearch} className="bg-white rounded-full p-1.5 flex items-center shadow-2xl max-w-3xl mx-auto overflow-hidden border-4 border-gray-800/50">
             <input 
               type="text" 
@@ -88,7 +86,7 @@ const Home = () => {
         </div>
       </header>
 
-      {/* Category Grid */}
+      {/* Category Grid - ক্লিকেবল করা হয়েছে */}
       <section className="py-24 px-6 max-w-7xl mx-auto">
         <div className="flex justify-between items-end mb-12">
           <div className="text-left">
@@ -144,6 +142,7 @@ const Home = () => {
               Create Free Account
             </Link>
           </div>
+          {/* Background Decoration */}
           <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-yellow-400/20 rounded-full blur-3xl"></div>
         </div>
       </section>

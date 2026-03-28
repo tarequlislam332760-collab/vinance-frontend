@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import API from '../api'; 
+import API from '../api'; // ✅ আপনার তৈরি করা API ফাইলটি ইমপোর্ট করুন
 import { Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 
 const Register = () => {
@@ -17,45 +17,41 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
-    
-    if (!formData.agree) {
-      alert("Please agree to the Terms of Service");
-      return;
+    if (!formData.agree) { 
+      setError("Please agree to the Terms of Service"); 
+      return; 
     }
-
     setIsSubmitting(true);
+    
     try {
       const { name, email, password } = formData;
+      // ✅ এখানে আমরা সরাসরি API.post ব্যবহার করছি
+      const response = await API.post('/api/register', { name, email, password });
       
-      // ✅ API ফাইল ব্যবহার করে রেজিস্ট্রেশন (শুধুমাত্র /register)
-      const res = await API.post('/register', { name, email, password });
-      
-      if (res.data.success) {
+      if (response.data.success) {
         alert("Registration Successful! Please login.");
         navigate('/login');
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed. Please try again.");
+      // ✅ এরর মেসেজটি আপনার ডিজাইন করা এরর বক্সে দেখাবে
+      setError(err.response?.data?.message || "Registration failed. Server is not responding.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6 relative overflow-hidden text-left font-sans">
+    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6 relative overflow-hidden text-left">
+      {/* আপনার ডিজাইন করা সব ব্যাকগ্রাউন্ড এলিমেন্ট এবং ফর্ম এখানে আগের মতোই থাকবে */}
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-emerald-500/10 rounded-full blur-[120px]"></div>
       <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-yellow-500/10 rounded-full blur-[120px]"></div>
-
+      
       <div className="w-full max-w-md bg-[#1e2329] border border-gray-800 rounded-3xl p-10 shadow-2xl relative z-10">
-        <h1 className="text-3xl font-bold text-yellow-500 mb-2 italic text-left uppercase">VINANCE</h1>
+        <h1 className="text-3xl font-bold text-yellow-500 mb-2 italic">VINANCE</h1>
         <p className="text-gray-400 mb-8 font-medium">Create your trading account</p>
-
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-xl text-sm mb-6 animate-pulse">
-            {error}
-          </div>
-        )}
-
+        
+        {error && <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-xl text-sm mb-6">{error}</div>}
+        
         <form onSubmit={handleRegister} className="space-y-5">
           <div>
             <label className="text-sm text-gray-400 mb-2 block font-semibold">Full Name</label>
@@ -64,7 +60,7 @@ const Register = () => {
               <input type="text" name="name" required value={formData.name} onChange={handleChange} placeholder="Enter your name" className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl py-3 pl-10 pr-4 text-sm outline-none focus:border-yellow-500 transition-all text-white" />
             </div>
           </div>
-
+          
           <div>
             <label className="text-sm text-gray-400 mb-2 block font-semibold">Email Address</label>
             <div className="relative group">
@@ -72,7 +68,7 @@ const Register = () => {
               <input type="email" name="email" required value={formData.email} onChange={handleChange} placeholder="Enter your email" className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl py-3 pl-10 pr-4 text-sm outline-none focus:border-yellow-500 transition-all text-white" />
             </div>
           </div>
-
+          
           <div>
             <label className="text-sm text-gray-400 mb-2 block font-semibold">Password</label>
             <div className="relative group">
@@ -80,17 +76,17 @@ const Register = () => {
               <input type="password" name="password" required value={formData.password} onChange={handleChange} placeholder="Create a strong password" className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl py-3 pl-10 pr-4 text-sm outline-none focus:border-yellow-500 transition-all text-white" />
             </div>
           </div>
-
-          <div className="flex items-center gap-2 px-1 text-left">
+          
+          <div className="flex items-center gap-2 px-1">
             <input type="checkbox" name="agree" checked={formData.agree} onChange={handleChange} className="accent-yellow-500" id="terms" />
-            <label htmlFor="terms" className="text-xs text-gray-500 cursor-pointer">I agree to the <span className="text-gray-300 underline font-medium">Terms of Service</span></label>
+            <label htmlFor="terms" className="text-xs text-gray-500 cursor-pointer">I agree to the <span className="text-gray-300 underline">Terms of Service</span></label>
           </div>
-
+          
           <button type="submit" disabled={isSubmitting} className="w-full bg-yellow-500 text-black py-3.5 rounded-xl font-bold hover:bg-yellow-400 transition-all active:scale-95 flex items-center justify-center gap-2 shadow-xl shadow-yellow-500/10 mt-2 disabled:opacity-70">
             {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <>Create Account <ArrowRight size={18} /></>}
           </button>
         </form>
-
+        
         <p className="text-gray-500 text-sm mt-8 text-center font-medium">Already have an account? <Link to="/login" className="text-yellow-500 font-bold ml-1 hover:underline">Log In</Link></p>
       </div>
     </div>
