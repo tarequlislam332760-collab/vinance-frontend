@@ -14,25 +14,9 @@ import Deposit from './pages/Deposit';
 import Withdraw from './pages/Withdraw'; 
 import WalletPage from './pages/Wallet';
 
-// --- API Configuration (Updated for Your Vercel Backend) ---
-const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-
-const api = axios.create({
-  // আপনার নতুন ব্যাকএন্ড লিঙ্ক এখানে বসানো হয়েছে
-  baseURL: isLocal ? "http://localhost:5000" : "https://vinance-backend.vercel.app",
-  withCredentials: true 
-});
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
 // --- ১. রেজিস্টার পেজ ---
 const Register = () => {
+  const { API_URL } = useContext(UserContext);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
@@ -41,7 +25,7 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await api.post(`/api/register`, { ...formData, email: formData.email.toLowerCase() });
+      await axios.post(`${API_URL}/api/register`, { ...formData, email: formData.email.toLowerCase() });
       alert("Registration Successful! Please Login.");
       navigate('/login');
     } catch (err) { 
@@ -67,7 +51,7 @@ const Register = () => {
 
 // --- ২. লগইন পেজ ---
 const Login = () => {
-  const { setUser, setToken, refreshUser } = useContext(UserContext);
+  const { setUser, setToken, refreshUser, API_URL } = useContext(UserContext);
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -77,11 +61,11 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await api.post(`/api/login`, { email: email.toLowerCase(), password });
+      const res = await axios.post(`${API_URL}/api/login`, { email: email.toLowerCase(), password });
       localStorage.setItem('token', res.data.token);
       setToken(res.data.token);
       setUser(res.data.user);
-      await refreshUser(); 
+      if (refreshUser) await refreshUser(); 
       navigate('/dashboard');
     } catch (err) { alert(err.response?.data?.message || "Login Failed"); } 
     finally { setLoading(false); }
@@ -105,7 +89,7 @@ const Login = () => {
 // --- ৩. ট্রেড পেজ ---
 const TradePage = () => {
   const { coinSymbol } = useParams();
-  const { user, refreshUser } = useContext(UserContext);
+  const { user, refreshUser, API_URL, token } = useContext(UserContext);
   const [tradeType, setTradeType] = useState('buy');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
@@ -114,13 +98,12 @@ const TradePage = () => {
     if (!amount || parseFloat(amount) <= 0) return alert("Enter valid amount");
     setLoading(true);
     try {
-      const res = await api.post('/api/trade', { 
-        type: tradeType, 
-        amount: parseFloat(amount), 
-        symbol: (coinSymbol || 'btc').toUpperCase() 
-      });
+      const res = await axios.post(`${API_URL}/api/trade`, 
+        { type: tradeType, amount: parseFloat(amount), symbol: (coinSymbol || 'btc').toUpperCase() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       alert(res.data.message);
-      await refreshUser(); 
+      if (refreshUser) await refreshUser(); 
       setAmount('');
     } catch (err) { 
       alert(err.response?.data?.message || "Trade failed"); 
@@ -129,10 +112,10 @@ const TradePage = () => {
 
   return (
     <div className="p-4 md:p-8 flex flex-col lg:flex-row gap-6 text-left">
-      <div className="flex-1 bg-[#1e2329] border border-gray-800 rounded-[2.5rem] overflow-hidden h-[500px] shadow-2xl">
+      <div className="flex-1 bg-[#1e2329] border border-gray-800 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden h-[300px] md:h-[500px] shadow-2xl">
         <iframe title="TV" src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${(coinSymbol || 'btc').toUpperCase()}USDT&theme=dark`} style={{ width: '100%', height: '100%', border: 'none' }}></iframe>
       </div>
-      <div className="w-full lg:w-96 bg-[#1e2329] border border-gray-800 rounded-[2.5rem] p-8 shadow-2xl">
+      <div className="w-full lg:w-96 bg-[#1e2329] border border-gray-800 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-8 shadow-2xl">
         <div className="flex gap-2 mb-6 p-1 bg-[#0b0e11] rounded-2xl">
           <button onClick={() => setTradeType('buy')} className={`flex-1 py-3 rounded-xl font-bold uppercase text-xs ${tradeType === 'buy' ? 'bg-emerald-500 text-black' : 'text-gray-500'}`}>Buy</button>
           <button onClick={() => setTradeType('sell')} className={`flex-1 py-3 rounded-xl font-bold uppercase text-xs ${tradeType === 'sell' ? 'bg-red-500 text-white' : 'text-gray-500'}`}>Sell</button>
@@ -152,51 +135,54 @@ const TradePage = () => {
 
 // --- ৪. ড্যাশবোর্ড ---
 const Dashboard = ({ cryptoData }) => {
-  const { user, refreshUser } = useContext(UserContext);
+  const { user, refreshUser, API_URL, token } = useContext(UserContext);
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
-    refreshUser(); 
+    if (refreshUser) refreshUser(); 
     const fetchTransactions = async () => {
+      if (!token) return;
       try {
-        const res = await api.get('/api/transactions');
-        setTransactions(res.data);
+        const res = await axios.get(`${API_URL}/api/transactions`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setTransactions(Array.isArray(res.data) ? res.data : (res.data.transactions || []));
       } catch (err) { console.warn("Activity fetching issue"); }
     };
     fetchTransactions();
-  }, []);
+  }, [token, API_URL]);
 
   return (
-    <div className="p-4 md:p-8 text-left space-y-10">
-      <div className="bg-gradient-to-br from-[#1e2329] to-[#0b0e11] p-8 rounded-[2.5rem] border border-gray-800 flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl relative overflow-hidden group">
-        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform"><Activity size={100} /></div>
-        <div className="w-full md:w-auto z-10">
+    <div className="p-4 md:p-8 text-left space-y-6 md:space-y-10">
+      <div className="bg-gradient-to-br from-[#1e2329] to-[#0b0e11] p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-gray-800 flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform hidden md:block"><Activity size={100} /></div>
+        <div className="w-full md:w-auto z-10 text-center md:text-left">
           <p className="text-gray-500 text-[10px] uppercase tracking-[0.3em] font-black mb-2">Estimated Balance</p>
-          <h1 className="text-4xl md:text-5xl font-mono font-black text-white tracking-tighter">
+          <h1 className="text-3xl md:text-5xl font-mono font-black text-white tracking-tighter">
             ${user?.balance !== undefined ? parseFloat(user.balance).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00'}
           </h1>
         </div>
-        <div className="flex gap-3 w-full md:w-auto z-10">
-          <button onClick={() => navigate('/deposit')} className="flex-1 bg-yellow-500 text-black px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg hover:bg-yellow-400 transition-all">Deposit</button>
-          <button onClick={() => navigate('/withdraw')} className="flex-1 bg-white/5 text-white px-8 py-4 rounded-2xl font-black border border-gray-800 uppercase text-xs tracking-widest hover:bg-white/10 transition-all">Withdraw</button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto z-10">
+          <button onClick={() => navigate('/deposit')} className="flex-1 bg-yellow-500 text-black px-8 py-3.5 md:py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg hover:bg-yellow-400 transition-all">Deposit</button>
+          <button onClick={() => navigate('/withdraw')} className="flex-1 bg-white/5 text-white px-8 py-3.5 md:py-4 rounded-2xl font-black border border-gray-800 uppercase text-xs tracking-widest hover:bg-white/10 transition-all">Withdraw</button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
         <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
           {cryptoData.map((coin) => (
-            <div key={coin.id} onClick={() => navigate(`/trade/${coin.symbol}`)} className="bg-[#1e2329] p-6 rounded-[2rem] border border-gray-800 cursor-pointer hover:border-yellow-500/50 transition-all group shadow-lg">
+            <div key={coin.id} onClick={() => navigate(`/trade/${coin.symbol}`)} className="bg-[#1e2329] p-5 md:p-6 rounded-[2rem] border border-gray-800 cursor-pointer hover:border-yellow-500/50 transition-all group shadow-lg">
               <div className="flex justify-between mb-4 text-[10px] font-black uppercase tracking-widest">
                 <span className="text-yellow-500">{coin.symbol.toUpperCase()}/USDT</span>
                 <span className={coin.up ? 'text-emerald-400' : 'text-red-400'}>{coin.change}%</span>
               </div>
-              <p className="text-2xl font-black text-white tracking-tighter font-mono">${coin.price}</p>
+              <p className="text-xl md:text-2xl font-black text-white tracking-tighter font-mono">${coin.price}</p>
             </div>
           ))}
         </div>
 
-        <div className="bg-[#1e2329] border border-gray-800 rounded-[2.5rem] p-6 shadow-xl">
+        <div className="bg-[#1e2329] border border-gray-800 rounded-[2rem] md:rounded-[2.5rem] p-6 shadow-xl">
           <h3 className="text-white font-black uppercase text-[10px] mb-6 flex items-center gap-2 tracking-[0.2em]">
             <Activity size={14} className="text-yellow-500" /> Recent Activity
           </h3>
@@ -230,24 +216,24 @@ const Dashboard = ({ cryptoData }) => {
   );
 };
 
-// --- ৫. মার্কেট ---
+// --- ৫. মার্কেট এবং মেইন অ্যাপ ---
 const Market = ({ cryptoData }) => {
   const navigate = useNavigate();
   return (
     <div className="p-4 md:p-10 text-left pb-24 md:pb-10">
-      <div className="mb-10"><h2 className="text-4xl font-black text-white tracking-tighter flex items-center gap-3">Market <Activity className="text-yellow-500" size={32} /></h2></div>
-      <div className="bg-[#1e2329] rounded-[2.5rem] border border-gray-800 overflow-hidden shadow-2xl">
+      <div className="mb-10"><h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter flex items-center gap-3">Market <Activity className="text-yellow-500" size={32} /></h2></div>
+      <div className="bg-[#1e2329] rounded-[2rem] md:rounded-[2.5rem] border border-gray-800 overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px]">
+          <table className="w-full min-w-[600px]">
             <thead className="bg-[#0b0e11]/50 text-[10px] font-black text-gray-500 uppercase tracking-widest">
-              <tr><th className="p-8 text-left">Asset</th><th className="p-8 text-left">Price</th><th className="p-8 text-left">24h Change</th><th className="p-8 text-right">Action</th></tr>
+              <tr><th className="p-6 md:p-8 text-left">Asset</th><th className="p-6 md:p-8 text-left">Price</th><th className="p-6 md:p-8 text-left">24h Change</th><th className="p-8 text-right">Action</th></tr>
             </thead>
             <tbody className="divide-y divide-gray-800/50">
               {cryptoData.map((coin) => (
                 <tr key={coin.id} className="hover:bg-white/[0.03] group">
-                  <td className="p-8 font-black text-white text-lg uppercase">{coin.name} <span className="text-[10px] text-gray-500 ml-2">{coin.symbol.toUpperCase()}</span></td>
-                  <td className="p-8 font-mono font-black text-lg text-white">${coin.price}</td>
-                  <td className={`p-8 font-mono font-black ${coin.up ? 'text-emerald-400' : 'text-red-400'}`}>{coin.up ? '+' : ''}{coin.change}%</td>
+                  <td className="p-6 md:p-8 font-black text-white text-md md:text-lg uppercase">{coin.name} <span className="text-[10px] text-gray-500 ml-2">{coin.symbol.toUpperCase()}</span></td>
+                  <td className="p-6 md:p-8 font-mono font-black text-md md:text-lg text-white">${coin.price}</td>
+                  <td className={`p-6 md:p-8 font-mono font-black ${coin.up ? 'text-emerald-400' : 'text-red-400'}`}>{coin.up ? '+' : ''}{coin.change}%</td>
                   <td className="p-8 text-right"><button onClick={() => navigate(`/trade/${coin.symbol}`)} className="bg-yellow-500 text-black px-6 py-3 rounded-xl font-black text-[10px] uppercase">Trade</button></td>
                 </tr>
               ))}
@@ -259,7 +245,6 @@ const Market = ({ cryptoData }) => {
   );
 };
 
-// --- Navigation Components ---
 const NavItem = ({ to, icon, label }) => (
   <NavLink to={to} className={({ isActive }) => `flex items-center gap-4 p-3.5 rounded-xl transition-all ${isActive ? 'text-yellow-500 bg-yellow-500/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
     {icon} <span className="hidden lg:inline font-black text-xs uppercase tracking-widest">{label}</span>
@@ -270,17 +255,12 @@ const AppContent = ({ cryptoData }) => {
   const { user, token, logout, loading: authLoading } = useContext(UserContext);
   const location = useLocation();
 
-  if (authLoading) return (
-    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center text-yellow-500 font-black text-4xl uppercase italic animate-pulse">
-      VINANCE
-    </div>
-  );
+  if (authLoading) return <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center text-yellow-500 font-black text-4xl uppercase italic animate-pulse">VINANCE</div>;
 
   const isAuthPage = ['/login', '/register'].includes(location.pathname);
   const isHomePage = location.pathname === '/';
 
   if (!token && !isAuthPage && !isHomePage) return <Navigate to="/login" replace />;
-  if (token && isAuthPage) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="min-h-screen bg-[#0b0e11] text-white flex flex-col md:flex-row overflow-hidden text-left">
