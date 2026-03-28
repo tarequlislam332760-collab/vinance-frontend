@@ -14,7 +14,6 @@ import Deposit from './pages/Deposit';
 import Withdraw from './pages/Withdraw'; 
 import WalletPage from './pages/Wallet';
 
-// --- ১. রেজিস্টার পেজ ---
 const Register = () => {
   const { API_URL } = useContext(UserContext);
   const navigate = useNavigate();
@@ -49,7 +48,6 @@ const Register = () => {
   );
 };
 
-// --- ২. লগইন পেজ ---
 const Login = () => {
   const { setUser, setToken, refreshUser, API_URL } = useContext(UserContext);
   const navigate = useNavigate();
@@ -86,7 +84,6 @@ const Login = () => {
   );
 };
 
-// --- ৩. ট্রেড পেজ ---
 const TradePage = () => {
   const { coinSymbol } = useParams();
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
@@ -133,7 +130,6 @@ const TradePage = () => {
   );
 };
 
-// --- ৪. ড্যাশবোর্ড ---
 const Dashboard = ({ cryptoData }) => {
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
   const navigate = useNavigate();
@@ -216,7 +212,6 @@ const Dashboard = ({ cryptoData }) => {
   );
 };
 
-// --- ৫. মার্কেট এবং মেইন অ্যাপ ---
 const Market = ({ cryptoData }) => {
   const navigate = useNavigate();
   return (
