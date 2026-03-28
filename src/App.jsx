@@ -141,7 +141,7 @@ const Dashboard = ({ cryptoData }) => {
 
   useEffect(() => {
     if (refreshUser) refreshUser(); 
-    const fetchTransactions = async () => {
+    const fetchTransactions = async () => {  
       if (!token) return;
       try {
         const res = await axios.get(`${API_URL}/api/transactions`, {
