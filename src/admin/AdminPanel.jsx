@@ -11,7 +11,7 @@ const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState('users');
   const [users, setUsers] = useState([]);
   const [requests, setRequests] = useState([]);
-  const [investments, setInvestments] = useState([]); // নতুন ইনভেস্টমেন্ট ডাটা
+  const [investments, setInvestments] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   
@@ -26,11 +26,15 @@ const AdminPanel = () => {
       const res = await axios.get(`${API_URL}/api/admin/all-data`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      // ব্যাকএন্ড থেকে আসা ডাটা সেট করা
       setUsers(res.data.users || []);
       setRequests(res.data.requests || []);
-      setInvestments(res.data.investments || []); // ইনভেস্টমেন্ট ডাটা সেট করা
-    } catch (err) { console.error("Fetch error:", err); }
-    finally { setLoading(false); }
+      setInvestments(res.data.investments || []); 
+    } catch (err) { 
+      console.error("Fetch error:", err); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   useEffect(() => { fetchData(); }, [token]);
@@ -43,8 +47,8 @@ const AdminPanel = () => {
       );
       setIsModalOpen(false);
       fetchData(); 
-      alert("Balance Updated Successfully!");
-    } catch (err) { alert("Failed to update balance"); }
+      alert("Balance Updated!");
+    } catch (err) { alert("Failed"); }
   };
 
   const handleRequest = async (id, status) => {
