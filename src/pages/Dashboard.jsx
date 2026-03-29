@@ -16,19 +16,22 @@ const Dashboard = ({ cryptoData }) => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ডাটাবেজ থেকে ডাটা নিয়ে আসা
+  // ডাটাবেজ থেকে ডাটা নিয়ে আসা
   useEffect(() => {
     const fetchDashboardData = async () => {
+      if (!token) return; // টোকেন না থাকলে রিকোয়েস্ট করবে না
+      
       try {
         const config = { headers: { Authorization: `Bearer ${token}` } };
         
-        // ১. লেটেস্ট ব্যালেন্স আনা
+        // ১. লেটেস্ট ব্যালেন্স এবং ইউজার ডাটা আনা
         const userRes = await axios.get('http://localhost:5000/api/profile', config);
         setBalance(userRes.data.balance);
 
         // ২. ট্রানজেকশন হিস্ট্রি আনা
         const transRes = await axios.get('http://localhost:5000/api/transactions', config);
-        setTransactions(transRes.data);
+        // নিশ্চিত করা হচ্ছে যেন শুধু সফল ডাটা সেট হয়
+        setTransactions(Array.isArray(transRes.data) ? transRes.data : []);
       } catch (err) {
         console.error("Dashboard Data loading failed", err);
       } finally {
@@ -36,7 +39,7 @@ const Dashboard = ({ cryptoData }) => {
       }
     };
 
-    if (token) fetchDashboardData();
+    fetchDashboardData();
   }, [token]);
 
   if (loading) return <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center text-yellow-500 font-black tracking-widest uppercase">Loading Assets...</div>;
@@ -78,7 +81,7 @@ const Dashboard = ({ cryptoData }) => {
             <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2">Estimated Balance</p>
             <h2 className="text-4xl font-black text-white tracking-tighter">${balance.toLocaleString(undefined, {minimumFractionDigits: 2})}</h2>
             <p className="text-emerald-500 text-[9px] font-bold mt-2 uppercase tracking-widest flex items-center gap-1">
-              <ArrowUpRight size={10} /> +0.00% Today
+              <ArrowUpRight size={10} /> Live Market Active
             </p>
           </div>
 
@@ -88,7 +91,7 @@ const Dashboard = ({ cryptoData }) => {
               <History size={16} className="text-yellow-500" /> Recent Activity
             </h3>
             <div className="space-y-4">
-              {transactions.length > 0 ? (
+              {transactions && transactions.length > 0 ? (
                 transactions.slice(0, 5).map((item) => (
                   <div key={item._id} className="flex justify-between items-center p-3 hover:bg-white/[0.03] rounded-2xl transition-all border border-transparent hover:border-gray-800">
                     <div className="flex items-center gap-3">
@@ -102,7 +105,7 @@ const Dashboard = ({ cryptoData }) => {
                     </div>
                     <div className="text-right">
                       <p className="font-mono font-bold text-sm text-white">${item.amount}</p>
-                      <p className={`text-[9px] font-black uppercase ${item.status === 'completed' ? 'text-emerald-500' : 'text-yellow-500'}`}>
+                      <p className={`text-[9px] font-black uppercase ${item.status === 'completed' || item.status === 'approved' ? 'text-emerald-500' : 'text-yellow-500'}`}>
                         {item.status}
                       </p>
                     </div>

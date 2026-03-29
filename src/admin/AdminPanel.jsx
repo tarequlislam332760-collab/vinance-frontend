@@ -11,6 +11,7 @@ const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState('users');
   const [users, setUsers] = useState([]);
   const [requests, setRequests] = useState([]);
+  const [investments, setInvestments] = useState([]); // নতুন ইনভেস্টমেন্ট ডাটা
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   
@@ -27,13 +28,13 @@ const AdminPanel = () => {
       });
       setUsers(res.data.users || []);
       setRequests(res.data.requests || []);
+      setInvestments(res.data.investments || []); // ইনভেস্টমেন্ট ডাটা সেট করা
     } catch (err) { console.error("Fetch error:", err); }
     finally { setLoading(false); }
   };
 
   useEffect(() => { fetchData(); }, [token]);
 
-  // নতুন ব্যালেন্স আপডেট লজিক (কানেক্টেড)
   const handleBalanceUpdate = async () => {
     try {
       await axios.post(`${API_URL}/api/admin/update-balance`, 
@@ -41,7 +42,7 @@ const AdminPanel = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setIsModalOpen(false);
-      fetchData(); // ডাটা রিফ্রেশ
+      fetchData(); 
       alert("Balance Updated Successfully!");
     } catch (err) { alert("Failed to update balance"); }
   };
@@ -63,7 +64,6 @@ const AdminPanel = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h2 className="text-3xl font-black text-yellow-500 italic uppercase tracking-tighter">Command Center</h2>
         
-        {/* ট্যাব নেভিগেশন */}
         <div className="flex flex-wrap gap-2 bg-[#1e2329] p-1 rounded-xl border border-gray-800">
           {['users', 'requests', 'plans', 'logs'].map((tab) => (
             <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${activeTab === tab ? 'bg-yellow-500 text-black' : 'text-gray-500'}`}>
@@ -77,10 +77,9 @@ const AdminPanel = () => {
         {activeTab === 'users' && <ManageUsers users={users} search={search} setSearch={setSearch} onEdit={(user) => { setSelectedUser(user); setNewBalance(user.balance); setIsModalOpen(true); }} />}
         {activeTab === 'requests' && <PendingRequests requests={requests} handleRequest={handleRequest} />}
         {activeTab === 'plans' && <ManagePlans />}
-        {activeTab === 'logs' && <InvestmentLogs />}
+        {activeTab === 'logs' && <InvestmentLogs data={investments} />} 
       </div>
 
-      {/* Balance Update Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[100] p-6">
           <div className="bg-[#1e2329] border border-gray-800 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl">
