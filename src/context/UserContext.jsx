@@ -8,10 +8,9 @@ export const UserProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
-  // --- আপডেট করা লিঙ্ক ---
-  const API_URL = window.location.hostname === "localhost" 
-    ? "http://localhost:5000" 
-    : "https://vinance-backend.vercel.app"; // আমি আপনার সঠিক লিঙ্কটি এখানে বসিয়ে দিয়েছি
+  // --- API URL কনফিগারেশন (একদম ফিক্সড) ---
+  // প্রোডাকশনে সবসময় এই লিঙ্কটি ব্যবহার করবে, লোকালহোস্টের ঝামেলা এড়াতে সরাসরি লিঙ্ক দেওয়াই ভালো
+  const API_URL = "https://vinance-backend.vercel.app"; 
 
   const logout = useCallback(() => {
     localStorage.removeItem('token');
