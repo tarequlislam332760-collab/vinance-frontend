@@ -41,7 +41,7 @@ const Register = () => {
           <input type="text" placeholder="Full Name" required onChange={(e)=>setFormData({...formData, name: e.target.value})} className="w-full bg-main-bg border border-border rounded-xl py-3 px-4 text-white outline-none focus:border-primary" />
           <input type="email" placeholder="Email" required onChange={(e)=>setFormData({...formData, email: e.target.value})} className="w-full bg-main-bg border border-border rounded-xl py-3 px-4 text-white outline-none focus:border-primary" />
           <input type="password" placeholder="Password" required onChange={(e)=>setFormData({...formData, password: e.target.value})} className="w-full bg-main-bg border border-border rounded-xl py-3 px-4 text-white outline-none focus:border-primary" />
-          <button disabled={loading} className="w-full bg-primary text-black py-3.5 rounded-xl font-bold uppercase hover:bg-primary-hover transition-colors">{loading ? "Wait..." : "Register"}</button>
+          <button disabled={loading} className="w-full bg-primary text-white py-3.5 rounded-xl font-bold uppercase hover:bg-primary-hover transition-colors">{loading ? "Wait..." : "Register"}</button>
         </form>
         <p className="text-center mt-6 text-sm text-gray-400">Already have an account? <Link to="/login" className="text-primary hover:underline">Log In</Link></p>
       </div>
@@ -78,7 +78,7 @@ const Login = () => {
         <form onSubmit={handleLogin} className="space-y-6">
           <input type="email" placeholder="Email" required onChange={(e)=>setEmail(e.target.value)} className="w-full bg-main-bg border border-border rounded-xl py-3 px-4 text-white outline-none focus:border-primary" />
           <input type="password" placeholder="Password" required onChange={(e)=>setPassword(e.target.value)} className="w-full bg-main-bg border border-border rounded-xl py-3 px-4 text-white outline-none focus:border-primary" />
-          <button type="submit" disabled={loading} className="w-full bg-primary text-black py-3.5 rounded-xl font-bold uppercase hover:bg-primary-hover transition-colors">{loading ? "Syncing..." : "Log In"}</button>
+          <button type="submit" disabled={loading} className="w-full bg-primary text-white py-3.5 rounded-xl font-bold uppercase hover:bg-primary-hover transition-colors">{loading ? "Syncing..." : "Log In"}</button>
         </form>
         <p className="text-center mt-6 text-sm text-gray-400">Don't have an account? <Link to="/register" className="text-primary hover:underline">Register</Link></p>
       </div>
@@ -117,15 +117,15 @@ const TradePage = () => {
       </div>
       <div className="w-full lg:w-96 bg-card-bg border border-border rounded-[2rem] p-6 md:p-8 shadow-2xl h-fit">
         <div className="flex gap-2 mb-6 p-1 bg-main-bg rounded-2xl">
-          <button onClick={() => setTradeType('buy')} className={`flex-1 py-3 rounded-xl font-bold uppercase text-xs ${tradeType === 'buy' ? 'bg-success text-black' : 'text-gray-500'}`}>Buy</button>
+          <button onClick={() => setTradeType('buy')} className={`flex-1 py-3 rounded-xl font-bold uppercase text-xs ${tradeType === 'buy' ? 'bg-[#1aa07b] text-white' : 'text-gray-500'}`}>Buy</button>
           <button onClick={() => setTradeType('sell')} className={`flex-1 py-3 rounded-xl font-bold uppercase text-xs ${tradeType === 'sell' ? 'bg-danger text-white' : 'text-gray-500'}`}>Sell</button>
         </div>
         <div className="flex justify-between text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-widest">
             <span>Available Balance</span>
             <span className="text-white">${user?.balance?.toLocaleString(undefined, { minimumFractionDigits: 2 }) || '0.00'}</span>
         </div>
-        <input type="number" value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="0.00 USDT" className="w-full bg-main-bg border border-border rounded-2xl p-4 text-white outline-none mb-4 font-mono" />
-        <button disabled={loading} onClick={handleTrade} className={`w-full py-4 rounded-2xl font-bold uppercase tracking-widest ${tradeType === 'buy' ? 'bg-primary text-black' : 'bg-danger text-white'}`}>
+        <input type="number" value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="0.00 USDT" className="w-full bg-main-bg border border-border rounded-2xl p-4 text-white outline-none mb-4 font-mono focus:border-primary" />
+        <button disabled={loading} onClick={handleTrade} className={`w-full py-4 rounded-2xl font-bold uppercase tracking-widest ${tradeType === 'buy' ? 'bg-primary text-white' : 'bg-danger text-white'}`}>
           {loading ? "Processing..." : `Execute ${tradeType}`}
         </button>
       </div>
@@ -164,7 +164,7 @@ const Dashboard = ({ cryptoData }) => {
           </h1>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto z-10">
-          <button onClick={() => navigate('/deposit')} className="flex-1 bg-primary text-black px-8 py-3.5 md:py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg hover:bg-primary-hover transition-all">Deposit</button>
+          <button onClick={() => navigate('/deposit')} className="flex-1 bg-primary text-white px-8 py-3.5 md:py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg hover:bg-primary-hover transition-all">Deposit</button>
           <button onClick={() => navigate('/withdraw')} className="flex-1 bg-white/5 text-white px-8 py-3.5 md:py-4 rounded-2xl font-black border border-border uppercase text-xs tracking-widest hover:bg-white/10 transition-all">Withdraw</button>
         </div>
       </div>
@@ -234,7 +234,7 @@ const Market = ({ cryptoData }) => {
                   <td className="p-6 md:p-8 font-black text-white text-md md:text-lg uppercase">{coin.name} <span className="text-[10px] text-gray-500 ml-2">{coin.symbol.toUpperCase()}</span></td>
                   <td className="p-6 md:p-8 font-mono font-black text-md md:text-lg text-white">${coin.price}</td>
                   <td className={`p-6 md:p-8 font-mono font-black ${coin.up ? 'text-success' : 'text-danger'}`}>{coin.up ? '+' : ''}{coin.change}%</td>
-                  <td className="p-8 text-right"><button onClick={() => navigate(`/trade/${coin.symbol}`)} className="bg-primary text-black px-6 py-3 rounded-xl font-black text-[10px] uppercase">Trade</button></td>
+                  <td className="p-8 text-right"><button onClick={() => navigate(`/trade/${coin.symbol}`)} className="bg-primary text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase">Trade</button></td>
                 </tr>
               ))}
             </tbody>
@@ -306,20 +306,14 @@ const AppContent = ({ cryptoData }) => {
         </div>
       </main>
 
-      {/* Complete Mobile Bottom Navigation */}
+      {/* Mobile Bottom Navigation */}
       {token && !isHomePage && (
         <nav className="fixed bottom-0 left-0 right-0 bg-card-bg border-t border-border flex justify-around items-center py-5 md:hidden z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
           <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
           <NavLink to="/market" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><BarChart3 size={22}/></NavLink>
           <NavLink to="/trade/btc" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><TrendingUp size={22}/></NavLink>
           <NavLink to="/wallet" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><Wallet size={22}/></NavLink>
-          
-          {/* Admin Icon for Mobile */}
-          {user?.role === 'admin' && (
-            <NavLink to="/admin" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><ShieldCheck size={22}/></NavLink>
-          )}
-          
-          {/* Sign Out for Mobile */}
+          {user?.role === 'admin' && <NavLink to="/admin" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><ShieldCheck size={22}/></NavLink>}
           <button onClick={logout} className="text-gray-400 hover:text-danger"><LogOut size={22}/></button>
         </nav>
       )}

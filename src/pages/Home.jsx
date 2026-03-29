@@ -6,30 +6,23 @@ import Navbar from "../components/Navbar";
 
 const Home = () => {
   const [message, setMessage] = useState("");
-  const [stats, setStats] = useState(null); // ব্যাকেন্ড থেকে আসা নাম্বারের জন্য
+  const [stats, setStats] = useState(null); 
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    // ১. ব্যাকেন্ড থেকে মেসেজ এবং প্ল্যাটফর্ম স্ট্যাটস (Numbers) আনা
     const fetchHomeData = async () => {
       try {
         const messageRes = await axios.get('http://localhost:5000/api/message');
         setMessage(messageRes.data.message);
-
-        // যদি আপনার ব্যাকেন্ডে স্ট্যাটস এপিআই থাকে (যেমন: মোট কত আইটেম আছে)
-        // const statsRes = await axios.get('http://localhost:5000/api/stats');
-        // setStats(statsRes.data);
       } catch (err) {
         console.error("Connection error:", err);
         setMessage("Professional Trading Scripts Marketplace");
       }
     };
-
     fetchHomeData();
   }, []);
 
-  // সার্চ হ্যান্ডলার
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -47,21 +40,21 @@ const Home = () => {
   ];
 
   return (
-    <div className="bg-[#0b0e11] min-h-screen font-sans text-gray-300 overflow-x-hidden">
+    <div className="bg-main-bg min-h-screen font-sans text-gray-300 overflow-x-hidden">
       <Navbar />
 
       {/* Hero Section */}
-      <header className="pt-32 pb-20 px-6 border-b border-gray-900">
+      <header className="pt-32 pb-20 px-6 border-b border-border">
         <div className="max-w-5xl mx-auto text-center">
           {message && (
-            <div className="inline-block bg-yellow-500/10 text-yellow-500 text-[10px] md:text-xs font-bold px-4 py-1.5 rounded-full mb-6 border border-yellow-500/20 uppercase tracking-[0.2em] animate-pulse">
+            <div className="inline-block bg-primary/10 text-primary text-[10px] md:text-xs font-bold px-4 py-1.5 rounded-full mb-6 border border-primary/20 uppercase tracking-[0.2em] animate-pulse">
               {message}
             </div>
           )}
           
-          <h1 className="text-4xl md:text-7xl font-black text-white leading-tight mb-8">
+          <h1 className="text-4xl md:text-7xl font-black text-white leading-tight mb-8 uppercase italic tracking-tighter">
             Vinance Digital Trading <br />
-            <span className="text-yellow-500">Marketplace</span>
+            <span className="text-primary">Marketplace</span>
           </h1>
           
           <p className="text-gray-400 text-lg md:text-xl mb-12 max-w-2xl mx-auto">
@@ -69,16 +62,15 @@ const Home = () => {
             Join thousands of traders and developers today.
           </p>
 
-          {/* সার্চ বক্স এখন কাজ করবে */}
-          <form onSubmit={handleSearch} className="bg-white rounded-full p-1.5 flex items-center shadow-2xl max-w-3xl mx-auto overflow-hidden border-4 border-gray-800/50">
+          <form onSubmit={handleSearch} className="bg-white rounded-full p-1.5 flex items-center shadow-2xl max-w-3xl mx-auto overflow-hidden border-4 border-border/50">
             <input 
               type="text" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search scripts, themes or tools..." 
-              className="flex-1 px-4 md:px-8 py-3 md:py-4 text-gray-800 bg-transparent outline-none text-base"
+              className="flex-1 px-4 md:px-8 py-3 md:py-4 text-gray-800 bg-transparent outline-none text-base font-medium"
             />
-            <button type="submit" className="bg-yellow-500 text-black px-6 md:px-10 py-3 md:py-4 rounded-full font-bold hover:bg-yellow-400 transition-all flex items-center gap-2">
+            <button type="submit" className="bg-primary text-white px-6 md:px-10 py-3 md:py-4 rounded-full font-black hover:bg-primary-hover transition-all flex items-center gap-2 uppercase text-sm tracking-widest">
               <Search className="w-5 h-5" /> 
               <span className="hidden md:inline">Search</span>
             </button>
@@ -86,14 +78,14 @@ const Home = () => {
         </div>
       </header>
 
-      {/* Category Grid - ক্লিকেবল করা হয়েছে */}
+      {/* Category Grid */}
       <section className="py-24 px-6 max-w-7xl mx-auto">
         <div className="flex justify-between items-end mb-12">
           <div className="text-left">
-            <h2 className="text-3xl font-bold text-white mb-2">Browse Categories</h2>
-            <p className="text-gray-500">Explore over 10,000+ digital assets</p>
+            <h2 className="text-3xl font-black text-white mb-2 uppercase italic tracking-tight">Browse Categories</h2>
+            <p className="text-gray-500 font-bold uppercase text-[10px] tracking-widest">Explore over 10,000+ digital assets</p>
           </div>
-          <Link to="/market" className="text-yellow-500 font-bold flex items-center gap-2 hover:underline">
+          <Link to="/market" className="text-primary font-black uppercase text-xs tracking-widest flex items-center gap-2 hover:underline">
             View All <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -103,20 +95,20 @@ const Home = () => {
             <div 
               key={i} 
               onClick={() => navigate(cat.path)}
-              className="bg-[#1e2329] p-10 rounded-[2.5rem] border border-gray-800 hover:border-yellow-500/40 transition-all group cursor-pointer shadow-xl hover:-translate-y-2 text-left"
+              className="bg-card-bg p-10 rounded-[2.5rem] border border-border hover:border-primary/40 transition-all group cursor-pointer shadow-xl hover:-translate-y-2 text-left"
             >
-              <div className="text-5xl mb-6 bg-[#0b0e11] w-20 h-20 flex items-center justify-center rounded-2xl border border-gray-800 group-hover:bg-yellow-500/10 transition-colors">
+              <div className="text-5xl mb-6 bg-main-bg w-20 h-20 flex items-center justify-center rounded-2xl border border-border group-hover:bg-primary/10 transition-colors">
                 {cat.icon}
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-yellow-500 transition-colors">{cat.title}</h3>
-              <p className="text-gray-500 font-medium">{cat.count} items available</p>
+              <h3 className="text-2xl font-black text-white mb-2 group-hover:text-primary transition-colors uppercase tracking-tight italic">{cat.title}</h3>
+              <p className="text-gray-500 font-black text-[10px] uppercase tracking-widest">{cat.count} items available</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="bg-[#14171a] py-20 px-6 border-t border-gray-900">
+      <section className="bg-card-bg/30 py-20 px-6 border-t border-border">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
           {[
             { Icon: Shield, title: "Secure Trading", desc: "Your assets are protected with industry-leading security." },
@@ -124,9 +116,9 @@ const Home = () => {
             { Icon: Globe, title: "Global Access", desc: "Access the marketplace from anywhere in the world." }
           ].map((feature, i) => (
             <div key={i} className="flex flex-col items-center">
-              <feature.Icon className="w-12 h-12 text-yellow-500 mb-4" />
-              <h4 className="text-white font-bold text-xl mb-2">{feature.title}</h4>
-              <p className="text-gray-500 text-sm">{feature.desc}</p>
+              <feature.Icon className="w-12 h-12 text-primary mb-4" />
+              <h4 className="text-white font-black uppercase italic tracking-tight text-xl mb-2">{feature.title}</h4>
+              <p className="text-gray-500 text-xs font-bold leading-relaxed">{feature.desc}</p>
             </div>
           ))}
         </div>
@@ -134,21 +126,20 @@ const Home = () => {
       
       {/* CTA Section */}
       <section className="py-24 px-6 text-center">
-        <div className="max-w-4xl mx-auto bg-gradient-to-r from-yellow-500 to-yellow-600 p-8 md:p-16 rounded-[3rem] shadow-2xl relative overflow-hidden">
+        <div className="max-w-4xl mx-auto bg-gradient-to-r from-primary to-primary-hover p-8 md:p-16 rounded-[3rem] shadow-2xl relative overflow-hidden">
           <div className="relative z-10">
-            <h2 className="text-3xl md:text-5xl font-black text-black mb-6">Ready to start trading?</h2>
-            <p className="text-yellow-900 text-lg mb-10 font-bold uppercase tracking-widest">Get $5,000 free demo balance now</p>
-            <Link to="/register" className="bg-black text-white px-12 py-5 rounded-full font-bold text-lg hover:scale-105 transition-all shadow-2xl inline-block">
+            <h2 className="text-3xl md:text-5xl font-black text-white mb-6 uppercase italic tracking-tighter">Ready to start trading?</h2>
+            <p className="text-white/80 text-lg mb-10 font-black uppercase tracking-widest">Get $5,000 free demo balance now</p>
+            <Link to="/register" className="bg-main-bg text-primary px-12 py-5 rounded-full font-black text-lg hover:scale-105 transition-all shadow-2xl inline-block uppercase tracking-widest border border-primary/20">
               Create Free Account
             </Link>
           </div>
-          {/* Background Decoration */}
-          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-yellow-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
         </div>
       </section>
 
-      <footer className="py-10 text-center border-t border-gray-900">
-        <p className="text-gray-600 text-sm">© 2026 Vinance Marketplace. Built for high-performance trading.</p>
+      <footer className="py-10 text-center border-t border-border">
+        <p className="text-gray-600 text-[10px] font-black uppercase tracking-[0.2em]">© 2026 Vinance Marketplace. Built for high-performance trading.</p>
       </footer>
     </div>
   );
