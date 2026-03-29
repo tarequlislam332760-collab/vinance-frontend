@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  /* আপনার কাস্টম কালারগুলো এখানে ডিফাইন করা হলো */
+  /* স্ক্রিনশটে থাকা এক্সাক্ট কালার কোডগুলো এখানে দেওয়া হলো */
   --color-main-bg: #0b0e11;
   --color-card-bg: #1e2329;
-  --color-primary: #f3ba2f; /* গোল্ডেন কালার */
+  --color-primary: #f3ba2f; /* সেই গোল্ডেন কালার */
   --color-primary-hover: #f0b90b;
   --color-success: #0ecb81;
   --color-danger: #f6465d;
@@ -17,16 +17,4 @@
     color: white;
     font-family: 'Inter', sans-serif;
   }
-}
-
-/* নিচের এই অংশটুকু স্ক্রলবার সুন্দর করার জন্য (অপশনাল) */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #0b0e11;
-}
-::-webkit-scrollbar-thumb {
-  background: #2b3139;
-  border-radius: 10px;
 }
