@@ -3,7 +3,8 @@ import { BrowserRouter, Routes, Route, NavLink, useLocation, useNavigate, Link, 
 import axios from 'axios'; 
 import { 
   LayoutDashboard, BarChart3, TrendingUp, Wallet, LogOut, 
-  ShieldCheck, Activity, ArrowUpRight, ArrowDownLeft
+  ShieldCheck, Activity, ArrowUpRight, ArrowDownLeft,
+  PieChart // নতুন আইকন ইনভেস্টমেন্টের জন্য
 } from 'lucide-react';
 
 import { UserProvider, UserContext } from './context/UserContext'; 
@@ -13,6 +14,12 @@ import AdminPanel from './admin/AdminPanel';
 import Deposit from './pages/Deposit'; 
 import Withdraw from './pages/Withdraw'; 
 import WalletPage from './pages/Wallet';
+
+// --- নতুন ইনভেস্টমেন্ট ফাইলগুলো ইম্পোর্ট করা হলো ---
+import Investment from './pages/Investment'; 
+import MyInvestments from './pages/MyInvestments';
+import ManagePlans from './admin/ManagePlans';
+import InvestmentLogs from './admin/InvestmentLogs';
 
 // --- Register Component ---
 const Register = () => {
@@ -269,12 +276,26 @@ const AppContent = ({ cryptoData }) => {
       {token && !isHomePage && (
         <aside className="w-20 lg:w-64 bg-card-bg border-r border-border hidden md:flex flex-col p-4 h-screen sticky top-0 z-40">
           <div className="mb-12 px-4 py-2 text-2xl font-black text-primary italic uppercase tracking-tighter">VINANCE</div>
-          <nav className="space-y-3 flex-1">
+          <nav className="space-y-3 flex-1 overflow-y-auto">
             <NavItem to="/dashboard" icon={<LayoutDashboard size={20}/>} label="Dashboard" />
             <NavItem to="/market" icon={<BarChart3 size={20}/>} label="Market" />
             <NavItem to="/trade/btc" icon={<TrendingUp size={20}/>} label="Trade" />
+            
+            {/* --- New Investment Links --- */}
+            <NavItem to="/invest" icon={<PieChart size={20}/>} label="AI Invest" />
+            <NavItem to="/my-investments" icon={<Activity size={20}/>} label="Invest Logs" />
+            
             <NavItem to="/wallet" icon={<Wallet size={20}/>} label="Wallet" />
-            {user?.role === 'admin' && <NavItem to="/admin" icon={<ShieldCheck size={20}/>} label="Admin" />}
+
+            {/* Admin Controls */}
+            {user?.role === 'admin' && (
+               <>
+                 <div className="pt-6 pb-2 px-4 text-[9px] font-black text-gray-600 uppercase tracking-widest border-t border-border/30 mt-4">Management</div>
+                 <NavItem to="/admin" icon={<ShieldCheck size={20}/>} label="Users & Deposit" />
+                 <NavItem to="/admin/manage-plans" icon={<PieChart size={20}/>} label="Plan Settings" />
+                 <NavItem to="/admin/investment-logs" icon={<TrendingUp size={20}/>} label="All Investments" />
+               </>
+            )}
           </nav>
           <button onClick={logout} className="p-4 text-gray-500 hover:text-danger flex items-center gap-4 font-bold border-t border-border/50">
             <LogOut size={20}/> <span className="hidden lg:inline text-[10px] font-black uppercase">Sign Out</span>
@@ -301,7 +322,15 @@ const AppContent = ({ cryptoData }) => {
             <Route path="/deposit" element={<Deposit />} />
             <Route path="/withdraw" element={<Withdraw />} />
             <Route path="/wallet" element={<WalletPage />} /> 
+
+            {/* --- নতুন ইনভেস্টমেন্ট রাউটগুলো --- */}
+            <Route path="/invest" element={<Investment />} />
+            <Route path="/my-investments" element={<MyInvestments />} />
+            
+            {/* Admin Protected Routes */}
             <Route path="/admin" element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/dashboard" />} />
+            <Route path="/admin/manage-plans" element={user?.role === 'admin' ? <ManagePlans /> : <Navigate to="/dashboard" />} />
+            <Route path="/admin/investment-logs" element={user?.role === 'admin' ? <InvestmentLogs /> : <Navigate to="/dashboard" />} />
           </Routes>
         </div>
       </main>
@@ -310,7 +339,7 @@ const AppContent = ({ cryptoData }) => {
       {token && !isHomePage && (
         <nav className="fixed bottom-0 left-0 right-0 bg-card-bg border-t border-border flex justify-around items-center py-5 md:hidden z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
           <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
-          <NavLink to="/market" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><BarChart3 size={22}/></NavLink>
+          <NavLink to="/invest" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><PieChart size={22}/></NavLink>
           <NavLink to="/trade/btc" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><TrendingUp size={22}/></NavLink>
           <NavLink to="/wallet" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><Wallet size={22}/></NavLink>
           {user?.role === 'admin' && <NavLink to="/admin" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><ShieldCheck size={22}/></NavLink>}
