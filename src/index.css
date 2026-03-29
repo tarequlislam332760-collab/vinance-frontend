@@ -1,35 +1,36 @@
 @import "tailwindcss";
 
 @theme {
-  --color-main-bg: #0b0e11;
-  --color-card-bg: #1e2329;
-  --color-primary: #f3ba2f;
-  --color-primary-hover: #f0b90b;
-  --color-success: #0ecb81;
-  --color-danger: #f6465d;
-  --color-border: #2b3139;
+  /* আপনার স্ক্রিনশটের ডার্ক টিল এবং গ্রিন কালার */
+  --color-main-bg: #03101a;    /* একদম বামের ডার্ক ব্লু-ব্ল্যাক */
+  --color-card-bg: #032a3b;    /* স্ক্রিনশটের মেইন ডার্ক টিল ব্লু */
+  --color-primary: #1aa07b;    /* ব্রাইট গ্রিন কালার */
+  --color-primary-hover: #158566;
+  --color-success: #01585c;    /* ডিপ টিল গ্রিন */
+  --color-danger: #ff3366;     /* ভাইব্রেন্ট রেড */
+  --color-border: #143e52;     /* বর্ডারের জন্য হালকা টিল */
 }
 
-/* কাস্টম ইউটিলিটি ক্লাস যাতে ভেরিয়েবলগুলো সরাসরি কাজ করে */
+/* কাস্টম ইউটিলিটি ক্লাসগুলো আপডেট করা হলো */
 @utility bg-main-bg {
-  background-color: #0b0e11;
+  background-color: #03101a;
 }
 @utility bg-card-bg {
-  background-color: #1e2329;
+  background-color: #032a3b;
 }
 @utility bg-primary {
-  background-color: #f3ba2f;
+  background-color: #1aa07b;
 }
 @utility text-primary {
-  color: #f3ba2f;
+  color: #1aa07b;
 }
 @utility border-border {
-  border-color: #2b3139;
+  border-color: #143e52;
 }
 
 @layer base {
   body {
-    background-color: #0b0e11;
-    color: white;
+    background-color: #03101a;
+    color: #f3f7e9; /* স্ক্রিনশটের একদম ডানের অফ-হোয়াইট টেক্সট কালার */
   }
 }
