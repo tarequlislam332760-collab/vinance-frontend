@@ -1,13 +1,13 @@
 import axios from 'axios';
 
-// ✅ আপনার লোকালহোস্ট লিঙ্ক (যেহেতু সার্ভার ৫০০০ পোর্টে চলছে)
-const API_BASE_URL = "http://localhost:5000"; 
+// ✅ আপনার Vercel Backend URL এখানে বসান
+const API_BASE_URL = "https://vinance-backend.vercel.app"; 
 
 const API = axios.create({
   baseURL: API_BASE_URL,
 });
 
-// টোকেন অটোমেটিক যোগ হওয়ার লজিক (আগে যা ছিল)
+// টোকেন অটোমেটিক যোগ করার লজিক
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem('token');
   if (token) {
