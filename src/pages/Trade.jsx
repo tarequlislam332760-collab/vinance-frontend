@@ -7,14 +7,15 @@ import { Activity, ChevronLeft, Bell, Star, MoreHorizontal, LayoutGrid, Zap } fr
 const Trade = () => {
   const { coinSymbol } = useParams();
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
+  
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
-  
-  // ১. এই স্টেটটি Buy এবং Sell এর মধ্যে সুইচ করতে সাহায্য করবে
   const [activeTab, setActiveTab] = useState('buy'); 
+  const [timeframe, setTimeframe] = useState('240'); 
 
   const currentCoin = (coinSymbol || 'btc').toUpperCase();
 
+  // ট্রেড হ্যান্ডলার
   const handleTrade = async (type) => {
     if (!amount || parseFloat(amount) <= 0) return alert("অ্যামাউন্ট লিখুন");
     setLoading(true);
@@ -31,18 +32,23 @@ const Trade = () => {
     } finally { setLoading(false); }
   };
 
+  // ব্যালেন্স পারসেন্টেজ ক্যালকুলেশন ফাংশন
+  const handlePercentClick = (percent) => {
+    if (!user?.balance) return;
+    const calculatedAmount = (user.balance * percent) / 100;
+    setAmount(calculatedAmount.toFixed(2)); // ২ দশমিক পর্যন্ত দেখাবে
+  };
+
   return (
     <div className="flex flex-col h-screen bg-[#0b0e11] text-[#eaecef] overflow-hidden">
       
-      {/* 1. Header */}
+      {/* Header */}
       <div className="flex justify-between items-center px-4 py-2 bg-[#0b0e11]">
         <div className="flex items-center gap-3">
           <ChevronLeft size={24} className="text-gray-300 cursor-pointer" onClick={() => window.history.back()} />
-          <div>
-            <div className="flex items-center gap-1">
-              <span className="text-white font-bold text-lg">{currentCoin}/USDT</span>
-              <span className="bg-[#2b3139] text-[9px] px-1 rounded text-gray-400 font-bold">Perp</span>
-            </div>
+          <div className="flex items-center gap-1">
+            <span className="text-white font-bold text-lg">{currentCoin}/USDT</span>
+            <span className="bg-[#2b3139] text-[9px] px-1 rounded text-gray-400 font-bold">Perp</span>
           </div>
         </div>
         <div className="flex gap-4 text-gray-400">
@@ -51,30 +57,48 @@ const Trade = () => {
         </div>
       </div>
 
-      {/* 2. Chart Section */}
+      {/* টাইমফ্রেম সেকশন */}
+      <div className="flex justify-between items-center px-4 py-1.5 text-[11px] text-gray-400 font-medium border-b border-[#1e2329]">
+        <div className="flex gap-4">
+          <span className="text-[#f0b90b]">Time</span>
+          {['15', '60', '240', 'D'].map((tf) => (
+            <span 
+              key={tf}
+              onClick={() => setTimeframe(tf)}
+              className={`cursor-pointer transition-all ${timeframe === tf ? 'text-white border-b-2 border-[#f0b90b] pb-0.5' : ''}`}
+            >
+              {tf === '240' ? '4h' : tf === '60' ? '1h' : tf === '15' ? '15m' : tf}
+            </span>
+          ))}
+          <span className="cursor-pointer">More</span>
+        </div>
+        <div className="flex gap-3">
+          <Activity size={14} />
+          <LayoutGrid size={14} />
+        </div>
+      </div>
+
+      {/* চার্ট */}
       <div className="flex-1 w-full relative">
         <iframe 
           title="TV-Full" 
-          src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${currentCoin}USDT&theme=dark&style=1&timezone=Etc%2FUTC&hide_top_toolbar=true&withdateranges=true&hide_side_toolbar=true&allow_symbol_change=false&save_image=false&show_popup_button=false&locale=en`} 
+          src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${currentCoin}USDT&interval=${timeframe}&theme=dark&style=1&timezone=Etc%2FUTC&hide_top_toolbar=true&withdateranges=true&hide_side_toolbar=true&allow_symbol_change=false&locale=en`} 
           className="absolute inset-0 w-full h-full border-none"
         ></iframe>
       </div>
       
-      {/* 3. Action Panel (এখানেই ক্লিক ফাংশন অ্যাড করা হয়েছে) */}
+      {/* অ্যাকশন প্যানেল (পারসেন্টেজ অপশন সহ) */}
       <div className="w-full bg-[#161a1e] border-t border-[#1e2329] p-4 pb-24 relative z-[50] pointer-events-auto shadow-2xl">
         <div className="max-w-md mx-auto">
           
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex gap-8 text-sm font-bold uppercase tracking-wider">
-              {/* Buy অপশনে ক্লিক করলে activeTab 'buy' হবে */}
+          <div className="flex justify-between items-center mb-3">
+            <div className="flex gap-6 text-xs font-bold uppercase tracking-wider">
               <button 
                 onClick={() => setActiveTab('buy')}
                 className={`pb-1 transition-all border-b-2 ${activeTab === 'buy' ? 'text-[#00c076] border-[#00c076]' : 'text-gray-500 border-transparent'}`}
               >
                 Buy
               </button>
-              
-              {/* Sell অপশনে ক্লিক করলে activeTab 'sell' হবে */}
               <button 
                 onClick={() => setActiveTab('sell')}
                 className={`pb-1 transition-all border-b-2 ${activeTab === 'sell' ? 'text-[#f6465d] border-[#f6465d]' : 'text-gray-500 border-transparent'}`}
@@ -82,30 +106,45 @@ const Trade = () => {
                 Sell
               </button>
             </div>
-            <div className="text-[11px] text-gray-400">
+            <div className="text-[10px] text-gray-400">
               Avbl: <span className="text-white font-mono">{user?.balance?.toLocaleString() || '0.00'} USDT</span>
             </div>
           </div>
 
-          <div className="flex gap-3">
-            <div className="flex-[1.2] relative">
-              <input 
-                type="number" 
-                value={amount} 
-                onChange={(e)=>setAmount(e.target.value)} 
-                placeholder="0.00" 
-                className="w-full bg-[#2b3139] border border-transparent rounded-sm py-3 px-3 text-white outline-none font-mono text-sm focus:border-[#f0b90b]" 
-              />
-              <span className="absolute right-3 top-3.5 text-gray-500 text-[10px] font-bold">USDT</span>
+          <div className="flex gap-4">
+            <div className="flex-[1.2] space-y-3">
+              {/* ইনপুট ফিল্ড */}
+              <div className="relative">
+                <input 
+                  type="number" 
+                  value={amount} 
+                  onChange={(e)=>setAmount(e.target.value)} 
+                  placeholder="Amount" 
+                  className="w-full bg-[#2b3139] border border-transparent rounded-sm py-2.5 px-3 text-white outline-none font-mono text-sm focus:border-[#f0b90b]" 
+                />
+                <span className="absolute right-3 top-3 text-gray-500 text-[10px] font-bold">USDT</span>
+              </div>
+
+              {/* পারসেন্টেজ বাটন সমূহ */}
+              <div className="flex justify-between gap-1">
+                {[25, 50, 75, 100].map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => handlePercentClick(p)}
+                    className="flex-1 bg-[#2b3139] hover:bg-[#363d47] text-[10px] text-gray-400 py-1 rounded-sm transition-colors active:bg-[#f0b90b] active:text-black"
+                  >
+                    {p}%
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="flex-1">
-              {/* মুড অনুযায়ী বাটন স্বয়ংক্রিয়ভাবে পরিবর্তন হবে */}
+            <div className="flex-1 flex flex-col justify-between">
               {activeTab === 'buy' ? (
                 <button 
                   disabled={loading}
                   onClick={() => handleTrade('buy')} 
-                  className="w-full py-3 bg-[#02c076] text-[#0b0e11] rounded-sm font-bold text-sm active:scale-95 transition-all shadow-lg"
+                  className="h-full w-full bg-[#02c076] text-[#0b0e11] rounded-sm font-bold text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center"
                 >
                   {loading ? '...' : 'Long'}
                 </button>
@@ -113,7 +152,7 @@ const Trade = () => {
                 <button 
                   disabled={loading}
                   onClick={() => handleTrade('sell')} 
-                  className="w-full py-3 bg-[#f6465d] text-white rounded-sm font-bold text-sm active:scale-95 transition-all shadow-lg"
+                  className="h-full w-full bg-[#f6465d] text-white rounded-sm font-bold text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center"
                 >
                   {loading ? '...' : 'Short'}
                 </button>
