@@ -14,8 +14,37 @@ const Futures = () => {
   const { user, refreshUser } = useContext(UserContext);
   const [leverage, setLeverage] = useState(20);
   const [amount, setAmount] = useState('');
-  const [side, setSide] = useState('buy'); // 'buy' or 'sell'
+  const [side, setSide] = useState('buy'); 
   const [loading, setLoading] = useState(false);
+
+  // --- Dynamic Price Logic Start ---
+  const [currentPrice, setCurrentPrice] = useState(67830.9);
+  const [orderData, setOrderData] = useState({ sell: [], buy: [] });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // মেইন প্রাইস পরিবর্তন (Random movement)
+      const change = (Math.random() * 4 - 2).toFixed(1); 
+      const newPrice = (parseFloat(currentPrice) + parseFloat(change)).toFixed(1);
+      setCurrentPrice(newPrice);
+
+      // অর্ডার বুকের নম্বর জেনারেট করা
+      const generateOrders = (base, isSell) => {
+        return [...Array(6)].map((_, i) => ({
+          price: (parseFloat(base) + (isSell ? (i + 1) * 2.5 : -(i + 1) * 2.5) + Math.random()).toFixed(1),
+          amount: (Math.random() * 2 + 0.1).toFixed(1) + "k"
+        }));
+      };
+
+      setOrderData({
+        sell: generateOrders(newPrice, true).reverse(), // উপরের দিকে বেশি দাম
+        buy: generateOrders(newPrice, false) // নিচের দিকে কম দাম
+      });
+    }, 1000); // প্রতি ১ সেকেন্ডে আপডেট হবে
+
+    return () => clearInterval(interval);
+  }, [currentPrice]);
+  // --- Dynamic Price Logic End ---
 
   const currentCoin = (coinSymbol || 'BTC').toUpperCase();
 
@@ -56,13 +85,11 @@ const Futures = () => {
       <div className="flex flex-1 overflow-hidden">
         {/* Left Side: Trading Controls */}
         <div className="w-[60%] p-3 space-y-4 border-r border-gray-900 overflow-y-auto">
-          {/* Margin Type & Leverage Buttons */}
           <div className="flex gap-2">
             <button className="flex-1 bg-[#2b3139] py-1.5 rounded text-xs font-bold">Cross</button>
             <button className="flex-1 bg-[#2b3139] py-1.5 rounded text-xs font-bold">{leverage}x</button>
           </div>
 
-          {/* Buy/Sell Tabs */}
           <div className="flex bg-[#2b3139] rounded overflow-hidden">
             <button 
               onClick={() => setSide('buy')}
@@ -79,21 +106,19 @@ const Futures = () => {
             <span className="text-white">0.0000 BTC ⇄</span>
           </div>
 
-          {/* Order Type Dropdown */}
           <div className="bg-[#2b3139] p-2 rounded flex justify-between items-center text-xs font-bold">
             <span>Limit</span>
             <ChevronDown size={14} />
           </div>
 
-          {/* Price Input */}
+          {/* Price Input (Now Dynamic) */}
           <div className="flex items-center bg-[#2b3139] rounded overflow-hidden">
             <button className="px-3 py-2 text-gray-400">-</button>
-            <input type="text" value="67830.9" className="w-full bg-transparent text-center text-xs font-bold outline-none" readOnly />
+            <input type="text" value={currentPrice} className="w-full bg-transparent text-center text-xs font-bold outline-none" readOnly />
             <button className="px-3 py-2 text-gray-400">+</button>
             <span className="pr-2 text-[10px] text-gray-500">BBO</span>
           </div>
 
-          {/* Amount Input */}
           <div className="flex items-center bg-[#2b3139] rounded overflow-hidden">
             <button className="px-3 py-2 text-gray-400">-</button>
             <input 
@@ -107,7 +132,6 @@ const Futures = () => {
             <span className="pr-2 text-[10px] text-gray-500">Cont <ChevronDown size={10} /></span>
           </div>
 
-          {/* Percentage Slider Dots */}
           <div className="flex justify-between px-1 relative items-center py-2">
              <div className="h-[1px] bg-gray-700 absolute w-full left-0 z-0"></div>
              {[0, 25, 50, 75, 100].map(dot => (
@@ -115,18 +139,11 @@ const Futures = () => {
              ))}
           </div>
 
-          {/* Options */}
           <div className="space-y-2 text-[10px] text-gray-400">
             <label className="flex items-center gap-2"><input type="checkbox" className="accent-yellow-500" /> TP/SL</label>
             <label className="flex items-center gap-2"><input type="checkbox" className="accent-yellow-500" /> Reduce Only</label>
           </div>
 
-          <div className="text-[10px] text-gray-500 space-y-1 pt-2">
-            <div className="flex justify-between"><span>Max</span><span>0 Cont</span></div>
-            <div className="flex justify-between"><span>Cost</span><span>0.0000 BTC</span></div>
-          </div>
-
-          {/* Big Action Button */}
           <button 
             onClick={handleTrade}
             className={`w-full py-3 rounded-lg font-bold text-sm transition-all active:scale-95 ${side === 'buy' ? 'bg-[#02c076] text-[#0b0e11]' : 'bg-[#f6465d] text-white'}`}
@@ -135,57 +152,57 @@ const Futures = () => {
           </button>
         </div>
 
-        {/* Right Side: Order Book */}
+        {/* Right Side: Dynamic Order Book */}
         <div className="w-[40%] p-2 text-[10px] flex flex-col justify-between">
           <div className="flex justify-between text-gray-500 pb-2">
             <span>Price (USD)</span>
             <span>Amount (Cont)</span>
           </div>
           
-          {/* Sell Orders (Red) */}
+          {/* Sell Orders (Dynamic) */}
           <div className="space-y-1">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="flex justify-between">
-                <span className="text-[#f6465d]">67845.5</span>
-                <span className="text-gray-400">1.5k</span>
+            {orderData.sell.map((order, i) => (
+              <div key={i} className="flex justify-between animate-pulse">
+                <span className="text-[#f6465d] font-mono">{order.price}</span>
+                <span className="text-gray-400">{order.amount}</span>
               </div>
             ))}
           </div>
 
-          {/* Current Price Display */}
+          {/* Center Price Display */}
           <div className="py-4 text-center">
-            <div className="text-[#02c076] text-lg font-bold">67,830.9</div>
-            <div className="text-gray-500 text-[9px]">67,819.9</div>
+            <div className={`text-lg font-bold transition-colors duration-300 ${Math.random() > 0.5 ? 'text-[#02c076]' : 'text-[#f6465d]'}`}>
+              {parseFloat(currentPrice).toLocaleString()}
+            </div>
+            <div className="text-gray-500 text-[9px]">{ (parseFloat(currentPrice) - 10).toFixed(1) }</div>
           </div>
 
-          {/* Buy Orders (Green) */}
+          {/* Buy Orders (Dynamic) */}
           <div className="space-y-1">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="flex justify-between">
-                <span className="text-[#02c076]">67828.2</span>
-                <span className="text-gray-400">850</span>
+            {orderData.buy.map((order, i) => (
+              <div key={i} className="flex justify-between animate-pulse">
+                <span className="text-[#02c076] font-mono">{order.price}</span>
+                <span className="text-gray-400">{order.amount}</span>
               </div>
             ))}
           </div>
           
-          {/* Precision Selector */}
-          <div className="mt-2 flex justify-between bg-[#1e2329] p-1 rounded">
+          <div className="mt-2 flex justify-between bg-[#1e2329] p-1 rounded cursor-pointer">
              <span>0.1</span>
              <ChevronDown size={12} />
           </div>
         </div>
       </div>
 
-      {/* Bottom Tabs (Positions/Orders) */}
       <div className="bg-[#0b0e11] border-t border-gray-900 p-3">
-         <div className="flex gap-6 text-xs font-bold border-b border-gray-900 pb-2">
+          <div className="flex gap-6 text-xs font-bold border-b border-gray-900 pb-2">
             <span className="text-white border-b-2 border-yellow-500 pb-2">Positions (0)</span>
             <span className="text-gray-500">Open Orders (0)</span>
-         </div>
-         <div className="py-10 flex flex-col items-center opacity-30">
+          </div>
+          <div className="py-10 flex flex-col items-center opacity-30">
             <MoreHorizontal size={40} />
             <p className="text-[10px] mt-2 uppercase tracking-widest">No Active Positions</p>
-         </div>
+          </div>
       </div>
     </div>
   );
