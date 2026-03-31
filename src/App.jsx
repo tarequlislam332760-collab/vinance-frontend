@@ -93,7 +93,7 @@ const Login = () => {
   );
 };
 
-// --- TradePage Component ---
+// --- TradePage Component (Fixed for Mobile Full Screen) ---
 const TradePage = () => {
   const { coinSymbol } = useParams();
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
@@ -101,12 +101,12 @@ const TradePage = () => {
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleTrade = async () => {
+  const handleTrade = async (type) => {
     if (!amount || parseFloat(amount) <= 0) return alert("Enter valid amount");
     setLoading(true);
     try {
       const res = await axios.post(`${API_URL}/api/trade`, 
-        { type: tradeType, amount: parseFloat(amount), symbol: (coinSymbol || 'btc').toUpperCase() },
+        { type: type, amount: parseFloat(amount), symbol: (coinSymbol || 'btc').toUpperCase() },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert(res.data.message);
@@ -118,23 +118,52 @@ const TradePage = () => {
   };
 
   return (
-    <div className="p-4 md:p-8 flex flex-col lg:flex-row gap-6 text-left bg-main-bg pb-32 md:pb-8">
-      <div className="flex-1 bg-card-bg border border-border rounded-[2rem] overflow-hidden h-[400px] md:h-[500px] shadow-2xl">
-        <iframe title="TV" src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${(coinSymbol || 'btc').toUpperCase()}USDT&theme=dark`} style={{ width: '100%', height: '100%', border: 'none' }}></iframe>
+    <div className="flex flex-col h-screen md:h-[calc(100vh-64px)] overflow-hidden bg-main-bg">
+      {/* TradingView চার্ট - মোবাইলে সর্বোচ্চ জায়গা নেবে */}
+      <div className="flex-1 w-full bg-card-bg">
+        <iframe 
+          title="TV" 
+          src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${(coinSymbol || 'btc').toUpperCase()}USDT&theme=dark`} 
+          className="w-full h-full border-none"
+        ></iframe>
       </div>
-      <div className="w-full lg:w-96 bg-card-bg border border-border rounded-[2rem] p-6 md:p-8 shadow-2xl h-fit">
-        <div className="flex gap-2 mb-6 p-1 bg-main-bg rounded-2xl">
-          <button onClick={() => setTradeType('buy')} className={`flex-1 py-3 rounded-xl font-bold uppercase text-xs ${tradeType === 'buy' ? 'bg-[#1aa07b] text-white' : 'text-gray-500'}`}>Buy</button>
-          <button onClick={() => setTradeType('sell')} className={`flex-1 py-3 rounded-xl font-bold uppercase text-xs ${tradeType === 'sell' ? 'bg-danger text-white' : 'text-gray-500'}`}>Sell</button>
+      
+      {/* ট্রেড কন্ট্রোলস - নিচে ফিক্সড থাকবে (যেমন স্ক্রিনশটে ছিল) */}
+      <div className="w-full bg-card-bg border-t border-border p-4 md:p-8 shadow-2xl z-20">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-4">
+          <div className="hidden md:block flex-1">
+             <p className="text-gray-500 text-[10px] uppercase font-black tracking-widest">Trading {(coinSymbol || 'btc').toUpperCase()}/USDT</p>
+             <h2 className="text-white font-black italic text-xl uppercase">Live Market</h2>
+          </div>
+
+          <div className="w-full md:w-72 relative">
+            <input 
+              type="number" 
+              value={amount} 
+              onChange={(e)=>setAmount(e.target.value)} 
+              placeholder="0.00 USDT" 
+              className="w-full bg-main-bg border border-border rounded-xl p-3 text-white outline-none font-mono font-bold focus:border-primary" 
+            />
+            <span className="absolute right-3 top-3 text-gray-500 font-black text-[10px] uppercase">USDT</span>
+          </div>
+
+          <div className="flex gap-3 w-full md:w-auto">
+            <button 
+              disabled={loading} 
+              onClick={() => handleTrade('buy')} 
+              className="flex-1 md:w-32 py-3.5 bg-[#1aa07b] text-white rounded-xl font-bold uppercase text-xs tracking-widest shadow-lg active:scale-95 transition-transform"
+            >
+              Buy
+            </button>
+            <button 
+              disabled={loading} 
+              onClick={() => handleTrade('sell')} 
+              className="flex-1 md:w-32 py-3.5 bg-danger text-white rounded-xl font-bold uppercase text-xs tracking-widest shadow-lg active:scale-95 transition-transform"
+            >
+              Sell
+            </button>
+          </div>
         </div>
-        <div className="flex justify-between text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-widest">
-            <span>Available Balance</span>
-            <span className="text-white">${user?.balance?.toLocaleString(undefined, { minimumFractionDigits: 2 }) || '0.00'}</span>
-        </div>
-        <input type="number" value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="0.00 USDT" className="w-full bg-main-bg border border-border rounded-2xl p-4 text-white outline-none mb-4 font-mono focus:border-primary" />
-        <button disabled={loading} onClick={handleTrade} className={`w-full py-4 rounded-2xl font-bold uppercase tracking-widest ${tradeType === 'buy' ? 'bg-primary text-white' : 'bg-danger text-white'}`}>
-          {loading ? "Processing..." : `Execute ${tradeType}`}
-        </button>
       </div>
     </div>
   );
@@ -177,7 +206,7 @@ const Dashboard = ({ cryptoData }) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 pb-10">
-        <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="lg:col-span-2 grid grid-cols-2 gap-4">
           {cryptoData.map((coin) => (
             <div key={coin.id} onClick={() => navigate(`/trade/${coin.symbol}`)} className="bg-card-bg p-5 md:p-6 rounded-[2rem] border border-border cursor-pointer hover:border-primary/50 transition-all group shadow-lg">
               <div className="flex justify-between mb-4 text-[10px] font-black uppercase tracking-widest">
@@ -281,13 +310,11 @@ const AppContent = ({ cryptoData }) => {
             <NavItem to="/market" icon={<BarChart3 size={20}/>} label="Market" />
             <NavItem to="/trade/btc" icon={<TrendingUp size={20}/>} label="Trade" />
             
-            {/* --- New Investment Links --- */}
             <NavItem to="/invest" icon={<PieChart size={20}/>} label="AI Invest" />
             <NavItem to="/my-investments" icon={<Activity size={20}/>} label="Invest Logs" />
             
             <NavItem to="/wallet" icon={<Wallet size={20}/>} label="Wallet" />
 
-            {/* Admin Controls */}
             {user?.role === 'admin' && (
                <>
                  <div className="pt-6 pb-2 px-4 text-[9px] font-black text-gray-600 uppercase tracking-widest border-t border-border/30 mt-4">Management</div>
@@ -323,11 +350,9 @@ const AppContent = ({ cryptoData }) => {
             <Route path="/withdraw" element={<Withdraw />} />
             <Route path="/wallet" element={<WalletPage />} /> 
 
-            {/* --- নতুন ইনভেস্টমেন্ট রাউটগুলো --- */}
             <Route path="/invest" element={<Investment />} />
             <Route path="/my-investments" element={<MyInvestments />} />
             
-            {/* Admin Protected Routes */}
             <Route path="/admin" element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/dashboard" />} />
             <Route path="/admin/manage-plans" element={user?.role === 'admin' ? <ManagePlans /> : <Navigate to="/dashboard" />} />
             <Route path="/admin/investment-logs" element={user?.role === 'admin' ? <InvestmentLogs /> : <Navigate to="/dashboard" />} />
