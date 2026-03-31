@@ -4,7 +4,7 @@ import axios from 'axios';
 import { 
   LayoutDashboard, BarChart3, TrendingUp, Wallet, LogOut, 
   ShieldCheck, Activity, ArrowUpRight, ArrowDownLeft,
-  PieChart, ChevronLeft, Star, Bell, MoreHorizontal, LayoutGrid, Zap
+  PieChart, ChevronLeft, Star, Bell, MoreHorizontal, LayoutGrid, Zap, ChevronDown
 } from 'lucide-react';
 
 import { UserProvider, UserContext } from './context/UserContext'; 
@@ -19,7 +19,117 @@ import MyInvestments from './pages/MyInvestments';
 import ManagePlans from './admin/ManagePlans';
 import InvestmentLogs from './admin/InvestmentLogs';
 
-// --- Trade Component (With Timeframe & Percentage) ---
+// --- Futures Component (Modern & Responsive) ---
+const Futures = () => {
+  const { coinSymbol } = useParams();
+  const { user, refreshUser, API_URL, token } = useContext(UserContext);
+  const [leverage, setLeverage] = useState(20);
+  const [amount, setAmount] = useState('');
+  const [side, setSide] = useState('buy'); 
+  const [loading, setLoading] = useState(false);
+  const [timeframe, setTimeframe] = useState('15');
+
+  const currentCoin = (coinSymbol || 'BTC').toUpperCase();
+
+  const handleTrade = async () => {
+    if (!amount || parseFloat(amount) <= 0) return alert("Enter amount");
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API_URL}/api/futures/trade`, 
+        { type: side, amount: parseFloat(amount), leverage: leverage, symbol: currentCoin },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert(res.data.message);
+      if (refreshUser) await refreshUser();
+    } catch (err) { 
+      alert(err.response?.data?.message || "Futures trade failed"); 
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div className="flex flex-col h-screen bg-[#0b0e11] text-[#eaecef] overflow-hidden font-sans">
+      <div className="flex justify-between items-center px-4 py-3 border-b border-gray-800 bg-[#0b0e11] sticky top-0 z-50">
+        <div className="flex items-center gap-2">
+          <ChevronLeft size={22} className="text-gray-400 cursor-pointer" onClick={() => window.history.back()} />
+          <h2 className="text-sm md:text-lg font-bold flex items-center gap-1">
+            {currentCoin}/USDT <span className="text-[10px] bg-[#2b3139] px-1 rounded text-gray-400">Perp</span>
+            <ChevronDown size={14} className="text-gray-500" />
+          </h2>
+        </div>
+        <div className="flex gap-4 text-gray-400 items-center">
+          <Star size={18} />
+          <Bell size={18} />
+          <MoreHorizontal size={18} />
+        </div>
+      </div>
+
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
+        <div className="flex-1 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-900 min-h-[250px] md:min-h-[400px]">
+          <div className="flex justify-between items-center px-4 py-1.5 text-[10px] text-gray-400 border-b border-gray-900">
+            <div className="flex gap-3 overflow-x-auto no-scrollbar">
+               <span className="text-[#f0b90b]">Time</span>
+               {['15', '60', '240', 'D'].map(tf => (
+                 <span key={tf} onClick={() => setTimeframe(tf)} className={`cursor-pointer ${timeframe === tf ? 'text-white' : ''}`}>
+                   {tf === '240' ? '4h' : tf === '15' ? '15m' : tf}
+                 </span>
+               ))}
+            </div>
+            <Activity size={12} />
+          </div>
+          <div className="flex-1 relative bg-black">
+             <iframe 
+               title="Futures Chart" 
+               src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${currentCoin}USDT&interval=${timeframe}&theme=dark&style=1`} 
+               className="absolute inset-0 w-full h-full border-none"
+             ></iframe>
+          </div>
+        </div>
+
+        <div className="w-full lg:w-[380px] flex flex-row lg:flex-col overflow-y-auto bg-[#0b0e11] pb-20 lg:pb-0">
+          <div className="w-[55%] lg:w-full p-3 space-y-3 border-r lg:border-r-0 border-gray-900">
+            <div className="flex gap-2">
+              <button className="flex-1 bg-[#2b3139] py-1 rounded text-[10px] font-bold">Cross</button>
+              <button className="flex-1 bg-[#2b3139] py-1 rounded text-[10px] font-bold">{leverage}x</button>
+            </div>
+            <div className="flex bg-[#2b3139] rounded overflow-hidden">
+              <button onClick={() => setSide('buy')} className={`flex-1 py-1.5 text-[11px] font-bold transition-all ${side === 'buy' ? 'bg-[#02c076] text-[#0b0e11]' : 'text-gray-400'}`}>Buy</button>
+              <button onClick={() => setSide('sell')} className={`flex-1 py-1.5 text-[11px] font-bold transition-all ${side === 'sell' ? 'bg-[#f6465d] text-white' : 'text-gray-400'}`}>Sell</button>
+            </div>
+            <div className="relative">
+              <input type="number" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-[#2b3139] rounded p-2 text-xs font-bold outline-none text-center" />
+              <span className="absolute right-2 top-2 text-[10px] text-gray-500 uppercase">USDT</span>
+            </div>
+            <div className="flex justify-between px-1 relative items-center py-2 h-4">
+               <div className="h-[1px] bg-gray-800 absolute w-full left-0 z-0"></div>
+               {[0, 25, 50, 75, 100].map(dot => (
+                 <div key={dot} className="w-1.5 h-1.5 rounded-full border border-gray-700 bg-[#0b0e11] z-10"></div>
+               ))}
+            </div>
+            <button onClick={handleTrade} className={`w-full py-2.5 rounded font-bold text-xs transition-all active:scale-95 ${side === 'buy' ? 'bg-[#02c076] text-[#0b0e11]' : 'bg-[#f6465d] text-white'}`}>
+              {loading ? "..." : side === 'buy' ? "Open Long" : "Open Short"}
+            </button>
+          </div>
+          <div className="w-[45%] lg:w-full p-2 text-[9px] flex flex-col">
+            <div className="flex justify-between text-gray-500 mb-1"><span>Price</span><span>Amount</span></div>
+            <div className="space-y-0.5 mb-2">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex justify-between"><span className="text-[#f6465d]">67845.5</span><span className="text-gray-300">1.2k</span></div>
+              ))}
+            </div>
+            <div className="text-center py-1 border-y border-gray-900 my-1"><div className="text-[#02c076] text-sm font-bold">67,830.9</div></div>
+            <div className="space-y-0.5">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex justify-between"><span className="text-[#02c076]">67828.2</span><span className="text-gray-300">850</span></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Trade Component (Existing) ---
 const Trade = () => {
   const { coinSymbol } = useParams();
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
@@ -48,7 +158,6 @@ const Trade = () => {
 
   const handlePercentClick = (percent) => {
     if (!user?.balance) return;
-    // ব্যালেন্স থেকে পারসেন্টেজ ক্যালকুলেট করা
     const calculated = (parseFloat(user.balance) * percent) / 100;
     setAmount(calculated.toFixed(2));
   };
@@ -60,12 +169,11 @@ const Trade = () => {
           <ChevronLeft size={24} className="text-gray-300 cursor-pointer" onClick={() => window.history.back()} />
           <div className="flex items-center gap-1">
             <span className="text-white font-bold text-lg">{currentCoin}/USDT</span>
-            <span className="bg-[#2b3139] text-[9px] px-1 rounded text-gray-400 font-bold">Perp</span>
+            <span className="bg-[#2b3139] text-[9px] px-1 rounded text-gray-400 font-bold">Spot</span>
           </div>
         </div>
         <div className="flex gap-4 text-gray-400"><Star size={18} /><Bell size={18} /></div>
       </div>
-
       <div className="flex justify-between items-center px-4 py-1.5 text-[11px] text-gray-400 font-medium border-b border-[#1e2329]">
         <div className="flex gap-4">
           <span className="text-[#f0b90b]">Time</span>
@@ -77,11 +185,9 @@ const Trade = () => {
         </div>
         <Activity size={14} />
       </div>
-
       <div className="flex-1 w-full relative">
         <iframe title="TV" src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${currentCoin}USDT&interval=${timeframe}&theme=dark&style=1&timezone=Etc%2FUTC&hide_top_toolbar=true`} className="absolute inset-0 w-full h-full border-none"></iframe>
       </div>
-      
       <div className="w-full bg-[#161a1e] border-t border-[#1e2329] p-4 pb-20 md:pb-6">
         <div className="max-w-md mx-auto">
           <div className="flex justify-between mb-3">
@@ -104,7 +210,7 @@ const Trade = () => {
               </div>
             </div>
             <button onClick={() => handleTrade(activeTab)} className={`flex-1 py-4 rounded-sm font-bold text-sm ${activeTab === 'buy' ? 'bg-[#02c076] text-[#0b0e11]' : 'bg-[#f6465d] text-white'}`}>
-              {loading ? '...' : activeTab === 'buy' ? 'Long' : 'Short'}
+              {loading ? '...' : activeTab === 'buy' ? 'Buy' : 'Sell'}
             </button>
           </div>
         </div>
@@ -113,13 +219,12 @@ const Trade = () => {
   );
 };
 
-// --- Authentication Components ---
+// --- Auth Components (Login/Register) ---
 const Register = () => {
   const { API_URL } = useContext(UserContext);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
-
   const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -130,7 +235,6 @@ const Register = () => {
     } catch (err) { alert(err.response?.data?.message || "Error"); } 
     finally { setLoading(false); }
   };
-
   return (
     <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6 text-left">
       <div className="w-full max-w-md bg-[#161a1e] border border-[#1e2329] rounded-3xl p-10 shadow-2xl">
@@ -153,7 +257,6 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -167,7 +270,6 @@ const Login = () => {
     } catch (err) { alert(err.response?.data?.message || "Login Failed"); } 
     finally { setLoading(false); }
   };
-
   return (
     <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6 text-left">
       <div className="w-full max-w-md bg-[#161a1e] border border-[#1e2329] rounded-3xl p-10 shadow-2xl">
@@ -188,7 +290,6 @@ const Dashboard = ({ cryptoData }) => {
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState([]);
-
   useEffect(() => {
     if (refreshUser) refreshUser(); 
     const fetchTransactions = async () => {  
@@ -202,7 +303,6 @@ const Dashboard = ({ cryptoData }) => {
     };
     fetchTransactions();
   }, [token, API_URL, refreshUser]);
-
   return (
     <div className="p-4 md:p-8 text-left space-y-6 bg-[#0b0e11] min-h-screen">
       <div className="bg-gradient-to-br from-[#161a1e] to-[#0b0e11] p-6 rounded-[2.5rem] border border-[#1e2329] flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl relative overflow-hidden group">
@@ -217,7 +317,6 @@ const Dashboard = ({ cryptoData }) => {
           <button onClick={() => navigate('/withdraw')} className="flex-1 bg-white/5 text-white px-8 py-3.5 rounded-2xl font-black border border-[#1e2329] uppercase text-xs tracking-widest">Withdraw</button>
         </div>
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-10">
         <div className="lg:col-span-2 grid grid-cols-2 gap-4">
           {cryptoData.map((coin) => (
@@ -230,7 +329,6 @@ const Dashboard = ({ cryptoData }) => {
             </div>
           ))}
         </div>
-
         <div className="bg-[#161a1e] border border-[#1e2329] rounded-[2.5rem] p-6 shadow-xl h-fit">
           <h3 className="text-white font-black uppercase text-[10px] mb-6 flex items-center gap-2 tracking-[0.2em]">
             <Activity size={14} className="text-[#f0b90b]" /> Recent Activity
@@ -299,12 +397,9 @@ const NavItem = ({ to, icon, label }) => (
 const AppContent = ({ cryptoData }) => {
   const { user, token, logout, loading: authLoading } = useContext(UserContext);
   const location = useLocation();
-
   if (authLoading) return <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center text-[#f0b90b] font-black text-4xl uppercase animate-pulse italic">VINANCE</div>;
-
   const isAuthPage = ['/login', '/register'].includes(location.pathname);
   const isHomePage = location.pathname === '/';
-
   if (!token && !isAuthPage && !isHomePage) return <Navigate to="/login" replace />;
 
   return (
@@ -315,16 +410,15 @@ const AppContent = ({ cryptoData }) => {
           <nav className="space-y-3 flex-1 overflow-y-auto">
             <NavItem to="/dashboard" icon={<LayoutDashboard size={20}/>} label="Dashboard" />
             <NavItem to="/market" icon={<BarChart3 size={20}/>} label="Market" />
-            <NavItem to={`/trade/${cryptoData[0]?.symbol || 'btc'}`} icon={<TrendingUp size={20}/>} label="Trade" />
+            <NavItem to={`/futures/${cryptoData[0]?.symbol || 'btc'}`} icon={<Zap size={20}/>} label="Futures" />
+            <NavItem to={`/trade/${cryptoData[0]?.symbol || 'btc'}`} icon={<TrendingUp size={20}/>} label="Spot" />
             <NavItem to="/invest" icon={<PieChart size={20}/>} label="AI Invest" />
-            <NavItem to="/my-investments" icon={<Activity size={20}/>} label="Invest Logs" />
             <NavItem to="/wallet" icon={<Wallet size={20}/>} label="Wallet" />
             {user?.role === 'admin' && (
                <>
                  <div className="pt-6 pb-2 px-4 text-[9px] font-black text-gray-600 uppercase tracking-widest border-t border-[#1e2329] mt-4">Admin</div>
                  <NavItem to="/admin" icon={<ShieldCheck size={20}/>} label="Users" />
                  <NavItem to="/admin/manage-plans" icon={<PieChart size={20}/>} label="Plans" />
-                 <NavItem to="/admin/investment-logs" icon={<TrendingUp size={20}/>} label="Logs" />
                </>
             )}
           </nav>
@@ -349,6 +443,7 @@ const AppContent = ({ cryptoData }) => {
             <Route path="/dashboard" element={<Dashboard cryptoData={cryptoData} />} />
             <Route path="/market" element={<Market cryptoData={cryptoData} />} />
             <Route path="/trade/:coinSymbol" element={<Trade />} /> 
+            <Route path="/futures/:coinSymbol" element={<Futures />} /> 
             <Route path="/deposit" element={<Deposit />} />
             <Route path="/withdraw" element={<Withdraw />} />
             <Route path="/wallet" element={<WalletPage />} /> 
@@ -356,7 +451,6 @@ const AppContent = ({ cryptoData }) => {
             <Route path="/my-investments" element={<MyInvestments />} />
             <Route path="/admin" element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/dashboard" />} />
             <Route path="/admin/manage-plans" element={user?.role === 'admin' ? <ManagePlans /> : <Navigate to="/dashboard" />} />
-            <Route path="/admin/investment-logs" element={user?.role === 'admin' ? <InvestmentLogs /> : <Navigate to="/dashboard" />} />
           </Routes>
         </div>
       </main>
@@ -364,7 +458,7 @@ const AppContent = ({ cryptoData }) => {
       {token && !isHomePage && (
         <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/95 backdrop-blur-md border-t border-[#1e2329] flex justify-around items-center py-4 md:hidden z-50">
           <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
-          <NavLink to="/invest" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><PieChart size={22}/></NavLink>
+          <NavLink to={`/futures/${cryptoData[0]?.symbol || 'btc'}`} className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Zap size={22}/></NavLink>
           <NavLink to={`/trade/${cryptoData[0]?.symbol || 'btc'}`} className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><TrendingUp size={22}/></NavLink>
           <NavLink to="/wallet" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Wallet size={22}/></NavLink>
           <button onClick={logout} className="text-gray-400"><LogOut size={22}/></button>

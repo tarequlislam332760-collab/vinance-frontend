@@ -1,74 +1,191 @@
-import React, { useState, useContext, useRef, useEffect } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
 import axios from 'axios';
+import { ChevronDown, MoreHorizontal, Zap } from 'lucide-react';
 
-// এপিআই কনফিগারেশন (আপনার App.jsx এর মতো)
 const api = axios.create({
-    baseURL: "https://vinance-backend.vercel.app", // নতুন ব্যাকেন্ড ইউআরএল
+  baseURL: "https://vinance-backend.vercel.app",
   withCredentials: true 
 });
 
 const Futures = () => {
   const { coinSymbol } = useParams();
-  const { user, setUser } = useContext(UserContext);
-  const [leverage, setLeverage] = useState(10); // ডিফল্ট ১০এক্স লিভারেজ
+  const { user, refreshUser } = useContext(UserContext);
+  const [leverage, setLeverage] = useState(20);
   const [amount, setAmount] = useState('');
+  const [side, setSide] = useState('buy'); // 'buy' or 'sell'
   const [loading, setLoading] = useState(false);
 
-  const handleFutureTrade = async (side) => {
-    if (!amount || parseFloat(amount) <= 0) return alert("Enter valid amount");
+  const currentCoin = (coinSymbol || 'BTC').toUpperCase();
+
+  const handleTrade = async () => {
+    if (!amount || parseFloat(amount) <= 0) return alert("Enter amount");
     setLoading(true);
     try {
       const res = await api.post('/api/futures/trade', { 
-        type: side, // 'buy' for Long, 'sell' for Short
+        type: side,
         amount: parseFloat(amount), 
         leverage: leverage,
-        symbol: (coinSymbol || 'btc').toUpperCase() 
+        symbol: currentCoin 
       });
       alert(res.data.message);
-      // ব্যালেন্স আপডেট লজিক এখানে থাকবে
+      if (refreshUser) await refreshUser();
     } catch (err) { 
-      alert(err.response?.data?.message || "Futures trade failed"); 
+      alert(err.response?.data?.message || "Trade failed"); 
     } finally { setLoading(false); }
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#0b0e11] text-left">
-      <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-[#1e2329]">
-        <h2 className="text-xl font-black text-white italic uppercase">{(coinSymbol || 'btc')}/USDT Perpetual</h2>
-        <div className="bg-yellow-500/10 text-yellow-500 px-3 py-1 rounded-lg text-xs font-bold border border-yellow-500/20">
-          {leverage}x Leverage
+    <div className="flex flex-col h-screen bg-[#0b0e11] text-[#eaecef] overflow-hidden font-sans">
+      {/* Top Header */}
+      <div className="flex justify-between items-center px-4 py-3 border-b border-gray-800">
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-bold flex items-center gap-1">
+            {currentCoin}USD CM <span className="text-[10px] bg-[#2b3139] px-1 rounded text-gray-400">Perp</span>
+            <ChevronDown size={14} className="text-gray-500" />
+          </h2>
+          <span className="text-[#02c076] text-xs font-bold">+1.77%</span>
+        </div>
+        <div className="flex gap-4 text-gray-400">
+          <Zap size={18} />
+          <MoreHorizontal size={18} />
         </div>
       </div>
 
-      <div className="flex-1 p-4 bg-[#0b0e11]">
-        {/* লিভারেজ স্লাইডার বা ইনপুট */}
-        <div className="mb-6">
-          <label className="text-[10px] text-gray-500 uppercase font-black tracking-widest block mb-2">Adjust Leverage</label>
-          <input 
-            type="range" min="1" max="100" value={leverage} 
-            onChange={(e) => setLeverage(e.target.value)}
-            className="w-full accent-yellow-500" 
-          />
-          <div className="flex justify-between text-[10px] text-gray-400 mt-1">
-            <span>1x</span><span>50x</span><span>100x</span>
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Side: Trading Controls */}
+        <div className="w-[60%] p-3 space-y-4 border-r border-gray-900 overflow-y-auto">
+          {/* Margin Type & Leverage Buttons */}
+          <div className="flex gap-2">
+            <button className="flex-1 bg-[#2b3139] py-1.5 rounded text-xs font-bold">Cross</button>
+            <button className="flex-1 bg-[#2b3139] py-1.5 rounded text-xs font-bold">{leverage}x</button>
+          </div>
+
+          {/* Buy/Sell Tabs */}
+          <div className="flex bg-[#2b3139] rounded overflow-hidden">
+            <button 
+              onClick={() => setSide('buy')}
+              className={`flex-1 py-2 text-xs font-bold transition-all ${side === 'buy' ? 'bg-[#02c076] text-[#0b0e11]' : 'text-gray-400'}`}
+            >Buy</button>
+            <button 
+              onClick={() => setSide('sell')}
+              className={`flex-1 py-2 text-xs font-bold transition-all ${side === 'sell' ? 'bg-[#f6465d] text-white' : 'text-gray-400'}`}
+            >Sell</button>
+          </div>
+
+          <div className="text-[10px] text-gray-500 flex justify-between">
+            <span>Avbl</span>
+            <span className="text-white">0.0000 BTC ⇄</span>
+          </div>
+
+          {/* Order Type Dropdown */}
+          <div className="bg-[#2b3139] p-2 rounded flex justify-between items-center text-xs font-bold">
+            <span>Limit</span>
+            <ChevronDown size={14} />
+          </div>
+
+          {/* Price Input */}
+          <div className="flex items-center bg-[#2b3139] rounded overflow-hidden">
+            <button className="px-3 py-2 text-gray-400">-</button>
+            <input type="text" value="67830.9" className="w-full bg-transparent text-center text-xs font-bold outline-none" readOnly />
+            <button className="px-3 py-2 text-gray-400">+</button>
+            <span className="pr-2 text-[10px] text-gray-500">BBO</span>
+          </div>
+
+          {/* Amount Input */}
+          <div className="flex items-center bg-[#2b3139] rounded overflow-hidden">
+            <button className="px-3 py-2 text-gray-400">-</button>
+            <input 
+              type="number" 
+              placeholder="Amount" 
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full bg-transparent text-center text-xs font-bold outline-none" 
+            />
+            <button className="px-3 py-2 text-gray-400">+</button>
+            <span className="pr-2 text-[10px] text-gray-500">Cont <ChevronDown size={10} /></span>
+          </div>
+
+          {/* Percentage Slider Dots */}
+          <div className="flex justify-between px-1 relative items-center py-2">
+             <div className="h-[1px] bg-gray-700 absolute w-full left-0 z-0"></div>
+             {[0, 25, 50, 75, 100].map(dot => (
+               <div key={dot} className="w-2 h-2 rounded-full border border-gray-600 bg-[#0b0e11] z-10"></div>
+             ))}
+          </div>
+
+          {/* Options */}
+          <div className="space-y-2 text-[10px] text-gray-400">
+            <label className="flex items-center gap-2"><input type="checkbox" className="accent-yellow-500" /> TP/SL</label>
+            <label className="flex items-center gap-2"><input type="checkbox" className="accent-yellow-500" /> Reduce Only</label>
+          </div>
+
+          <div className="text-[10px] text-gray-500 space-y-1 pt-2">
+            <div className="flex justify-between"><span>Max</span><span>0 Cont</span></div>
+            <div className="flex justify-between"><span>Cost</span><span>0.0000 BTC</span></div>
+          </div>
+
+          {/* Big Action Button */}
+          <button 
+            onClick={handleTrade}
+            className={`w-full py-3 rounded-lg font-bold text-sm transition-all active:scale-95 ${side === 'buy' ? 'bg-[#02c076] text-[#0b0e11]' : 'bg-[#f6465d] text-white'}`}
+          >
+            {loading ? "Processing..." : side === 'buy' ? "Open Long" : "Open Short"}
+          </button>
+        </div>
+
+        {/* Right Side: Order Book */}
+        <div className="w-[40%] p-2 text-[10px] flex flex-col justify-between">
+          <div className="flex justify-between text-gray-500 pb-2">
+            <span>Price (USD)</span>
+            <span>Amount (Cont)</span>
+          </div>
+          
+          {/* Sell Orders (Red) */}
+          <div className="space-y-1">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="flex justify-between">
+                <span className="text-[#f6465d]">67845.5</span>
+                <span className="text-gray-400">1.5k</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Current Price Display */}
+          <div className="py-4 text-center">
+            <div className="text-[#02c076] text-lg font-bold">67,830.9</div>
+            <div className="text-gray-500 text-[9px]">67,819.9</div>
+          </div>
+
+          {/* Buy Orders (Green) */}
+          <div className="space-y-1">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="flex justify-between">
+                <span className="text-[#02c076]">67828.2</span>
+                <span className="text-gray-400">850</span>
+              </div>
+            ))}
+          </div>
+          
+          {/* Precision Selector */}
+          <div className="mt-2 flex justify-between bg-[#1e2329] p-1 rounded">
+             <span>0.1</span>
+             <ChevronDown size={12} />
           </div>
         </div>
+      </div>
 
-        <div className="relative mb-6">
-          <input 
-            type="number" value={amount} onChange={(e)=>setAmount(e.target.value)} 
-            placeholder="0.00" 
-            className="w-full bg-[#1e2329] border border-gray-800 rounded-xl p-5 text-white outline-none font-mono text-xl focus:border-yellow-500" 
-          />
-          <span className="absolute right-5 top-5 text-gray-500 font-bold uppercase">USDT</span>
-        </div>
-
-        <div className="flex gap-4">
-          <button onClick={() => handleFutureTrade('buy')} className="flex-1 bg-emerald-500 py-4 rounded-xl font-black uppercase text-white shadow-lg active:scale-95 transition-all">Buy / Long</button>
-          <button onClick={() => handleFutureTrade('sell')} className="flex-1 bg-red-500 py-4 rounded-xl font-black uppercase text-white shadow-lg active:scale-95 transition-all">Sell / Short</button>
-        </div>
+      {/* Bottom Tabs (Positions/Orders) */}
+      <div className="bg-[#0b0e11] border-t border-gray-900 p-3">
+         <div className="flex gap-6 text-xs font-bold border-b border-gray-900 pb-2">
+            <span className="text-white border-b-2 border-yellow-500 pb-2">Positions (0)</span>
+            <span className="text-gray-500">Open Orders (0)</span>
+         </div>
+         <div className="py-10 flex flex-col items-center opacity-30">
+            <MoreHorizontal size={40} />
+            <p className="text-[10px] mt-2 uppercase tracking-widest">No Active Positions</p>
+         </div>
       </div>
     </div>
   );
