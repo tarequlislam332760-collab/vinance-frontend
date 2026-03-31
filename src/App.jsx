@@ -93,11 +93,10 @@ const Login = () => {
   );
 };
 
-// --- TradePage Component (Fixed for Mobile Full Screen) ---
+// --- TradePage Component (সংশোধিত: একদম স্পষ্ট এবং ফুল স্ক্রিন লুকের জন্য) ---
 const TradePage = () => {
   const { coinSymbol } = useParams();
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
-  const [tradeType, setTradeType] = useState('buy');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -118,50 +117,58 @@ const TradePage = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen md:h-[calc(100vh-64px)] overflow-hidden bg-main-bg">
-      {/* TradingView চার্ট - মোবাইলে সর্বোচ্চ জায়গা নেবে */}
-      <div className="flex-1 w-full bg-card-bg">
+    <div className="flex flex-col h-screen md:h-[calc(100vh-64px)] overflow-hidden bg-main-bg relative">
+      {/* TradingView চার্ট - মোবাইলে কোনো বর্ডার বা বক্স ছাড়াই সর্বোচ্চ জায়গা নেবে */}
+      <div className="flex-1 w-full bg-card-bg relative">
         <iframe 
           title="TV" 
-          src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${(coinSymbol || 'btc').toUpperCase()}USDT&theme=dark`} 
-          className="w-full h-full border-none"
+          src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${(coinSymbol || 'btc').toUpperCase()}USDT&theme=dark&style=1&timezone=Etc%2FUTC&hide_side_toolbar=true&allow_symbol_change=true`} 
+          className="absolute inset-0 w-full h-full border-none"
         ></iframe>
       </div>
       
-      {/* ট্রেড কন্ট্রোলস - নিচে ফিক্সড থাকবে (যেমন স্ক্রিনশটে ছিল) */}
-      <div className="w-full bg-card-bg border-t border-border p-4 md:p-8 shadow-2xl z-20">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-4">
-          <div className="hidden md:block flex-1">
-             <p className="text-gray-500 text-[10px] uppercase font-black tracking-widest">Trading {(coinSymbol || 'btc').toUpperCase()}/USDT</p>
-             <h2 className="text-white font-black italic text-xl uppercase">Live Market</h2>
+      {/* ট্রেড কন্ট্রোলস - একদম নিচে স্লিম এবং স্পষ্ট ডিজাইন */}
+      <div className="w-full bg-card-bg border-t border-border p-4 md:p-6 shadow-2xl z-20 pb-24 md:pb-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex justify-between items-center mb-3">
+             <div className="flex flex-col">
+               <span className="text-gray-500 text-[10px] uppercase font-black tracking-widest italic">Live Market</span>
+               <h2 className="text-white font-black text-sm md:text-xl uppercase">{(coinSymbol || 'btc').toUpperCase()}/USDT</h2>
+             </div>
+             <div className="text-right">
+               <p className="text-gray-500 text-[10px] uppercase font-black">Available</p>
+               <p className="text-white font-mono font-bold text-xs">${user?.balance?.toLocaleString()}</p>
+             </div>
           </div>
 
-          <div className="w-full md:w-72 relative">
-            <input 
-              type="number" 
-              value={amount} 
-              onChange={(e)=>setAmount(e.target.value)} 
-              placeholder="0.00 USDT" 
-              className="w-full bg-main-bg border border-border rounded-xl p-3 text-white outline-none font-mono font-bold focus:border-primary" 
-            />
-            <span className="absolute right-3 top-3 text-gray-500 font-black text-[10px] uppercase">USDT</span>
-          </div>
+          <div className="flex gap-3 items-center">
+            <div className="flex-[1.5] relative">
+              <input 
+                type="number" 
+                value={amount} 
+                onChange={(e)=>setAmount(e.target.value)} 
+                placeholder="0.00" 
+                className="w-full bg-main-bg border border-border rounded-xl p-3 text-white outline-none font-mono font-bold text-sm focus:border-primary" 
+              />
+              <span className="absolute right-3 top-3.5 text-gray-600 font-black text-[10px] uppercase">USDT</span>
+            </div>
 
-          <div className="flex gap-3 w-full md:w-auto">
-            <button 
-              disabled={loading} 
-              onClick={() => handleTrade('buy')} 
-              className="flex-1 md:w-32 py-3.5 bg-[#1aa07b] text-white rounded-xl font-bold uppercase text-xs tracking-widest shadow-lg active:scale-95 transition-transform"
-            >
-              Buy
-            </button>
-            <button 
-              disabled={loading} 
-              onClick={() => handleTrade('sell')} 
-              className="flex-1 md:w-32 py-3.5 bg-danger text-white rounded-xl font-bold uppercase text-xs tracking-widest shadow-lg active:scale-95 transition-transform"
-            >
-              Sell
-            </button>
+            <div className="flex gap-2 flex-1">
+              <button 
+                disabled={loading} 
+                onClick={() => handleTrade('buy')} 
+                className="flex-1 py-3.5 bg-[#2ebd85] text-black rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-transform"
+              >
+                Long
+              </button>
+              <button 
+                disabled={loading} 
+                onClick={() => handleTrade('sell')} 
+                className="flex-1 py-3.5 bg-[#f6465d] text-white rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-transform"
+              >
+                Short
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -362,7 +369,7 @@ const AppContent = ({ cryptoData }) => {
 
       {/* Mobile Bottom Navigation */}
       {token && !isHomePage && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-card-bg border-t border-border flex justify-around items-center py-5 md:hidden z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
+        <nav className="fixed bottom-0 left-0 right-0 bg-card-bg/95 backdrop-blur-md border-t border-border flex justify-around items-center py-5 md:hidden z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
           <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
           <NavLink to="/invest" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><PieChart size={22}/></NavLink>
           <NavLink to="/trade/btc" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><TrendingUp size={22}/></NavLink>
