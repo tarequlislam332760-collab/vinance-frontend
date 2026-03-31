@@ -17,36 +17,47 @@ const Futures = () => {
   const [side, setSide] = useState('buy'); 
   const [loading, setLoading] = useState(false);
 
-  // --- Dynamic Price Logic Start ---
-  const [currentPrice, setCurrentPrice] = useState(67830.9);
+  // --- Real-Time Binance Data Logic ---
+  const [currentPrice, setCurrentPrice] = useState('loading...');
   const [orderData, setOrderData] = useState({ sell: [], buy: [] });
+  const currentCoin = (coinSymbol || 'BTC').toUpperCase();
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      // মেইন প্রাইস পরিবর্তন (Random movement)
-      const change = (Math.random() * 4 - 2).toFixed(1); 
-      const newPrice = (parseFloat(currentPrice) + parseFloat(change)).toFixed(1);
-      setCurrentPrice(newPrice);
+    // ১. লাইভ প্রাইসের জন্য WebSocket
+    const priceWs = new WebSocket(`wss://stream.binance.com:9443/ws/${currentCoin.toLowerCase()}usdt@ticker`);
 
-      // অর্ডার বুকের নম্বর জেনারেট করা
-      const generateOrders = (base, isSell) => {
-        return [...Array(6)].map((_, i) => ({
-          price: (parseFloat(base) + (isSell ? (i + 1) * 2.5 : -(i + 1) * 2.5) + Math.random()).toFixed(1),
-          amount: (Math.random() * 2 + 0.1).toFixed(1) + "k"
-        }));
-      };
+    priceWs.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      setCurrentPrice(parseFloat(data.c).toFixed(1)); // 'c' হলো বর্তমান ক্লোজ প্রাইস
+    };
 
-      setOrderData({
-        sell: generateOrders(newPrice, true).reverse(), // উপরের দিকে বেশি দাম
-        buy: generateOrders(newPrice, false) // নিচের দিকে কম দাম
-      });
-    }, 1000); // প্রতি ১ সেকেন্ডে আপডেট হবে
+    // ২. রিয়েল অর্ডার বুকের জন্য WebSocket (Depth)
+    const depthWs = new WebSocket(`wss://stream.binance.com:9443/ws/${currentCoin.toLowerCase()}usdt@depth10@1000ms`);
 
-    return () => clearInterval(interval);
-  }, [currentPrice]);
-  // --- Dynamic Price Logic End ---
+    depthWs.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      
+      // Asks (Sellers - Red) - প্রথম ৬টি ডাটা
+      const asks = data.a.slice(0, 6).map(item => ({
+        price: parseFloat(item[0]).toFixed(1),
+        amount: parseFloat(item[1]).toFixed(3)
+      })).reverse(); // রিভার্স করা হয়েছে যাতে বেশি দামগুলো উপরে থাকে
 
-  const currentCoin = (coinSymbol || 'BTC').toUpperCase();
+      // Bids (Buyers - Green) - প্রথম ৬টি ডাটা
+      const bids = data.b.slice(0, 6).map(item => ({
+        price: parseFloat(item[0]).toFixed(1),
+        amount: parseFloat(item[1]).toFixed(3)
+      }));
+
+      setOrderData({ sell: asks, buy: bids });
+    };
+
+    // ক্লিনআপ ফাংশন (পেজ পরিবর্তন করলে কানেকশন বন্ধ হবে)
+    return () => {
+      priceWs.close();
+      depthWs.close();
+    };
+  }, [currentCoin]);
 
   const handleTrade = async () => {
     if (!amount || parseFloat(amount) <= 0) return alert("Enter amount");
@@ -111,7 +122,7 @@ const Futures = () => {
             <ChevronDown size={14} />
           </div>
 
-          {/* Price Input (Now Dynamic) */}
+          {/* Price Input (Real-time from Binance) */}
           <div className="flex items-center bg-[#2b3139] rounded overflow-hidden">
             <button className="px-3 py-2 text-gray-400">-</button>
             <input type="text" value={currentPrice} className="w-full bg-transparent text-center text-xs font-bold outline-none" readOnly />
@@ -152,35 +163,35 @@ const Futures = () => {
           </button>
         </div>
 
-        {/* Right Side: Dynamic Order Book */}
+        {/* Right Side: Real-time Order Book */}
         <div className="w-[40%] p-2 text-[10px] flex flex-col justify-between">
           <div className="flex justify-between text-gray-500 pb-2">
             <span>Price (USD)</span>
             <span>Amount (Cont)</span>
           </div>
           
-          {/* Sell Orders (Dynamic) */}
+          {/* Real Sell Orders (Red) */}
           <div className="space-y-1">
             {orderData.sell.map((order, i) => (
-              <div key={i} className="flex justify-between animate-pulse">
+              <div key={i} className="flex justify-between transition-all duration-300">
                 <span className="text-[#f6465d] font-mono">{order.price}</span>
                 <span className="text-gray-400">{order.amount}</span>
               </div>
             ))}
           </div>
 
-          {/* Center Price Display */}
+          {/* Center Real Price Display */}
           <div className="py-4 text-center">
-            <div className={`text-lg font-bold transition-colors duration-300 ${Math.random() > 0.5 ? 'text-[#02c076]' : 'text-[#f6465d]'}`}>
-              {parseFloat(currentPrice).toLocaleString()}
+            <div className="text-[#02c076] text-lg font-bold">
+              {currentPrice !== 'loading...' ? parseFloat(currentPrice).toLocaleString() : '---'}
             </div>
-            <div className="text-gray-500 text-[9px]">{ (parseFloat(currentPrice) - 10).toFixed(1) }</div>
+            <div className="text-gray-500 text-[9px]">≈ {currentPrice} USD</div>
           </div>
 
-          {/* Buy Orders (Dynamic) */}
+          {/* Real Buy Orders (Green) */}
           <div className="space-y-1">
             {orderData.buy.map((order, i) => (
-              <div key={i} className="flex justify-between animate-pulse">
+              <div key={i} className="flex justify-between transition-all duration-300">
                 <span className="text-[#02c076] font-mono">{order.price}</span>
                 <span className="text-gray-400">{order.amount}</span>
               </div>
