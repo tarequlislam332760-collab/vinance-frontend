@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { BrowserRouter, Routes, Route, NavLink, useLocation, useNavigate, Link, Navigate, useParams } from 'react-router-dom';
 import axios from 'axios'; 
 import { 
   LayoutDashboard, BarChart3, TrendingUp, Wallet, LogOut, 
-  ShieldCheck, Activity
+  ShieldCheck, Activity, ArrowUpRight, ArrowDownLeft,
+  PieChart // নতুন আইকন ইনভেস্টমেন্টের জন্য
 } from 'lucide-react';
 
 import { UserProvider, UserContext } from './context/UserContext'; 
@@ -14,22 +15,15 @@ import Deposit from './pages/Deposit';
 import Withdraw from './pages/Withdraw'; 
 import WalletPage from './pages/Wallet';
 
-// --- এপিআই কনফিগারেশন ---
-const api = axios.create({
-  baseURL: window.location.hostname === "localhost" ? "http://localhost:5000" : "https://my-trading-backend-rji1.vercel.app",
-  withCredentials: true 
-});
+// --- নতুন ইনভেস্টমেন্ট ফাইলগুলো ইম্পোর্ট করা হলো ---
+import Investment from './pages/Investment'; 
+import MyInvestments from './pages/MyInvestments';
+import ManagePlans from './admin/ManagePlans';
+import InvestmentLogs from './admin/InvestmentLogs';
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// --- ১. রেজিস্টার পেজ ---
+// --- Register Component ---
 const Register = () => {
+  const { API_URL } = useContext(UserContext);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
@@ -38,7 +32,7 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await api.post(`/api/register`, { ...formData, email: formData.email.toLowerCase() });
+      await axios.post(`${API_URL}/api/register`, { ...formData, email: formData.email.toLowerCase() });
       alert("Registration Successful! Please Login.");
       navigate('/login');
     } catch (err) { 
@@ -47,24 +41,24 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6">
-      <div className="w-full max-w-md bg-[#1e2329] border border-gray-800 rounded-3xl p-10 shadow-2xl">
-        <h1 className="text-3xl font-bold text-yellow-500 mb-6 italic uppercase tracking-tighter">VINANCE</h1>
+    <div className="min-h-screen bg-main-bg flex items-center justify-center p-6 text-left">
+      <div className="w-full max-w-md bg-card-bg border border-border rounded-3xl p-10 shadow-2xl">
+        <h1 className="text-3xl font-bold text-primary mb-6 italic uppercase tracking-tighter">VINANCE</h1>
         <form onSubmit={handleRegister} className="space-y-5">
-          <input type="text" placeholder="Full Name" required onChange={(e)=>setFormData({...formData, name: e.target.value})} className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl py-3 px-4 text-white outline-none focus:border-yellow-500" />
-          <input type="email" placeholder="Email" required onChange={(e)=>setFormData({...formData, email: formData.email.toLowerCase()})} className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl py-3 px-4 text-white outline-none focus:border-yellow-500" />
-          <input type="password" placeholder="Password" required onChange={(e)=>setFormData({...formData, password: e.target.value})} className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl py-3 px-4 text-white outline-none focus:border-yellow-500" />
-          <button disabled={loading} className="w-full bg-yellow-500 text-black py-3.5 rounded-xl font-bold uppercase">{loading ? "Wait..." : "Register"}</button>
+          <input type="text" placeholder="Full Name" required onChange={(e)=>setFormData({...formData, name: e.target.value})} className="w-full bg-main-bg border border-border rounded-xl py-3 px-4 text-white outline-none focus:border-primary" />
+          <input type="email" placeholder="Email" required onChange={(e)=>setFormData({...formData, email: e.target.value})} className="w-full bg-main-bg border border-border rounded-xl py-3 px-4 text-white outline-none focus:border-primary" />
+          <input type="password" placeholder="Password" required onChange={(e)=>setFormData({...formData, password: e.target.value})} className="w-full bg-main-bg border border-border rounded-xl py-3 px-4 text-white outline-none focus:border-primary" />
+          <button disabled={loading} className="w-full bg-primary text-white py-3.5 rounded-xl font-bold uppercase hover:bg-primary-hover transition-colors">{loading ? "Wait..." : "Register"}</button>
         </form>
-        <p className="text-center mt-6 text-sm text-gray-400">Already have an account? <Link to="/login" className="text-yellow-500 hover:underline">Log In</Link></p>
+        <p className="text-center mt-6 text-sm text-gray-400">Already have an account? <Link to="/login" className="text-primary hover:underline">Log In</Link></p>
       </div>
     </div>
   );
 };
 
-// --- ২. লগইন পেজ ---
+// --- Login Component ---
 const Login = () => {
-  const { setUser, setToken } = useContext(UserContext);
+  const { setUser, setToken, refreshUser, API_URL } = useContext(UserContext);
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -74,34 +68,35 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await api.post(`/api/login`, { email: email.toLowerCase(), password });
+      const res = await axios.post(`${API_URL}/api/login`, { email: email.toLowerCase(), password });
       localStorage.setItem('token', res.data.token);
       setToken(res.data.token);
       setUser(res.data.user);
+      if (refreshUser) await refreshUser(); 
       navigate('/dashboard');
     } catch (err) { alert(err.response?.data?.message || "Login Failed"); } 
     finally { setLoading(false); }
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6">
-      <div className="w-full max-w-md bg-[#1e2329] border border-gray-800 rounded-3xl p-10 shadow-2xl">
-        <h1 className="text-3xl font-bold text-yellow-500 mb-6 italic uppercase tracking-tighter">VINANCE</h1>
+    <div className="min-h-screen bg-main-bg flex items-center justify-center p-6 text-left">
+      <div className="w-full max-w-md bg-card-bg border border-border rounded-3xl p-10 shadow-2xl">
+        <h1 className="text-3xl font-bold text-primary mb-6 italic uppercase tracking-tighter">VINANCE</h1>
         <form onSubmit={handleLogin} className="space-y-6">
-          <input type="email" placeholder="Email" required onChange={(e)=>setEmail(e.target.value)} className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl py-3 px-4 text-white outline-none focus:border-yellow-500" />
-          <input type="password" placeholder="Password" required onChange={(e)=>setPassword(e.target.value)} className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl py-3 px-4 text-white outline-none focus:border-yellow-500" />
-          <button type="submit" disabled={loading} className="w-full bg-yellow-500 text-black py-3.5 rounded-xl font-bold uppercase">{loading ? "Syncing..." : "Log In"}</button>
+          <input type="email" placeholder="Email" required onChange={(e)=>setEmail(e.target.value)} className="w-full bg-main-bg border border-border rounded-xl py-3 px-4 text-white outline-none focus:border-primary" />
+          <input type="password" placeholder="Password" required onChange={(e)=>setPassword(e.target.value)} className="w-full bg-main-bg border border-border rounded-xl py-3 px-4 text-white outline-none focus:border-primary" />
+          <button type="submit" disabled={loading} className="w-full bg-primary text-white py-3.5 rounded-xl font-bold uppercase hover:bg-primary-hover transition-colors">{loading ? "Syncing..." : "Log In"}</button>
         </form>
-        <p className="text-center mt-6 text-sm text-gray-400">Don't have an account? <Link to="/register" className="text-yellow-500 hover:underline">Register</Link></p>
+        <p className="text-center mt-6 text-sm text-gray-400">Don't have an account? <Link to="/register" className="text-primary hover:underline">Register</Link></p>
       </div>
     </div>
   );
 };
 
-// --- ৩. ট্রেড পেজ (বাইনান্স অ্যাপ হুবহু ডিজাইন) ---
+// --- TradePage Component (সংশোধিত: একদম স্পষ্ট এবং ফুল স্ক্রিন লুকের জন্য) ---
 const TradePage = () => {
   const { coinSymbol } = useParams();
-  const { user, setUser } = useContext(UserContext);
+  const { user, refreshUser, API_URL, token } = useContext(UserContext);
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -109,13 +104,12 @@ const TradePage = () => {
     if (!amount || parseFloat(amount) <= 0) return alert("Enter valid amount");
     setLoading(true);
     try {
-      const res = await api.post('/api/trade', { 
-        type: type, 
-        amount: parseFloat(amount), 
-        symbol: (coinSymbol || 'btc').toUpperCase() 
-      });
+      const res = await axios.post(`${API_URL}/api/trade`, 
+        { type: type, amount: parseFloat(amount), symbol: (coinSymbol || 'btc').toUpperCase() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       alert(res.data.message);
-      setUser(prev => ({ ...prev, balance: res.data.newBalance }));
+      if (refreshUser) await refreshUser(); 
       setAmount('');
     } catch (err) { 
       alert(err.response?.data?.message || "Trade failed"); 
@@ -123,139 +117,167 @@ const TradePage = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#0b0e11] text-left">
-      {/* চার্ট সেকশন - রিয়েল টাইম এবং বড় উইন্ডো */}
-      <div className="w-full h-[55vh] border-b border-gray-800">
-        <TradingChart symbol={`BINANCE:${(coinSymbol || 'btc').toUpperCase()}USDT`} />
+    <div className="flex flex-col h-screen md:h-[calc(100vh-64px)] overflow-hidden bg-main-bg relative">
+      {/* TradingView চার্ট - মোবাইলে কোনো বর্ডার বা বক্স ছাড়াই সর্বোচ্চ জায়গা নেবে */}
+      <div className="flex-1 w-full bg-card-bg relative">
+        <iframe 
+          title="TV" 
+          src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${(coinSymbol || 'btc').toUpperCase()}USDT&theme=dark&style=1&timezone=Etc%2FUTC&hide_side_toolbar=true&allow_symbol_change=true`} 
+          className="absolute inset-0 w-full h-full border-none"
+        ></iframe>
       </div>
+      
+      {/* ট্রেড কন্ট্রোলস - একদম নিচে স্লিম এবং স্পষ্ট ডিজাইন */}
+      <div className="w-full bg-card-bg border-t border-border p-4 md:p-6 shadow-2xl z-20 pb-24 md:pb-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex justify-between items-center mb-3">
+             <div className="flex flex-col">
+               <span className="text-gray-500 text-[10px] uppercase font-black tracking-widest italic">Live Market</span>
+               <h2 className="text-white font-black text-sm md:text-xl uppercase">{(coinSymbol || 'btc').toUpperCase()}/USDT</h2>
+             </div>
+             <div className="text-right">
+               <p className="text-gray-500 text-[10px] uppercase font-black">Available</p>
+               <p className="text-white font-mono font-bold text-xs">${user?.balance?.toLocaleString()}</p>
+             </div>
+          </div>
 
-      {/* ট্রেডিং কন্ট্রোল - বাইনান্স অ্যাপের মতো নিচে সাজানো */}
-      <div className="flex-1 p-4 flex flex-col justify-between bg-[#1e2329]">
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-black text-white uppercase italic">{(coinSymbol || 'btc')} / USDT</h2>
-            <div className="text-right">
-              <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Available Balance</p>
-              <p className="text-emerald-400 font-mono font-bold">${user?.balance?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+          <div className="flex gap-3 items-center">
+            <div className="flex-[1.5] relative">
+              <input 
+                type="number" 
+                value={amount} 
+                onChange={(e)=>setAmount(e.target.value)} 
+                placeholder="0.00" 
+                className="w-full bg-main-bg border border-border rounded-xl p-3 text-white outline-none font-mono font-bold text-sm focus:border-primary" 
+              />
+              <span className="absolute right-3 top-3.5 text-gray-600 font-black text-[10px] uppercase">USDT</span>
+            </div>
+
+            <div className="flex gap-2 flex-1">
+              <button 
+                disabled={loading} 
+                onClick={() => handleTrade('buy')} 
+                className="flex-1 py-3.5 bg-[#2ebd85] text-black rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-transform"
+              >
+                Long
+              </button>
+              <button 
+                disabled={loading} 
+                onClick={() => handleTrade('sell')} 
+                className="flex-1 py-3.5 bg-[#f6465d] text-white rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-transform"
+              >
+                Short
+              </button>
             </div>
           </div>
-
-          <div className="relative mb-6">
-             <input 
-              type="number" 
-              value={amount} 
-              onChange={(e)=>setAmount(e.target.value)} 
-              placeholder="0.00" 
-              className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl p-5 text-white outline-none font-mono text-xl focus:border-yellow-500" 
-            />
-            <span className="absolute right-5 top-5 text-gray-500 font-bold">USDT</span>
-          </div>
-        </div>
-
-        {/* Long/Short বাটন - স্ক্রিনশটের মতো */}
-        <div className="flex gap-4 mb-4">
-          <button 
-            disabled={loading} 
-            onClick={() => handleTrade('buy')} 
-            className="flex-1 bg-[#2ebd85] text-white py-4 rounded-xl font-black uppercase tracking-widest text-lg shadow-lg active:scale-95 transition-all"
-          >
-            {loading ? "Wait..." : "Long"}
-          </button>
-          <button 
-            disabled={loading} 
-            onClick={() => handleTrade('sell')} 
-            className="flex-1 bg-[#f6465d] text-white py-4 rounded-xl font-black uppercase tracking-widest text-lg shadow-lg active:scale-95 transition-all"
-          >
-            {loading ? "Wait..." : "Short"}
-          </button>
         </div>
       </div>
     </div>
   );
 };
 
-// --- ৪. ট্রেডিং চার্ট কম্পোনেন্ট (উইজেট সহ) ---
-const TradingChart = ({ symbol }) => {
-  const container = useRef();
+// --- Dashboard Component ---
+const Dashboard = ({ cryptoData }) => {
+  const { user, refreshUser, API_URL, token } = useContext(UserContext);
+  const navigate = useNavigate();
+  const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
-    container.current.innerHTML = ''; // রি-রেন্ডার এরর এড়াতে
-    const script = document.createElement("script");
-    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
-    script.type = "text/javascript";
-    script.async = true;
-    script.innerHTML = JSON.stringify({
-      "autosize": true,
-      "symbol": symbol,
-      "interval": "15",
-      "timezone": "Etc/UTC",
-      "theme": "dark",
-      "style": "1",
-      "locale": "en",
-      "enable_publishing": false,
-      "allow_symbol_change": true,
-      "container_id": "tradingview_chart"
-    });
-    container.current.appendChild(script);
-  }, [symbol]);
+    if (refreshUser) refreshUser(); 
+    const fetchTransactions = async () => {  
+      if (!token) return;
+      try {
+        const res = await axios.get(`${API_URL}/api/transactions`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setTransactions(Array.isArray(res.data) ? res.data : (res.data.transactions || []));
+      } catch (err) { console.warn("Activity fetching issue"); }
+    };
+    fetchTransactions();
+  }, [token, API_URL, refreshUser]);
 
   return (
-    <div className="tradingview-widget-container h-full w-full" ref={container}>
-      <div id="tradingview_chart" className="h-full w-full"></div>
-    </div>
-  );
-};
-
-// --- ৫. ড্যাশবোর্ড ---
-const Dashboard = ({ cryptoData }) => {
-  const { user } = useContext(UserContext);
-  const navigate = useNavigate();
-  return (
-    <div className="p-4 md:p-8 text-left">
-      <div className="bg-gradient-to-br from-[#1e2329] to-[#0b0e11] p-8 rounded-[2.5rem] border border-gray-800 mb-10 flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
-        <div className="text-left w-full md:w-auto">
-          <p className="text-gray-500 text-[10px] uppercase tracking-widest font-black mb-2">Estimated Balance</p>
-          <h1 className="text-4xl md:text-5xl font-mono font-black text-white tracking-tighter">${user?.balance?.toLocaleString(undefined, { minimumFractionDigits: 2 }) || '0.00'}</h1>
+    <div className="p-4 md:p-8 text-left space-y-6 md:space-y-10 bg-main-bg min-h-screen">
+      <div className="bg-gradient-to-br from-card-bg to-main-bg p-6 md:p-8 rounded-[2.5rem] border border-border flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform hidden md:block text-primary"><Activity size={100} /></div>
+        <div className="w-full md:w-auto z-10 text-center md:text-left">
+          <p className="text-gray-500 text-[10px] uppercase tracking-[0.3em] font-black mb-2">Estimated Balance</p>
+          <h1 className="text-3xl md:text-5xl font-mono font-black text-white tracking-tighter">
+            ${user?.balance !== undefined ? parseFloat(user.balance).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00'}
+          </h1>
         </div>
-        <div className="flex gap-3 w-full md:w-auto">
-          <button onClick={() => navigate('/deposit')} className="flex-1 bg-yellow-500 text-black px-8 py-3 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg">Deposit</button>
-          <button onClick={() => navigate('/withdraw')} className="flex-1 bg-white/5 text-white px-8 py-3 rounded-2xl font-black border border-gray-800 uppercase text-xs tracking-widest">Withdraw</button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto z-10">
+          <button onClick={() => navigate('/deposit')} className="flex-1 bg-primary text-white px-8 py-3.5 md:py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg hover:bg-primary-hover transition-all">Deposit</button>
+          <button onClick={() => navigate('/withdraw')} className="flex-1 bg-white/5 text-white px-8 py-3.5 md:py-4 rounded-2xl font-black border border-border uppercase text-xs tracking-widest hover:bg-white/10 transition-all">Withdraw</button>
         </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {cryptoData.map((coin) => (
-          <div key={coin.id} onClick={() => navigate(`/trade/${coin.symbol}`)} className="bg-[#1e2329] p-6 rounded-2xl border border-gray-800 cursor-pointer hover:border-yellow-500/50 group shadow-lg">
-            <div className="flex justify-between mb-4 text-[10px] font-black uppercase tracking-widest">
-              <span className="text-yellow-500">{coin.symbol.toUpperCase()}</span>
-              <span className={coin.up ? 'text-emerald-400' : 'text-red-400'}>{coin.change}%</span>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 pb-10">
+        <div className="lg:col-span-2 grid grid-cols-2 gap-4">
+          {cryptoData.map((coin) => (
+            <div key={coin.id} onClick={() => navigate(`/trade/${coin.symbol}`)} className="bg-card-bg p-5 md:p-6 rounded-[2rem] border border-border cursor-pointer hover:border-primary/50 transition-all group shadow-lg">
+              <div className="flex justify-between mb-4 text-[10px] font-black uppercase tracking-widest">
+                <span className="text-primary">{coin.symbol.toUpperCase()}/USDT</span>
+                <span className={coin.up ? 'text-success' : 'text-danger'}>{coin.change}%</span>
+              </div>
+              <p className="text-xl md:text-2xl font-black text-white tracking-tighter font-mono">${coin.price}</p>
             </div>
-            <p className="text-2xl font-black text-white tracking-tighter font-mono">${coin.price}</p>
+          ))}
+        </div>
+
+        <div className="bg-card-bg border border-border rounded-[2.5rem] p-6 shadow-xl h-fit">
+          <h3 className="text-white font-black uppercase text-[10px] mb-6 flex items-center gap-2 tracking-[0.2em]">
+            <Activity size={14} className="text-primary" /> Recent Activity
+          </h3>
+          <div className="space-y-4">
+            {transactions.length > 0 ? (
+              transactions.slice(0, 5).map((trx) => (
+                <div key={trx._id} className="flex justify-between items-center p-3 hover:bg-white/[0.03] rounded-2xl border border-transparent hover:border-border transition-all">
+                  <div className="flex items-center gap-2">
+                    <div className={trx.type === 'deposit' ? 'text-success' : 'text-danger'}>
+                      {trx.type === 'deposit' ? <ArrowDownLeft size={14}/> : <ArrowUpRight size={14}/>}
+                    </div>
+                    <div>
+                      <p className="font-black text-[9px] text-white uppercase">{trx.type}</p>
+                      <p className="text-[8px] text-gray-500 font-bold">{new Date(trx.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-mono font-bold text-xs text-white">${trx.amount}</p>
+                    <p className={`text-[8px] font-black uppercase ${trx.status === 'completed' ? 'text-success' : 'text-primary'}`}>{trx.status}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center py-10 text-gray-600 text-[10px] font-black uppercase tracking-widest italic">No activity yet</p>
+            )}
           </div>
-        ))}
+          <button onClick={() => navigate('/wallet')} className="w-full mt-6 py-3 text-[9px] font-black text-gray-500 uppercase tracking-widest border-t border-border hover:text-primary transition-all">View All History</button>
+        </div>
       </div>
     </div>
   );
 };
 
-// --- ৬. মার্কেট ---
+// --- Market Component ---
 const Market = ({ cryptoData }) => {
   const navigate = useNavigate();
   return (
-    <div className="p-4 md:p-10 text-left pb-24 md:pb-10">
-      <div className="mb-10"><h2 className="text-4xl font-black text-white tracking-tighter flex items-center gap-3">Market <Activity className="text-yellow-500" size={32} /></h2></div>
-      <div className="bg-[#1e2329] rounded-[2.5rem] border border-gray-800 overflow-hidden shadow-2xl">
+    <div className="p-4 md:p-10 text-left pb-32 md:pb-10 bg-main-bg min-h-screen">
+      <div className="mb-10"><h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter flex items-center gap-3">Market <Activity className="text-primary" size={32} /></h2></div>
+      <div className="bg-card-bg rounded-[2.5rem] border border-border overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px]">
-            <thead className="bg-[#0b0e11]/50 text-[10px] font-black text-gray-500 uppercase tracking-widest">
-              <tr><th className="p-8 text-left">Asset</th><th className="p-8 text-left">Price</th><th className="p-8 text-left">24h Change</th><th className="p-8 text-right">Action</th></tr>
+          <table className="w-full min-w-[600px]">
+            <thead className="bg-main-bg/50 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+              <tr><th className="p-6 md:p-8 text-left">Asset</th><th className="p-6 md:p-8 text-left">Price</th><th className="p-6 md:p-8 text-left">24h Change</th><th className="p-8 text-right">Action</th></tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/50">
+            <tbody className="divide-y divide-border/50">
               {cryptoData.map((coin) => (
                 <tr key={coin.id} className="hover:bg-white/[0.03] group">
-                  <td className="p-8 font-black text-white text-lg uppercase">{coin.name} <span className="text-[10px] text-gray-500 ml-2">{coin.symbol.toUpperCase()}</span></td>
-                  <td className="p-8 font-mono font-black text-lg text-white">${coin.price}</td>
-                  <td className={`p-8 font-mono font-black ${coin.up ? 'text-emerald-400' : 'text-red-400'}`}>{coin.up ? '+' : ''}{coin.change}%</td>
-                  <td className="p-8 text-right"><button onClick={() => navigate(`/trade/${coin.symbol}`)} className="bg-yellow-500 text-black px-6 py-3 rounded-xl font-black text-[10px] uppercase">Trade</button></td>
+                  <td className="p-6 md:p-8 font-black text-white text-md md:text-lg uppercase">{coin.name} <span className="text-[10px] text-gray-500 ml-2">{coin.symbol.toUpperCase()}</span></td>
+                  <td className="p-6 md:p-8 font-mono font-black text-md md:text-lg text-white">${coin.price}</td>
+                  <td className={`p-6 md:p-8 font-mono font-black ${coin.up ? 'text-success' : 'text-danger'}`}>{coin.up ? '+' : ''}{coin.change}%</td>
+                  <td className="p-8 text-right"><button onClick={() => navigate(`/trade/${coin.symbol}`)} className="bg-primary text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase">Trade</button></td>
                 </tr>
               ))}
             </tbody>
@@ -266,46 +288,64 @@ const Market = ({ cryptoData }) => {
   );
 };
 
-// --- নেভিগেশন ও লেআউট ---
 const NavItem = ({ to, icon, label }) => (
-  <NavLink to={to} className={({ isActive }) => `flex items-center gap-4 p-3.5 rounded-xl transition-all ${isActive ? 'text-yellow-500 bg-yellow-500/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+  <NavLink to={to} className={({ isActive }) => `flex items-center gap-4 p-3.5 rounded-xl transition-all ${isActive ? 'text-primary bg-primary/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
     {icon} <span className="hidden lg:inline font-black text-xs uppercase tracking-widest">{label}</span>
   </NavLink>
 );
 
+// --- Main Layout/AppContent ---
 const AppContent = ({ cryptoData }) => {
   const { user, token, logout, loading: authLoading } = useContext(UserContext);
   const location = useLocation();
 
-  if (authLoading) return <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center text-yellow-500 font-black text-4xl uppercase italic">VINANCE</div>;
+  if (authLoading) return <div className="min-h-screen bg-main-bg flex items-center justify-center text-primary font-black text-4xl uppercase italic animate-pulse">VINANCE</div>;
 
-  const isAuthPage = ['/login', '/register', '/'].includes(location.pathname);
-  if (!token && !isAuthPage) return <Navigate to="/login" replace />;
-  if (token && isAuthPage) return <Navigate to="/dashboard" replace />;
+  const isAuthPage = ['/login', '/register'].includes(location.pathname);
+  const isHomePage = location.pathname === '/';
+
+  if (!token && !isAuthPage && !isHomePage) return <Navigate to="/login" replace />;
 
   return (
-    <div className="min-h-screen bg-[#0b0e11] text-white flex flex-col md:flex-row overflow-hidden text-left">
-      {token && (
-        <aside className="w-20 lg:w-64 bg-[#1e2329] border-r border-gray-800 hidden md:flex flex-col p-4 h-screen sticky top-0 z-40">
-          <div className="mb-12 px-4 py-2 text-2xl font-black text-yellow-500 italic uppercase">VINANCE</div>
-          <nav className="space-y-3 flex-1">
+    <div className="min-h-screen bg-main-bg text-white flex flex-col md:flex-row overflow-hidden text-left font-sans">
+      {/* Desktop Sidebar */}
+      {token && !isHomePage && (
+        <aside className="w-20 lg:w-64 bg-card-bg border-r border-border hidden md:flex flex-col p-4 h-screen sticky top-0 z-40">
+          <div className="mb-12 px-4 py-2 text-2xl font-black text-primary italic uppercase tracking-tighter">VINANCE</div>
+          <nav className="space-y-3 flex-1 overflow-y-auto">
             <NavItem to="/dashboard" icon={<LayoutDashboard size={20}/>} label="Dashboard" />
             <NavItem to="/market" icon={<BarChart3 size={20}/>} label="Market" />
             <NavItem to="/trade/btc" icon={<TrendingUp size={20}/>} label="Trade" />
+            
+            <NavItem to="/invest" icon={<PieChart size={20}/>} label="AI Invest" />
+            <NavItem to="/my-investments" icon={<Activity size={20}/>} label="Invest Logs" />
+            
             <NavItem to="/wallet" icon={<Wallet size={20}/>} label="Wallet" />
-            {user?.role === 'admin' && <NavItem to="/admin" icon={<ShieldCheck size={20}/>} label="Admin" />}
+
+            {user?.role === 'admin' && (
+               <>
+                 <div className="pt-6 pb-2 px-4 text-[9px] font-black text-gray-600 uppercase tracking-widest border-t border-border/30 mt-4">Management</div>
+                 <NavItem to="/admin" icon={<ShieldCheck size={20}/>} label="Users & Deposit" />
+                 <NavItem to="/admin/manage-plans" icon={<PieChart size={20}/>} label="Plan Settings" />
+                 <NavItem to="/admin/investment-logs" icon={<TrendingUp size={20}/>} label="All Investments" />
+               </>
+            )}
           </nav>
-          <button onClick={logout} className="p-4 text-gray-500 hover:text-red-500 flex items-center gap-4 font-bold border-t border-gray-800/50"><LogOut size={20}/> <span className="hidden lg:inline text-[10px] font-black uppercase">Sign Out</span></button>
+          <button onClick={logout} className="p-4 text-gray-500 hover:text-danger flex items-center gap-4 font-bold border-t border-border/50">
+            <LogOut size={20}/> <span className="hidden lg:inline text-[10px] font-black uppercase">Sign Out</span>
+          </button>
         </aside>
       )}
+
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
-        {token && (
-          <header className="h-16 border-b border-gray-800 bg-[#1e2329]/80 flex items-center justify-between px-6 sticky top-0 z-30 backdrop-blur-md">
-            <div className="font-black text-[9px] uppercase tracking-[0.2em]">User: <span className="text-yellow-500 ml-1">{user?.name}</span></div>
+        {token && !isHomePage && (
+          <header className="h-16 border-b border-border bg-card-bg/80 flex items-center justify-between px-6 sticky top-0 z-30 backdrop-blur-md">
+            <div className="font-black text-[9px] uppercase tracking-[0.2em]">User: <span className="text-primary ml-1">{user?.name}</span></div>
             <NotificationSystem />
           </header>
         )}
-        <div className="flex-1 overflow-y-auto bg-[#0b0e11] pb-24 md:pb-8">
+
+        <div className={`flex-1 overflow-y-auto bg-main-bg ${token && !isHomePage ? 'pb-32 md:pb-8' : ''}`}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -316,16 +356,26 @@ const AppContent = ({ cryptoData }) => {
             <Route path="/deposit" element={<Deposit />} />
             <Route path="/withdraw" element={<Withdraw />} />
             <Route path="/wallet" element={<WalletPage />} /> 
+
+            <Route path="/invest" element={<Investment />} />
+            <Route path="/my-investments" element={<MyInvestments />} />
+            
             <Route path="/admin" element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/dashboard" />} />
+            <Route path="/admin/manage-plans" element={user?.role === 'admin' ? <ManagePlans /> : <Navigate to="/dashboard" />} />
+            <Route path="/admin/investment-logs" element={user?.role === 'admin' ? <InvestmentLogs /> : <Navigate to="/dashboard" />} />
           </Routes>
         </div>
       </main>
-      {token && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-[#1e2329] border-t border-gray-800 flex justify-around py-5 md:hidden z-50">
-          <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-yellow-500" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
-          <NavLink to="/market" className={({isActive})=> isActive ? "text-yellow-500" : "text-gray-400"}><BarChart3 size={22}/></NavLink>
-          <NavLink to="/trade/btc" className={({isActive})=> isActive ? "text-yellow-500" : "text-gray-400"}><TrendingUp size={22}/></NavLink>
-          <NavLink to="/wallet" className={({isActive})=> isActive ? "text-yellow-500" : "text-gray-400"}><Wallet size={22}/></NavLink>
+
+      {/* Mobile Bottom Navigation */}
+      {token && !isHomePage && (
+        <nav className="fixed bottom-0 left-0 right-0 bg-card-bg/95 backdrop-blur-md border-t border-border flex justify-around items-center py-5 md:hidden z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
+          <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
+          <NavLink to="/invest" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><PieChart size={22}/></NavLink>
+          <NavLink to="/trade/btc" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><TrendingUp size={22}/></NavLink>
+          <NavLink to="/wallet" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><Wallet size={22}/></NavLink>
+          {user?.role === 'admin' && <NavLink to="/admin" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><ShieldCheck size={22}/></NavLink>}
+          <button onClick={logout} className="text-gray-400 hover:text-danger"><LogOut size={22}/></button>
         </nav>
       )}
     </div>
