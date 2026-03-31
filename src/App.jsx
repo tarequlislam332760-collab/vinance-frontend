@@ -4,7 +4,7 @@ import axios from 'axios';
 import { 
   LayoutDashboard, BarChart3, TrendingUp, Wallet, LogOut, 
   ShieldCheck, Activity, ArrowUpRight, ArrowDownLeft,
-  PieChart // নতুন আইকন ইনভেস্টমেন্টের জন্য
+  PieChart, Rocket // Rocket আইকনটি Futures এর জন্য
 } from 'lucide-react';
 
 import { UserProvider, UserContext } from './context/UserContext'; 
@@ -15,11 +15,12 @@ import Deposit from './pages/Deposit';
 import Withdraw from './pages/Withdraw'; 
 import WalletPage from './pages/Wallet';
 
-// --- নতুন ইনভেস্টমেন্ট ফাইলগুলো ইম্পোর্ট করা হলো ---
+// --- ইনভেস্টমেন্ট ও ফিউচার ফাইলগুলো ---
 import Investment from './pages/Investment'; 
 import MyInvestments from './pages/MyInvestments';
 import ManagePlans from './admin/ManagePlans';
 import InvestmentLogs from './admin/InvestmentLogs';
+import Futures from './pages/Futures'; // Futures ফাইলটি ইম্পোর্ট করা হলো
 
 // --- Register Component ---
 const Register = () => {
@@ -93,7 +94,7 @@ const Login = () => {
   );
 };
 
-// --- TradePage Component (সংশোধিত: একদম স্পষ্ট এবং ফুল স্ক্রিন লুকের জন্য) ---
+// --- TradePage Component ---
 const TradePage = () => {
   const { coinSymbol } = useParams();
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
@@ -117,8 +118,7 @@ const TradePage = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen md:h-[calc(100vh-64px)] overflow-hidden bg-main-bg relative">
-      {/* TradingView চার্ট - মোবাইলে কোনো বর্ডার বা বক্স ছাড়াই সর্বোচ্চ জায়গা নেবে */}
+    <div className="flex flex-col h-screen md:h-[calc(100vh-64px)] overflow-hidden bg-main-bg relative text-left">
       <div className="flex-1 w-full bg-card-bg relative">
         <iframe 
           title="TV" 
@@ -127,7 +127,6 @@ const TradePage = () => {
         ></iframe>
       </div>
       
-      {/* ট্রেড কন্ট্রোলস - একদম নিচে স্লিম এবং স্পষ্ট ডিজাইন */}
       <div className="w-full bg-card-bg border-t border-border p-4 md:p-6 shadow-2xl z-20 pb-24 md:pb-6">
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-3">
@@ -154,20 +153,8 @@ const TradePage = () => {
             </div>
 
             <div className="flex gap-2 flex-1">
-              <button 
-                disabled={loading} 
-                onClick={() => handleTrade('buy')} 
-                className="flex-1 py-3.5 bg-[#2ebd85] text-black rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-transform"
-              >
-                Long
-              </button>
-              <button 
-                disabled={loading} 
-                onClick={() => handleTrade('sell')} 
-                className="flex-1 py-3.5 bg-[#f6465d] text-white rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-transform"
-              >
-                Short
-              </button>
+              <button disabled={loading} onClick={() => handleTrade('buy')} className="flex-1 py-3.5 bg-[#2ebd85] text-black rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-transform">Long</button>
+              <button disabled={loading} onClick={() => handleTrade('sell')} className="flex-1 py-3.5 bg-[#f6465d] text-white rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-transform">Short</button>
             </div>
           </div>
         </div>
@@ -176,7 +163,7 @@ const TradePage = () => {
   );
 };
 
-// --- Dashboard Component ---
+// --- Dashboard, Market & NavItem ---
 const Dashboard = ({ cryptoData }) => {
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
   const navigate = useNavigate();
@@ -226,17 +213,13 @@ const Dashboard = ({ cryptoData }) => {
         </div>
 
         <div className="bg-card-bg border border-border rounded-[2.5rem] p-6 shadow-xl h-fit">
-          <h3 className="text-white font-black uppercase text-[10px] mb-6 flex items-center gap-2 tracking-[0.2em]">
-            <Activity size={14} className="text-primary" /> Recent Activity
-          </h3>
+          <h3 className="text-white font-black uppercase text-[10px] mb-6 flex items-center gap-2 tracking-[0.2em]"><Activity size={14} className="text-primary" /> Recent Activity</h3>
           <div className="space-y-4">
             {transactions.length > 0 ? (
               transactions.slice(0, 5).map((trx) => (
                 <div key={trx._id} className="flex justify-between items-center p-3 hover:bg-white/[0.03] rounded-2xl border border-transparent hover:border-border transition-all">
                   <div className="flex items-center gap-2">
-                    <div className={trx.type === 'deposit' ? 'text-success' : 'text-danger'}>
-                      {trx.type === 'deposit' ? <ArrowDownLeft size={14}/> : <ArrowUpRight size={14}/>}
-                    </div>
+                    <div className={trx.type === 'deposit' ? 'text-success' : 'text-danger'}>{trx.type === 'deposit' ? <ArrowDownLeft size={14}/> : <ArrowUpRight size={14}/>}</div>
                     <div>
                       <p className="font-black text-[9px] text-white uppercase">{trx.type}</p>
                       <p className="text-[8px] text-gray-500 font-bold">{new Date(trx.createdAt).toLocaleDateString()}</p>
@@ -248,9 +231,7 @@ const Dashboard = ({ cryptoData }) => {
                   </div>
                 </div>
               ))
-            ) : (
-              <p className="text-center py-10 text-gray-600 text-[10px] font-black uppercase tracking-widest italic">No activity yet</p>
-            )}
+            ) : (<p className="text-center py-10 text-gray-600 text-[10px] font-black uppercase tracking-widest italic">No activity yet</p>)}
           </div>
           <button onClick={() => navigate('/wallet')} className="w-full mt-6 py-3 text-[9px] font-black text-gray-500 uppercase tracking-widest border-t border-border hover:text-primary transition-all">View All History</button>
         </div>
@@ -259,7 +240,6 @@ const Dashboard = ({ cryptoData }) => {
   );
 };
 
-// --- Market Component ---
 const Market = ({ cryptoData }) => {
   const navigate = useNavigate();
   return (
@@ -315,25 +295,23 @@ const AppContent = ({ cryptoData }) => {
           <nav className="space-y-3 flex-1 overflow-y-auto">
             <NavItem to="/dashboard" icon={<LayoutDashboard size={20}/>} label="Dashboard" />
             <NavItem to="/market" icon={<BarChart3 size={20}/>} label="Market" />
-            <NavItem to="/trade/btc" icon={<TrendingUp size={20}/>} label="Trade" />
+            <NavItem to="/trade/btc" icon={<TrendingUp size={20}/>} label="Spot Trade" />
+            
+            {/* Futures Menu Added */}
+            <NavItem to="/futures/btc" icon={<Rocket size={20}/>} label="Futures" /> 
             
             <NavItem to="/invest" icon={<PieChart size={20}/>} label="AI Invest" />
             <NavItem to="/my-investments" icon={<Activity size={20}/>} label="Invest Logs" />
-            
             <NavItem to="/wallet" icon={<Wallet size={20}/>} label="Wallet" />
 
             {user?.role === 'admin' && (
                <>
                  <div className="pt-6 pb-2 px-4 text-[9px] font-black text-gray-600 uppercase tracking-widest border-t border-border/30 mt-4">Management</div>
-                 <NavItem to="/admin" icon={<ShieldCheck size={20}/>} label="Users & Deposit" />
-                 <NavItem to="/admin/manage-plans" icon={<PieChart size={20}/>} label="Plan Settings" />
-                 <NavItem to="/admin/investment-logs" icon={<TrendingUp size={20}/>} label="All Investments" />
+                 <NavItem to="/admin" icon={<ShieldCheck size={20}/>} label="Admin Panel" />
                </>
             )}
           </nav>
-          <button onClick={logout} className="p-4 text-gray-500 hover:text-danger flex items-center gap-4 font-bold border-t border-border/50">
-            <LogOut size={20}/> <span className="hidden lg:inline text-[10px] font-black uppercase">Sign Out</span>
-          </button>
+          <button onClick={logout} className="p-4 text-gray-500 hover:text-danger flex items-center gap-4 font-bold border-t border-border/50"><LogOut size={20}/> <span className="hidden lg:inline text-[10px] font-black uppercase">Sign Out</span></button>
         </aside>
       )}
 
@@ -353,13 +331,12 @@ const AppContent = ({ cryptoData }) => {
             <Route path="/dashboard" element={<Dashboard cryptoData={cryptoData} />} />
             <Route path="/market" element={<Market cryptoData={cryptoData} />} />
             <Route path="/trade/:coinSymbol" element={<TradePage />} />
+            <Route path="/futures/:coinSymbol" element={<Futures />} /> 
             <Route path="/deposit" element={<Deposit />} />
             <Route path="/withdraw" element={<Withdraw />} />
             <Route path="/wallet" element={<WalletPage />} /> 
-
             <Route path="/invest" element={<Investment />} />
             <Route path="/my-investments" element={<MyInvestments />} />
-            
             <Route path="/admin" element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/dashboard" />} />
             <Route path="/admin/manage-plans" element={user?.role === 'admin' ? <ManagePlans /> : <Navigate to="/dashboard" />} />
             <Route path="/admin/investment-logs" element={user?.role === 'admin' ? <InvestmentLogs /> : <Navigate to="/dashboard" />} />
@@ -367,15 +344,29 @@ const AppContent = ({ cryptoData }) => {
         </div>
       </main>
 
-      {/* Mobile Bottom Navigation */}
+      {/* Mobile Bottom Navigation - Improved Responsive Look */}
       {token && !isHomePage && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-card-bg/95 backdrop-blur-md border-t border-border flex justify-around items-center py-5 md:hidden z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
-          <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
-          <NavLink to="/invest" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><PieChart size={22}/></NavLink>
-          <NavLink to="/trade/btc" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><TrendingUp size={22}/></NavLink>
-          <NavLink to="/wallet" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><Wallet size={22}/></NavLink>
-          {user?.role === 'admin' && <NavLink to="/admin" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><ShieldCheck size={22}/></NavLink>}
-          <button onClick={logout} className="text-gray-400 hover:text-danger"><LogOut size={22}/></button>
+        <nav className="fixed bottom-0 left-0 right-0 bg-[#12161c]/95 backdrop-blur-xl border-t border-white/5 flex justify-around items-center pt-3 pb-6 md:hidden z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.8)]">
+          <NavLink to="/dashboard" className={({isActive})=> `flex flex-col items-center gap-1 ${isActive ? "text-primary" : "text-gray-500"}`}>
+            <LayoutDashboard size={20}/><span className="text-[9px] font-bold uppercase">Home</span>
+          </NavLink>
+          <NavLink to="/market" className={({isActive})=> `flex flex-col items-center gap-1 ${isActive ? "text-primary" : "text-gray-500"}`}>
+            <BarChart3 size={20}/><span className="text-[9px] font-bold uppercase">Market</span>
+          </NavLink>
+          <NavLink to="/futures/btc" className={({isActive})=> `flex flex-col items-center gap-1 ${isActive ? "text-primary" : "text-gray-500"}`}>
+            <div className={`p-2 rounded-lg ${isActive ? "bg-primary/20" : ""}`}><Rocket size={20}/></div>
+            <span className="text-[9px] font-bold uppercase">Futures</span>
+          </NavLink>
+          <NavLink to="/wallet" className={({isActive})=> `flex flex-col items-center gap-1 ${isActive ? "text-primary" : "text-gray-500"}`}>
+            <Wallet size={20}/><span className="text-[9px] font-bold uppercase">Wallet</span>
+          </NavLink>
+          {user?.role === 'admin' ? (
+            <NavLink to="/admin" className={({isActive})=> `flex flex-col items-center gap-1 ${isActive ? "text-primary" : "text-gray-500"}`}>
+                <ShieldCheck size={20}/><span className="text-[9px] font-bold uppercase">Admin</span>
+            </NavLink>
+          ) : (
+            <button onClick={logout} className="flex flex-col items-center gap-1 text-gray-500"><LogOut size={20}/><span className="text-[9px] font-bold uppercase">Exit</span></button>
+          )}
         </nav>
       )}
     </div>
