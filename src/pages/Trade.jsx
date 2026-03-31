@@ -10,7 +10,7 @@ const Trade = () => {
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   
-  // ১. স্টেট যা নির্ধারণ করবে ইউজার এখন 'Buy' মুডে আছে নাকি 'Sell' মুডে
+  // ১. এই স্টেটটি Buy এবং Sell এর মধ্যে সুইচ করতে সাহায্য করবে
   const [activeTab, setActiveTab] = useState('buy'); 
 
   const currentCoin = (coinSymbol || 'btc').toUpperCase();
@@ -34,7 +34,7 @@ const Trade = () => {
   return (
     <div className="flex flex-col h-screen bg-[#0b0e11] text-[#eaecef] overflow-hidden">
       
-      {/* 1. Header Bar */}
+      {/* 1. Header */}
       <div className="flex justify-between items-center px-4 py-2 bg-[#0b0e11]">
         <div className="flex items-center gap-3">
           <ChevronLeft size={24} className="text-gray-300 cursor-pointer" onClick={() => window.history.back()} />
@@ -43,7 +43,6 @@ const Trade = () => {
               <span className="text-white font-bold text-lg">{currentCoin}/USDT</span>
               <span className="bg-[#2b3139] text-[9px] px-1 rounded text-gray-400 font-bold">Perp</span>
             </div>
-            <p className="text-[10px] text-gray-500">Bitcoin</p>
           </div>
         </div>
         <div className="flex gap-4 text-gray-400">
@@ -52,7 +51,7 @@ const Trade = () => {
         </div>
       </div>
 
-      {/* 2. Live Chart */}
+      {/* 2. Chart Section */}
       <div className="flex-1 w-full relative">
         <iframe 
           title="TV-Full" 
@@ -61,20 +60,21 @@ const Trade = () => {
         ></iframe>
       </div>
       
-      {/* 3. Action Panel (Buy/Sell Functional) */}
-      <div className="w-full bg-[#161a1e] border-t border-[#1e2329] p-4 pb-24 relative z-[50] pointer-events-auto">
+      {/* 3. Action Panel (এখানেই ক্লিক ফাংশন অ্যাড করা হয়েছে) */}
+      <div className="w-full bg-[#161a1e] border-t border-[#1e2329] p-4 pb-24 relative z-[50] pointer-events-auto shadow-2xl">
         <div className="max-w-md mx-auto">
           
           <div className="flex justify-between items-center mb-4">
             <div className="flex gap-8 text-sm font-bold uppercase tracking-wider">
-              {/* Buy ট্যাব */}
+              {/* Buy অপশনে ক্লিক করলে activeTab 'buy' হবে */}
               <button 
                 onClick={() => setActiveTab('buy')}
                 className={`pb-1 transition-all border-b-2 ${activeTab === 'buy' ? 'text-[#00c076] border-[#00c076]' : 'text-gray-500 border-transparent'}`}
               >
                 Buy
               </button>
-              {/* Sell ট্যাব */}
+              
+              {/* Sell অপশনে ক্লিক করলে activeTab 'sell' হবে */}
               <button 
                 onClick={() => setActiveTab('sell')}
                 className={`pb-1 transition-all border-b-2 ${activeTab === 'sell' ? 'text-[#f6465d] border-[#f6465d]' : 'text-gray-500 border-transparent'}`}
@@ -100,7 +100,7 @@ const Trade = () => {
             </div>
 
             <div className="flex-1">
-              {/* মুড অনুযায়ী বাটন পরিবর্তন হবে */}
+              {/* মুড অনুযায়ী বাটন স্বয়ংক্রিয়ভাবে পরিবর্তন হবে */}
               {activeTab === 'buy' ? (
                 <button 
                   disabled={loading}
