@@ -3,9 +3,10 @@ import API from '../api';
 
 const PendingRequests = ({ requests, fetchData }) => {
   
-  const handleRequest = async (requestId, status) => {
+  const handleRequest = async (id, status) => { // এখানে id ব্যবহার করা হয়েছে
     try {
-      await API.post('/api/admin/handle-request', { requestId, status });
+      // ব্যাকএন্ডে 'id' নামে ডাটা পাঠানো হচ্ছে
+      await API.post('/api/admin/handle-request', { id, status }); 
       alert(`Request ${status} successfully!`);
       fetchData(); // ডাটা রিফ্রেশ হবে
     } catch (err) {

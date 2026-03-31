@@ -1,7 +1,6 @@
 import axios from 'axios';
 
 const API = axios.create({
-  // আপনার ব্যাকএন্ড ইউআরএল (Vercel-এ যেটা আছে)
   baseURL: 'https://vinance-backend.vercel.app', 
 });
 
@@ -13,5 +12,4 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
-// এই লাইনটিই Vercel বিল্ড ফিক্স করবে
-export default API;
+export default API; // এটিই Vercel বিল্ড ফিক্স করবে
