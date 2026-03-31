@@ -9,6 +9,9 @@ const Trade = () => {
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // ১. নতুন স্টেট: যা নির্ধারণ করবে এখন 'Buy' না কি 'Sell' সিলেক্টেড
+  const [activeTab, setActiveTab] = useState('buy'); 
 
   const currentCoin = (coinSymbol || 'btc').toUpperCase();
 
@@ -24,7 +27,7 @@ const Trade = () => {
       if (refreshUser) await refreshUser(); 
       setAmount('');
     } catch (err) { 
-      alert(err.response?.data?.message || "ট্রেড সফল হয়নি"); 
+      alert(err.response?.data?.message || "ট্রেড সফল হয়নি"); 
     } finally { setLoading(false); }
   };
 
@@ -34,7 +37,7 @@ const Trade = () => {
       {/* 1. Header Bar */}
       <div className="flex justify-between items-center px-4 py-2 bg-[#0b0e11]">
         <div className="flex items-center gap-3">
-          <ChevronLeft size={24} className="text-gray-300" onClick={() => window.history.back()} />
+          <ChevronLeft size={24} className="text-gray-300 cursor-pointer" onClick={() => window.history.back()} />
           <div>
             <div className="flex items-center gap-1">
               <span className="text-white font-bold text-lg">{currentCoin}/USDT</span>
@@ -91,14 +94,26 @@ const Trade = () => {
         ></iframe>
       </div>
       
-      {/* 5. Bottom Navigation & Action Panel */}
-      <div className="w-full bg-[#161a1e] border-t border-[#1e2329] p-4 pb-20 shadow-2xl">
+      {/* 5. Bottom Action Panel (Buy/Sell Functional) */}
+      <div className="w-full bg-[#161a1e] border-t border-[#1e2329] p-4 pb-24 relative z-[50] pointer-events-auto shadow-2xl">
         <div className="max-w-md mx-auto">
           
           <div className="flex justify-between items-center mb-3">
-            <div className="flex gap-4 text-xs font-bold uppercase tracking-wider text-gray-500">
-              <span className="text-[#00c076] border-b-2 border-[#00c076] pb-1">Buy</span>
-              <span className="pb-1">Sell</span>
+            <div className="flex gap-6 text-xs font-bold uppercase tracking-wider">
+              {/* Buy অপশন */}
+              <span 
+                onClick={() => setActiveTab('buy')}
+                className={`pb-1 cursor-pointer transition-all ${activeTab === 'buy' ? 'text-[#00c076] border-b-2 border-[#00c076]' : 'text-gray-500'}`}
+              >
+                Buy
+              </span>
+              {/* Sell অপশন */}
+              <span 
+                onClick={() => setActiveTab('sell')}
+                className={`pb-1 cursor-pointer transition-all ${activeTab === 'sell' ? 'text-[#f6465d] border-b-2 border-[#f6465d]' : 'text-gray-500'}`}
+              >
+                Sell
+              </span>
             </div>
             <div className="text-[10px] text-gray-400">
               Available: <span className="text-white font-mono">{user?.balance?.toLocaleString() || '0.00'} USDT</span>
@@ -113,24 +128,27 @@ const Trade = () => {
                   value={amount} 
                   onChange={(e)=>setAmount(e.target.value)} 
                   placeholder="Amount" 
-                  className="w-full bg-[#2b3139] border border-transparent rounded-sm py-2 px-3 text-white outline-none font-mono text-sm focus:border-[#f0b90b]" 
+                  className="w-full bg-[#2b3139] border border-transparent rounded-sm py-2.5 px-3 text-white outline-none font-mono text-sm focus:border-[#f0b90b]" 
                 />
-                <span className="absolute right-3 top-2.5 text-gray-500 text-[10px] font-bold">USDT</span>
+                <span className="absolute right-3 top-3 text-gray-500 text-[10px] font-bold">USDT</span>
               </div>
             </div>
 
             <div className="flex gap-2 flex-1">
+              {/* অ্যাক্টিভ ট্যাব অনুযায়ী বাটন হাইলাইট হবে */}
               <button 
+                disabled={loading}
                 onClick={() => handleTrade('buy')} 
-                className="flex-1 py-2.5 bg-[#02c076] text-[#0b0e11] rounded-sm font-bold text-sm active:scale-95 transition-all"
+                className={`flex-1 py-2.5 rounded-sm font-bold text-sm active:scale-95 transition-all shadow-md ${activeTab === 'buy' ? 'bg-[#02c076] text-[#0b0e11]' : 'bg-[#2b3139] text-gray-500 opacity-50'}`}
               >
-                Long
+                {loading ? '...' : 'Long'}
               </button>
               <button 
+                disabled={loading}
                 onClick={() => handleTrade('sell')} 
-                className="flex-1 py-2.5 bg-[#f6465d] text-white rounded-sm font-bold text-sm active:scale-95 transition-all"
+                className={`flex-1 py-2.5 rounded-sm font-bold text-sm active:scale-95 transition-all shadow-md ${activeTab === 'sell' ? 'bg-[#f6465d] text-white' : 'bg-[#2b3139] text-gray-500 opacity-50'}`}
               >
-                Short
+                {loading ? '...' : 'Short'}
               </button>
             </div>
           </div>
@@ -138,11 +156,11 @@ const Trade = () => {
         </div>
       </div>
 
-      {/* 6. Footer Tab Bar Mockup */}
-      <div className="fixed bottom-0 w-full flex justify-around items-center py-2 bg-[#161a1e] border-t border-[#1e2329] text-[10px] text-gray-500">
-        <div className="flex flex-col items-center gap-1"><MoreHorizontal size={18}/><span>More</span></div>
-        <div className="flex flex-col items-center gap-1"><LayoutGrid size={18}/><span>Hub</span></div>
-        <div className="flex flex-col items-center gap-1 text-[#f0b90b]"><Zap size={18}/><span>Spot</span></div>
+      {/* 6. Footer Tab Bar */}
+      <div className="fixed bottom-0 w-full flex justify-around items-center py-3 bg-[#161a1e] border-t border-[#1e2329] text-[10px] text-gray-500 z-[100]">
+        <div className="flex flex-col items-center gap-1 cursor-pointer"><MoreHorizontal size={18}/><span>More</span></div>
+        <div className="flex flex-col items-center gap-1 cursor-pointer"><LayoutGrid size={18}/><span>Hub</span></div>
+        <div className="flex flex-col items-center gap-1 text-[#f0b90b] cursor-pointer"><Zap size={18}/><span>Spot</span></div>
       </div>
 
     </div>
