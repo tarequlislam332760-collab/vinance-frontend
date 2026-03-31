@@ -4,7 +4,7 @@ import axios from 'axios';
 import { 
   LayoutDashboard, BarChart3, TrendingUp, Wallet, LogOut, 
   ShieldCheck, Activity, ArrowUpRight, ArrowDownLeft,
-  PieChart 
+  PieChart, ChevronLeft, Star, Bell, MoreHorizontal, LayoutGrid, Zap
 } from 'lucide-react';
 
 import { UserProvider, UserContext } from './context/UserContext'; 
@@ -15,85 +15,126 @@ import Deposit from './pages/Deposit';
 import Withdraw from './pages/Withdraw'; 
 import WalletPage from './pages/Wallet';
 
-// --- ইনভেস্টমেন্ট ফাইলগুলো ---
 import Investment from './pages/Investment'; 
 import MyInvestments from './pages/MyInvestments';
 import ManagePlans from './admin/ManagePlans';
 import InvestmentLogs from './admin/InvestmentLogs';
 
-// --- Trade Component (নাম পরিবর্তন করা হলো) ---
+// --- Binance Style Trade Component ---
 const Trade = () => {
   const { coinSymbol } = useParams();
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const currentCoin = (coinSymbol || 'btc').toUpperCase();
+
   const handleTrade = async (type) => {
-    if (!amount || parseFloat(amount) <= 0) return alert("Enter valid amount");
+    if (!amount || parseFloat(amount) <= 0) return alert("অ্যামাউন্ট লিখুন");
     setLoading(true);
     try {
       const res = await axios.post(`${API_URL}/api/trade`, 
-        { type: type, amount: parseFloat(amount), symbol: (coinSymbol || 'btc').toUpperCase() },
+        { type: type, amount: parseFloat(amount), symbol: currentCoin },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert(res.data.message);
       if (refreshUser) await refreshUser(); 
       setAmount('');
     } catch (err) { 
-      alert(err.response?.data?.message || "Trade failed"); 
+      alert(err.response?.data?.message || "ট্রেড সফল হয়নি"); 
     } finally { setLoading(false); }
   };
 
   return (
-    <div className="flex flex-col h-screen md:h-[calc(100vh-64px)] overflow-hidden bg-main-bg relative">
-      <div className="flex-1 w-full bg-card-bg relative">
+    <div className="flex flex-col h-screen bg-[#0b0e11] text-[#eaecef] overflow-hidden">
+      {/* 1. Header Bar */}
+      <div className="flex justify-between items-center px-4 py-2 bg-[#0b0e11]">
+        <div className="flex items-center gap-3">
+          <ChevronLeft size={24} className="text-gray-300 cursor-pointer" onClick={() => window.history.back()} />
+          <div>
+            <div className="flex items-center gap-1">
+              <span className="text-white font-bold text-lg">{currentCoin}/USDT</span>
+              <span className="bg-[#2b3139] text-[9px] px-1 rounded text-gray-400 font-bold">Perp</span>
+            </div>
+            <p className="text-[10px] text-gray-500">Market Live</p>
+          </div>
+        </div>
+        <div className="flex gap-4 text-gray-400">
+          <Star size={18} />
+          <Bell size={18} />
+        </div>
+      </div>
+
+      {/* 2. Real-time Price Info Bar */}
+      <div className="flex justify-between px-4 py-2 border-b border-[#1e2329]">
+        <div className="flex flex-col">
+          <span className="text-[#00c076] text-2xl font-bold tracking-tighter">Live</span>
+          <div className="flex gap-2 text-[10px]">
+            <span className="text-gray-300">Market Price</span>
+            <span className="text-[#00c076]">+1.35%</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] text-gray-500">
+          <div className="flex flex-col text-right"><span>24h High</span><span className="text-gray-300">High</span></div>
+          <div className="flex flex-col text-right"><span>24h Vol</span><span className="text-gray-300">13.33B</span></div>
+          <div className="flex flex-col text-right"><span>24h Low</span><span className="text-gray-300">Low</span></div>
+          <div className="flex flex-col text-right"><span>24h Change</span><span className="text-gray-300">0.92%</span></div>
+        </div>
+      </div>
+
+      {/* 3. Timeframes & Tools */}
+      <div className="flex justify-between items-center px-4 py-1.5 text-[11px] text-gray-400 font-medium border-b border-[#1e2329]">
+        <div className="flex gap-4">
+          <span className="text-[#f0b90b]">Time</span>
+          <span>15m</span>
+          <span>1h</span>
+          <span className="text-white border-b-2 border-[#f0b90b]">4h</span>
+          <span>1D</span>
+          <span>More</span>
+        </div>
+        <div className="flex gap-3">
+          <Activity size={14} />
+          <LayoutGrid size={14} />
+        </div>
+      </div>
+
+      {/* 4. Live Chart */}
+      <div className="flex-1 w-full relative">
         <iframe 
-          title="TV" 
-          src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${(coinSymbol || 'btc').toUpperCase()}USDT&theme=dark&style=1&timezone=Etc%2FUTC&hide_side_toolbar=true&allow_symbol_change=true`} 
+          title="TV-Full" 
+          src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${currentCoin}USDT&theme=dark&style=1&timezone=Etc%2FUTC&hide_top_toolbar=true&hide_legend=false&withdateranges=true&hide_side_toolbar=true&allow_symbol_change=false&save_image=false&show_popup_button=false&locale=en&studies=MASimple@tv-basicstudies`} 
           className="absolute inset-0 w-full h-full border-none"
         ></iframe>
       </div>
       
-      <div className="w-full bg-card-bg border-t border-border p-4 md:p-6 shadow-2xl z-20 pb-24 md:pb-6">
-        <div className="max-w-6xl mx-auto">
+      {/* 5. Action Panel */}
+      <div className="w-full bg-[#161a1e] border-t border-[#1e2329] p-4 pb-20 md:pb-6 shadow-2xl">
+        <div className="max-w-md mx-auto">
           <div className="flex justify-between items-center mb-3">
-             <div className="flex flex-col">
-               <span className="text-gray-500 text-[10px] uppercase font-black tracking-widest italic">Live Market</span>
-               <h2 className="text-white font-black text-sm md:text-xl uppercase">{(coinSymbol || 'btc').toUpperCase()}/USDT</h2>
-             </div>
-             <div className="text-right">
-               <p className="text-gray-500 text-[10px] uppercase font-black">Available</p>
-               <p className="text-white font-mono font-bold text-xs">${user?.balance?.toLocaleString()}</p>
-             </div>
-          </div>
-
-          <div className="flex gap-3 items-center">
-            <div className="flex-[1.5] relative">
-              <input 
-                type="number" 
-                value={amount} 
-                onChange={(e)=>setAmount(e.target.value)} 
-                placeholder="0.00" 
-                className="w-full bg-main-bg border border-border rounded-xl p-3 text-white outline-none font-mono font-bold text-sm focus:border-primary" 
-              />
-              <span className="absolute right-3 top-3.5 text-gray-600 font-black text-[10px] uppercase">USDT</span>
+            <div className="flex gap-4 text-xs font-bold uppercase tracking-wider text-gray-500">
+              <span className="text-[#00c076] border-b-2 border-[#00c076] pb-1 cursor-pointer">Buy</span>
+              <span className="pb-1 cursor-pointer">Sell</span>
             </div>
-
+            <div className="text-[10px] text-gray-400">
+              Avbl: <span className="text-white font-mono">{user?.balance?.toLocaleString() || '0.00'} USDT</span>
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <div className="flex-1 space-y-2">
+              <div className="relative">
+                <input 
+                  type="number" 
+                  value={amount} 
+                  onChange={(e)=>setAmount(e.target.value)} 
+                  placeholder="0.00" 
+                  className="w-full bg-[#2b3139] border border-transparent rounded-sm py-2 px-3 text-white outline-none font-mono text-sm focus:border-[#f0b90b]" 
+                />
+                <span className="absolute right-3 top-2.5 text-gray-500 text-[10px] font-bold">USDT</span>
+              </div>
+            </div>
             <div className="flex gap-2 flex-1">
-              <button 
-                disabled={loading} 
-                onClick={() => handleTrade('buy')} 
-                className="flex-1 py-3.5 bg-[#2ebd85] text-black rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-transform"
-              >
-                Long
-              </button>
-              <button 
-                disabled={loading} 
-                onClick={() => handleTrade('sell')} 
-                className="flex-1 py-3.5 bg-[#f6465d] text-white rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-transform"
-              >
-                Short
-              </button>
+              <button onClick={() => handleTrade('buy')} className="flex-1 py-2.5 bg-[#02c076] text-[#0b0e11] rounded-sm font-bold text-sm active:scale-95 transition-all">Long</button>
+              <button onClick={() => handleTrade('sell')} className="flex-1 py-2.5 bg-[#f6465d] text-white rounded-sm font-bold text-sm active:scale-95 transition-all">Short</button>
             </div>
           </div>
         </div>
@@ -292,7 +333,7 @@ const NavItem = ({ to, icon, label }) => (
   </NavLink>
 );
 
-// --- Main Layout/AppContent ---
+// --- AppContent ---
 const AppContent = ({ cryptoData }) => {
   const { user, token, logout, loading: authLoading } = useContext(UserContext);
   const location = useLocation();
@@ -306,7 +347,6 @@ const AppContent = ({ cryptoData }) => {
 
   return (
     <div className="min-h-screen bg-main-bg text-white flex flex-col md:flex-row overflow-hidden text-left font-sans">
-      {/* Desktop Sidebar */}
       {token && !isHomePage && (
         <aside className="w-20 lg:w-64 bg-card-bg border-r border-border hidden md:flex flex-col p-4 h-screen sticky top-0 z-40">
           <div className="mb-12 px-4 py-2 text-2xl font-black text-primary italic uppercase tracking-tighter">VINANCE</div>
@@ -317,7 +357,6 @@ const AppContent = ({ cryptoData }) => {
             <NavItem to="/invest" icon={<PieChart size={20}/>} label="AI Invest" />
             <NavItem to="/my-investments" icon={<Activity size={20}/>} label="Invest Logs" />
             <NavItem to="/wallet" icon={<Wallet size={20}/>} label="Wallet" />
-
             {user?.role === 'admin' && (
                <>
                  <div className="pt-6 pb-2 px-4 text-[9px] font-black text-gray-600 uppercase tracking-widest border-t border-border/30 mt-4">Management</div>
@@ -340,8 +379,7 @@ const AppContent = ({ cryptoData }) => {
             <NotificationSystem />
           </header>
         )}
-
-        <div className={`flex-1 overflow-y-auto bg-main-bg ${token && !isHomePage ? 'pb-32 md:pb-8' : ''}`}>
+        <div className={`flex-1 overflow-y-auto bg-main-bg ${token && !isHomePage ? 'pb-20 md:pb-8' : ''}`}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -354,7 +392,6 @@ const AppContent = ({ cryptoData }) => {
             <Route path="/wallet" element={<WalletPage />} /> 
             <Route path="/invest" element={<Investment />} />
             <Route path="/my-investments" element={<MyInvestments />} />
-            
             <Route path="/admin" element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/dashboard" />} />
             <Route path="/admin/manage-plans" element={user?.role === 'admin' ? <ManagePlans /> : <Navigate to="/dashboard" />} />
             <Route path="/admin/investment-logs" element={user?.role === 'admin' ? <InvestmentLogs /> : <Navigate to="/dashboard" />} />
@@ -362,15 +399,13 @@ const AppContent = ({ cryptoData }) => {
         </div>
       </main>
 
-      {/* Mobile Bottom Navigation */}
       {token && !isHomePage && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-card-bg/95 backdrop-blur-md border-t border-border flex justify-around items-center py-5 md:hidden z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
+        <nav className="fixed bottom-0 left-0 right-0 bg-card-bg/95 backdrop-blur-md border-t border-border flex justify-around items-center py-4 md:hidden z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
           <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
           <NavLink to="/invest" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><PieChart size={22}/></NavLink>
           <NavLink to="/trade/btc" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><TrendingUp size={22}/></NavLink>
           <NavLink to="/wallet" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><Wallet size={22}/></NavLink>
-          {user?.role === 'admin' && <NavLink to="/admin" className={({isActive})=> isActive ? "text-primary" : "text-gray-400"}><ShieldCheck size={22}/></NavLink>}
-          <button onClick={logout} className="text-gray-400 hover:text-danger"><LogOut size={22}/></button>
+          <button onClick={logout} className="text-gray-400"><LogOut size={22}/></button>
         </nav>
       )}
     </div>
