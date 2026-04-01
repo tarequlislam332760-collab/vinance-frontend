@@ -12,7 +12,7 @@ const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState('users');
   const [users, setUsers] = useState([]);
   const [requests, setRequests] = useState([]);
-  const [investments, setInvestments] = useState([]); // ইনভেস্টমেন্ট স্টেট
+  const [investments, setInvestments] = useState([]); 
   const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -28,10 +28,12 @@ const AdminPanel = () => {
       setLoading(true);
       const res = await API.get('/api/admin/all-data');
       
-      // ব্যাকএন্ড থেকে আসা ডাটা স্টেট এ সেট করা
-      setUsers(res.data.users || []);
-      setRequests(res.data.requests || []);
-      setInvestments(res.data.investments || []); // নিশ্চিত করুন ব্যাকএন্ডে 'investments' কী (key) আছে
+      // ✅ এখানে পরিবর্তন করা হয়েছে যাতে ব্যাকএন্ড থেকে আসা ডাটা সরাসরি স্টেট এ সেট হয়
+      if (res.data) {
+        setUsers(res.data.users || []);
+        setRequests(res.data.requests || []);
+        setInvestments(res.data.investments || []); // এখন এটি সব ইনভেস্টমেন্ট ডাটা রিসিভ করবে
+      }
       
     } catch (err) {
       console.error("Fetch error:", err);
@@ -57,7 +59,7 @@ const AdminPanel = () => {
       });
 
       setIsModalOpen(false);
-      fetchData(); // আপডেট এর পর ডাটা রিফ্রেশ
+      fetchData(); 
       alert("Balance Updated!");
     } catch (err) {
       alert("Error updating balance");
