@@ -28,11 +28,10 @@ const AdminPanel = () => {
       setLoading(true);
       const res = await API.get('/api/admin/all-data');
       
-      // ✅ এখানে পরিবর্তন করা হয়েছে যাতে ব্যাকএন্ড থেকে আসা ডাটা সরাসরি স্টেট এ সেট হয়
       if (res.data) {
         setUsers(res.data.users || []);
         setRequests(res.data.requests || []);
-        setInvestments(res.data.investments || []); // এখন এটি সব ইনভেস্টমেন্ট ডাটা রিসিভ করবে
+        setInvestments(res.data.investments || []);
       }
       
     } catch (err) {
@@ -75,7 +74,7 @@ const AdminPanel = () => {
   );
 
   return (
-    <div className="p-4 md:p-8 bg-[#0b0e11] min-h-screen text-white text-left">
+    <div className="p-4 md:p-8 bg-[#0b0e11] min-h-screen text-white text-left font-sans">
       {/* Header & Tabs */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
         <h2 className="text-3xl font-black text-yellow-500 italic uppercase tracking-tighter">
@@ -118,8 +117,8 @@ const AdminPanel = () => {
 
         {activeTab === 'plans' && <ManagePlans fetchData={fetchData} />}
 
-        {/* Investment Logs pass kora hocche */}
-        {activeTab === 'logs' && <InvestmentLogs data={investments} />}
+        {/* ✅ Fix: Logs ট্যাবে requests ডাটা পাঠানো হয়েছে যাতে সব ট্রানজেকশন দেখা যায় */}
+        {activeTab === 'logs' && <InvestmentLogs data={requests} />}
       </div>
 
       {/* Balance Update Modal */}
