@@ -42,8 +42,14 @@ const Futures = () => {
     if (!amount || parseFloat(amount) <= 0) return alert("Enter amount");
     setLoading(true);
     try {
+      // ব্যাকএন্ডে লিভারেজসহ ডাটা পাঠানো হচ্ছে
       const res = await axios.post(`${API_URL}/api/futures/trade`, 
-        { type: side, amount: parseFloat(amount), leverage: leverage, symbol: currentCoin },
+        { 
+          type: side, 
+          amount: parseFloat(amount), 
+          leverage: leverage, 
+          symbol: currentCoin 
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert(res.data.message);
@@ -75,8 +81,13 @@ const Futures = () => {
              <button onClick={() => setSide('buy')} className={`flex-1 py-2 rounded font-bold text-xs ${side === 'buy' ? 'bg-[#02c076] text-black' : 'bg-gray-800 text-gray-400'}`}>Buy</button>
              <button onClick={() => setSide('sell')} className={`flex-1 py-2 rounded font-bold text-xs ${side === 'sell' ? 'bg-[#f6465d] text-white' : 'bg-gray-800 text-gray-400'}`}>Sell</button>
           </div>
+          {/* Leverage Slider Simple Version */}
+          <div className="mb-3 px-1 flex justify-between items-center">
+            <span className="text-[10px] text-gray-500 font-bold uppercase">Leverage: {leverage}x</span>
+            <input type="range" min="1" max="100" value={leverage} onChange={(e)=>setLeverage(e.target.value)} className="w-2/3 h-1 bg-gray-700 accent-[#f0b90b] rounded-lg" />
+          </div>
           <div className="flex gap-2">
-             <input type="number" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} className="flex-1 bg-[#2b3139] rounded p-2 text-xs outline-none" />
+             <input type="number" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} className="flex-1 bg-[#2b3139] rounded p-2 text-xs outline-none text-white" />
              <button onClick={handleTrade} className={`px-6 py-2 rounded font-bold text-xs ${side === 'buy' ? 'bg-[#02c076] text-black' : 'bg-[#f6465d] text-white'}`}>{loading ? '...' : 'Trade'}</button>
           </div>
       </div>
@@ -111,7 +122,7 @@ const Trade = () => {
       </div>
       <div className="p-4 pb-24 bg-[#161a1e] border-t border-gray-800">
         <div className="flex gap-3 max-w-md mx-auto">
-          <input type="number" value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="0.00" className="flex-1 bg-[#2b3139] rounded py-2 px-3 text-sm outline-none" />
+          <input type="number" value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="0.00" className="flex-1 bg-[#2b3139] rounded py-2 px-3 text-sm outline-none text-white" />
           <button onClick={() => handleTrade('buy')} className="bg-[#02c076] text-black px-8 py-2 rounded font-bold">{loading ? '...' : 'Buy'}</button>
         </div>
       </div>
@@ -119,7 +130,7 @@ const Trade = () => {
   );
 };
 
-// --- Auth Components ---
+// --- Auth Components (Register & Login) ---
 const Register = () => {
   const { API_URL } = useContext(UserContext);
   const navigate = useNavigate();
@@ -227,16 +238,12 @@ const Dashboard = ({ cryptoData }) => {
             </div>
           ))}
         </div>
-
-        {/* Recent Activity Card with View All Button */}
         <div className="bg-[#161a1e] border border-[#1e2329] rounded-[2.5rem] p-6 shadow-xl relative">
            <div className="flex justify-between items-center mb-6">
               <h3 className="text-white font-black uppercase text-[10px] flex items-center gap-2 tracking-[0.2em]">
                  <Activity size={14} className="text-[#f0b90b]" /> Recent Activity
               </h3>
-              <Link to="/my-investments" className="text-[#f0b90b] text-[10px] font-black uppercase hover:underline">
-                 View All
-              </Link>
+              <Link to="/my-investments" className="text-[#f0b90b] text-[10px] font-black uppercase hover:underline">View All</Link>
            </div>
            <div className="space-y-4">
             {transactions.slice(0, 5).map((trx) => (
@@ -250,7 +257,7 @@ const Dashboard = ({ cryptoData }) => {
                 </div>
                 <div className="text-right">
                   <p className="font-mono font-bold text-xs text-white">${trx.amount}</p>
-                  <p className={`text-[8px] font-black uppercase ${trx.status === 'completed' ? 'text-[#00c076]' : 'text-[#f0b90b]'}`}>{trx.status}</p>
+                  <p className={`text-[8px] font-black uppercase ${trx.status === 'approved' ? 'text-[#00c076]' : 'text-[#f0b90b]'}`}>{trx.status}</p>
                 </div>
               </div>
             ))}
@@ -323,18 +330,14 @@ const AppContent = ({ cryptoData }) => {
 
   return (
     <div className="min-h-screen bg-[#0b0e11] text-white flex flex-col md:flex-row overflow-hidden text-left font-sans">
-      
       {token && !isHomePage && (
         <aside className="w-20 lg:w-64 bg-[#161a1e] border-r border-[#1e2329] hidden md:flex flex-col p-4 h-screen sticky top-0 z-40">
           <div className="mb-12 px-4 py-2 text-2xl font-black text-[#f0b90b] italic uppercase tracking-tighter">VINANCE</div>
-          
           <nav className="space-y-2 flex-1 overflow-y-auto">
             {userPages.map(page => (
               <NavItem key={page.to} to={page.to} icon={page.icon} label={page.label} />
             ))}
           </nav>
-
-          {/* Admin Menu at Bottom of Sidebar */}
           {user?.role === 'admin' && (
             <div className="mt-auto pt-4 border-t border-gray-800 space-y-2 mb-4">
               <div className="px-4 py-2 text-[9px] font-black text-[#f0b90b] uppercase tracking-widest opacity-50 italic">Admin Control</div>
@@ -343,7 +346,6 @@ const AppContent = ({ cryptoData }) => {
               ))}
             </div>
           )}
-
           <button onClick={logout} className="p-4 text-gray-500 hover:text-red-500 flex items-center gap-4 font-bold border-t border-gray-800">
             <LogOut size={20}/> <span className="hidden lg:inline text-[10px] font-black uppercase">Sign Out</span>
           </button>
@@ -357,8 +359,6 @@ const AppContent = ({ cryptoData }) => {
             <NotificationSystem />
           </header>
         )}
-        
-        {/* Increased Padding Bottom for Mobile to prevent overlap */}
         <div className={`flex-1 overflow-y-auto ${token && !isHomePage ? 'pb-32 md:pb-8' : ''}`}>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -380,7 +380,6 @@ const AppContent = ({ cryptoData }) => {
         </div>
       </main>
 
-      {/* --- Premium Mobile Navigation --- */}
       {token && !isHomePage && (
         <>
           {showMoreMenu && (
@@ -389,18 +388,14 @@ const AppContent = ({ cryptoData }) => {
                 <h2 className="text-[#f0b90b] font-black text-xl uppercase italic">Services</h2>
                 <button onClick={() => setShowMoreMenu(false)} className="bg-white/10 p-2 rounded-full text-gray-400">Close</button>
               </div>
-
-              {/* User Services */}
               <div className="grid grid-cols-3 gap-y-8 gap-x-4 mb-10 text-center">
                 {userPages.map((page) => (
-                  <Link key={page.to} to={page.to} onClick={() => setShowMoreMenu(false)} className="flex flex-col items-center gap-2 text-gray-400 hover:text-[#f0b90b]">
+                  <Link key={page.to} to={page.to} onClick={() => setShowMoreMenu(false)} className="flex flex-col items-center gap-2 text-gray-400">
                     <div className="p-4 bg-white/5 rounded-2xl border border-white/5">{page.icon}</div>
                     <span className="text-[9px] font-black uppercase leading-tight">{page.label}</span>
                   </Link>
                 ))}
               </div>
-
-              {/* Mobile Admin Section */}
               {user?.role === 'admin' && (
                 <div className="mt-auto border-t border-white/10 pt-6">
                    <h3 className="text-[#f0b90b] text-[10px] font-black uppercase mb-6 tracking-widest text-center italic">Admin Control Panel</h3>
@@ -414,13 +409,11 @@ const AppContent = ({ cryptoData }) => {
                    </div>
                 </div>
               )}
-
               <button onClick={logout} className="flex items-center justify-center gap-2 text-red-500 font-black uppercase text-[10px] py-4 bg-red-500/5 rounded-2xl border border-red-500/10 mt-4">
                   <LogOut size={18}/> Logout Account
               </button>
             </div>
           )}
-
           <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/95 backdrop-blur-md border-t border-gray-800 flex justify-around items-center py-4 md:hidden z-50">
             <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
             <NavLink to="/invest" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><PieChart size={22}/></NavLink>
