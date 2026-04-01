@@ -293,7 +293,7 @@ const AppContent = ({ cryptoData }) => {
   const isHomePage = location.pathname === '/';
   if (!token && !isAuthPage && !isHomePage) return <Navigate to="/login" replace />;
 
-  const allPages = [
+  const userPages = [
     { to: "/dashboard", icon: <LayoutDashboard size={22}/>, label: "Home" },
     { to: "/market", icon: <BarChart3 size={22}/>, label: "Market" },
     { to: "/invest", icon: <PieChart size={22}/>, label: "Invest" },
@@ -303,7 +303,12 @@ const AppContent = ({ cryptoData }) => {
     { to: "/wallet", icon: <Wallet size={22}/>, label: "Wallet" },
     { to: "/deposit", icon: <ArrowDownLeft size={22}/>, label: "Deposit" },
     { to: "/withdraw", icon: <ArrowUpRight size={22}/>, label: "Withdraw" },
-    { to: "/notifications", icon: <Bell size={22}/>, label: "Alerts" },
+  ];
+
+  const adminPages = [
+    { to: "/admin", icon: <ShieldCheck size={22}/>, label: "Users" },
+    { to: "/admin/manage-plans", icon: <LayoutGrid size={22}/>, label: "Plans" },
+    { to: "/admin/investment-logs", icon: <History size={22}/>, label: "All Logs" },
   ];
 
   return (
@@ -312,20 +317,23 @@ const AppContent = ({ cryptoData }) => {
       {token && !isHomePage && (
         <aside className="w-20 lg:w-64 bg-[#161a1e] border-r border-[#1e2329] hidden md:flex flex-col p-4 h-screen sticky top-0 z-40">
           <div className="mb-12 px-4 py-2 text-2xl font-black text-[#f0b90b] italic uppercase tracking-tighter">VINANCE</div>
+          
           <nav className="space-y-2 flex-1 overflow-y-auto">
-            {allPages.slice(0, 7).map(page => (
+            {userPages.map(page => (
               <NavItem key={page.to} to={page.to} icon={page.icon} label={page.label} />
             ))}
-            
-            {user?.role === 'admin' && (
-               <>
-                 <div className="pt-4 pb-2 px-4 text-[9px] font-black text-gray-600 uppercase border-t border-gray-800 mt-4">Admin</div>
-                 <NavItem to="/admin" icon={<ShieldCheck size={20}/>} label="Users" />
-                 <NavItem to="/admin/manage-plans" icon={<LayoutGrid size={20}/>} label="Plans" />
-                 <NavItem to="/admin/investment-logs" icon={<History size={20}/>} label="All Logs" />
-               </>
-            )}
           </nav>
+
+          {/* Admin Menu at Bottom of Sidebar */}
+          {user?.role === 'admin' && (
+            <div className="mt-auto pt-4 border-t border-gray-800 space-y-2 mb-4">
+              <div className="px-4 py-2 text-[9px] font-black text-[#f0b90b] uppercase tracking-widest opacity-50 italic">Admin Control</div>
+              {adminPages.map(page => (
+                <NavItem key={page.to} to={page.to} icon={page.icon} label={page.label} />
+              ))}
+            </div>
+          )}
+
           <button onClick={logout} className="p-4 text-gray-500 hover:text-red-500 flex items-center gap-4 font-bold border-t border-gray-800">
             <LogOut size={20}/> <span className="hidden lg:inline text-[10px] font-black uppercase">Sign Out</span>
           </button>
@@ -365,24 +373,40 @@ const AppContent = ({ cryptoData }) => {
       {token && !isHomePage && (
         <>
           {showMoreMenu && (
-            <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[60] p-8 flex flex-col">
+            <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[60] p-8 flex flex-col overflow-y-auto">
               <div className="flex justify-between items-center mb-10">
                 <h2 className="text-[#f0b90b] font-black text-xl uppercase italic">Services</h2>
-                <button onClick={() => setShowMoreMenu(false)} className="text-gray-400">Close</button>
+                <button onClick={() => setShowMoreMenu(false)} className="bg-white/10 p-2 rounded-full text-gray-400">Close</button>
               </div>
-              <div className="grid grid-cols-3 gap-6">
-                {allPages.map((page) => (
-                  <Link 
-                    key={page.to} 
-                    to={page.to} 
-                    onClick={() => setShowMoreMenu(false)}
-                    className="flex flex-col items-center gap-2 text-gray-400 hover:text-[#f0b90b]"
-                  >
-                    <div className="p-4 bg-white/5 rounded-2xl">{page.icon}</div>
-                    <span className="text-[10px] font-bold uppercase">{page.label}</span>
+
+              {/* User Services */}
+              <div className="grid grid-cols-3 gap-y-8 gap-x-4 mb-10">
+                {userPages.map((page) => (
+                  <Link key={page.to} to={page.to} onClick={() => setShowMoreMenu(false)} className="flex flex-col items-center gap-2 text-gray-400 hover:text-[#f0b90b]">
+                    <div className="p-4 bg-white/5 rounded-2xl border border-white/5">{page.icon}</div>
+                    <span className="text-[9px] font-black uppercase text-center leading-tight">{page.label}</span>
                   </Link>
                 ))}
               </div>
+
+              {/* Mobile Admin Section at Bottom of Drawer */}
+              {user?.role === 'admin' && (
+                <div className="mt-auto border-t border-white/10 pt-6">
+                   <h3 className="text-[#f0b90b] text-[10px] font-black uppercase mb-6 tracking-widest text-center italic">Admin Control Panel</h3>
+                   <div className="grid grid-cols-3 gap-y-8 gap-x-4 mb-8">
+                      {adminPages.map((page) => (
+                        <Link key={page.to} to={page.to} onClick={() => setShowMoreMenu(false)} className="flex flex-col items-center gap-2 text-gray-300">
+                          <div className="p-4 bg-[#f0b90b]/10 rounded-2xl border border-[#f0b90b]/20">{page.icon}</div>
+                          <span className="text-[9px] font-black uppercase text-center">{page.label}</span>
+                        </Link>
+                      ))}
+                   </div>
+                </div>
+              )}
+
+              <button onClick={logout} className="flex items-center justify-center gap-2 text-red-500 font-black uppercase text-[10px] py-4 bg-red-500/5 rounded-2xl border border-red-500/10 mt-4">
+                  <LogOut size={18}/> Logout Account
+              </button>
             </div>
           )}
 
@@ -391,7 +415,10 @@ const AppContent = ({ cryptoData }) => {
             <NavLink to="/invest" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><PieChart size={22}/></NavLink>
             <NavLink to={`/futures/${cryptoData[0]?.symbol || 'btc'}`} className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Zap size={22}/></NavLink>
             <NavLink to="/wallet" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Wallet size={22}/></NavLink>
-            <button onClick={() => setShowMoreMenu(true)} className="text-gray-400"><LayoutGrid size={22}/></button>
+            <button onClick={() => setShowMoreMenu(true)} className="text-gray-400 relative">
+                <LayoutGrid size={22}/>
+                {user?.role === 'admin' && <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#f0b90b] rounded-full animate-pulse"></span>}
+            </button>
           </nav>
         </>
       )}
