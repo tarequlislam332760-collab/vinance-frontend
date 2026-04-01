@@ -119,9 +119,12 @@ const Trade = () => {
         <iframe title="TV" src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${currentCoin}USDT&interval=240&theme=dark&style=1`} className="absolute inset-0 w-full h-full border-none"></iframe>
       </div>
       <div className="p-4 pb-24 bg-[#161a1e] border-t border-gray-800">
-        <div className="flex gap-3 max-w-md mx-auto">
-          <input type="number" value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="0.00" className="flex-1 bg-[#2b3139] rounded py-2 px-3 text-sm outline-none text-white" />
-          <button onClick={() => handleTrade('buy')} className="bg-[#02c076] text-black px-8 py-2 rounded font-bold">{loading ? '...' : 'Buy'}</button>
+        <div className="flex flex-col gap-3 max-w-md mx-auto">
+          <input type="number" value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="0.00" className="w-full bg-[#2b3139] rounded py-3 px-3 text-sm outline-none text-white border border-transparent focus:border-[#f0b90b]" />
+          <div className="flex gap-2">
+            <button onClick={() => handleTrade('buy')} className="flex-1 bg-[#02c076] text-black py-3 rounded font-bold">{loading ? '...' : 'Buy'}</button>
+            <button onClick={() => handleTrade('sell')} className="flex-1 bg-[#f6465d] text-white py-3 rounded font-bold">{loading ? '...' : 'Sell'}</button>
+          </div>
         </div>
       </div>
     </div>
@@ -241,7 +244,6 @@ const Dashboard = ({ cryptoData }) => {
               <h3 className="text-white font-black uppercase text-[10px] flex items-center gap-2 tracking-[0.2em]">
                  <Activity size={14} className="text-[#f0b90b]" /> Recent Activity
               </h3>
-              {/* FIXED LINK TO WALLET */}
               <Link to="/wallet" className="text-[#f0b90b] text-[10px] font-black uppercase hover:underline">View All</Link>
            </div>
            <div className="space-y-4">
