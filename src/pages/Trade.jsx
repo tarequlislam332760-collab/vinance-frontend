@@ -15,40 +15,41 @@ const Trade = () => {
 
   const currentCoin = (coinSymbol || 'btc').toUpperCase();
 
-  // ট্রেড হ্যান্ডলার
   const handleTrade = async (type) => {
     if (!amount || parseFloat(amount) <= 0) return alert("অ্যামাউন্ট লিখুন");
     setLoading(true);
     try {
       const res = await axios.post(`${API_URL}/api/trade`, 
-        { type: type, amount: parseFloat(amount), symbol: currentCoin },
+        { 
+          type: type, // 'buy' or 'sell'
+          amount: parseFloat(amount), 
+          symbol: currentCoin 
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert(res.data.message);
-      if (refreshUser) await refreshUser(); 
       setAmount('');
+      if (refreshUser) await refreshUser(); 
     } catch (err) { 
       alert(err.response?.data?.message || "ট্রেড সফল হয়নি"); 
     } finally { setLoading(false); }
   };
 
-  // ব্যালেন্স পারসেন্টেজ ক্যালকুলেশন ফাংশন
   const handlePercentClick = (percent) => {
     if (!user?.balance) return;
     const calculatedAmount = (user.balance * percent) / 100;
-    setAmount(calculatedAmount.toFixed(2)); // ২ দশমিক পর্যন্ত দেখাবে
+    setAmount(calculatedAmount.toFixed(2));
   };
 
   return (
     <div className="flex flex-col h-screen bg-[#0b0e11] text-[#eaecef] overflow-hidden">
-      
       {/* Header */}
       <div className="flex justify-between items-center px-4 py-2 bg-[#0b0e11]">
         <div className="flex items-center gap-3">
           <ChevronLeft size={24} className="text-gray-300 cursor-pointer" onClick={() => window.history.back()} />
           <div className="flex items-center gap-1">
             <span className="text-white font-bold text-lg">{currentCoin}/USDT</span>
-            <span className="bg-[#2b3139] text-[9px] px-1 rounded text-gray-400 font-bold">Perp</span>
+            <span className="bg-[#2b3139] text-[9px] px-1 rounded text-gray-400 font-bold">Spot</span>
           </div>
         </div>
         <div className="flex gap-4 text-gray-400">
@@ -57,28 +58,7 @@ const Trade = () => {
         </div>
       </div>
 
-      {/* টাইমফ্রেম সেকশন */}
-      <div className="flex justify-between items-center px-4 py-1.5 text-[11px] text-gray-400 font-medium border-b border-[#1e2329]">
-        <div className="flex gap-4">
-          <span className="text-[#f0b90b]">Time</span>
-          {['15', '60', '240', 'D'].map((tf) => (
-            <span 
-              key={tf}
-              onClick={() => setTimeframe(tf)}
-              className={`cursor-pointer transition-all ${timeframe === tf ? 'text-white border-b-2 border-[#f0b90b] pb-0.5' : ''}`}
-            >
-              {tf === '240' ? '4h' : tf === '60' ? '1h' : tf === '15' ? '15m' : tf}
-            </span>
-          ))}
-          <span className="cursor-pointer">More</span>
-        </div>
-        <div className="flex gap-3">
-          <Activity size={14} />
-          <LayoutGrid size={14} />
-        </div>
-      </div>
-
-      {/* চার্ট */}
+      {/* Chart Section */}
       <div className="flex-1 w-full relative">
         <iframe 
           title="TV-Full" 
@@ -87,24 +67,19 @@ const Trade = () => {
         ></iframe>
       </div>
       
-      {/* অ্যাকশন প্যানেল (পারসেন্টেজ অপশন সহ) */}
-      <div className="w-full bg-[#161a1e] border-t border-[#1e2329] p-4 pb-24 relative z-[50] pointer-events-auto shadow-2xl">
+      {/* Action Panel */}
+      <div className="w-full bg-[#161a1e] border-t border-[#1e2329] p-4 pb-24 relative z-[50]">
         <div className="max-w-md mx-auto">
-          
           <div className="flex justify-between items-center mb-3">
-            <div className="flex gap-6 text-xs font-bold uppercase tracking-wider">
+            <div className="flex gap-6 text-xs font-bold uppercase">
               <button 
                 onClick={() => setActiveTab('buy')}
-                className={`pb-1 transition-all border-b-2 ${activeTab === 'buy' ? 'text-[#00c076] border-[#00c076]' : 'text-gray-500 border-transparent'}`}
-              >
-                Buy
-              </button>
+                className={`pb-1 border-b-2 ${activeTab === 'buy' ? 'text-[#00c076] border-[#00c076]' : 'text-gray-500 border-transparent'}`}
+              >Buy</button>
               <button 
                 onClick={() => setActiveTab('sell')}
-                className={`pb-1 transition-all border-b-2 ${activeTab === 'sell' ? 'text-[#f6465d] border-[#f6465d]' : 'text-gray-500 border-transparent'}`}
-              >
-                Sell
-              </button>
+                className={`pb-1 border-b-2 ${activeTab === 'sell' ? 'text-[#f6465d] border-[#f6465d]' : 'text-gray-500 border-transparent'}`}
+              >Sell</button>
             </div>
             <div className="text-[10px] text-gray-400">
               Avbl: <span className="text-white font-mono">{user?.balance?.toLocaleString() || '0.00'} USDT</span>
@@ -113,62 +88,42 @@ const Trade = () => {
 
           <div className="flex gap-4">
             <div className="flex-[1.2] space-y-3">
-              {/* ইনপুট ফিল্ড */}
               <div className="relative">
                 <input 
                   type="number" 
                   value={amount} 
                   onChange={(e)=>setAmount(e.target.value)} 
                   placeholder="Amount" 
-                  className="w-full bg-[#2b3139] border border-transparent rounded-sm py-2.5 px-3 text-white outline-none font-mono text-sm focus:border-[#f0b90b]" 
+                  className="w-full bg-[#2b3139] rounded-sm py-2 px-3 text-white outline-none font-mono text-sm" 
                 />
-                <span className="absolute right-3 top-3 text-gray-500 text-[10px] font-bold">USDT</span>
+                <span className="absolute right-3 top-2.5 text-gray-500 text-[10px] font-bold">USDT</span>
               </div>
-
-              {/* পারসেন্টেজ বাটন সমূহ */}
               <div className="flex justify-between gap-1">
                 {[25, 50, 75, 100].map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => handlePercentClick(p)}
-                    className="flex-1 bg-[#2b3139] hover:bg-[#363d47] text-[10px] text-gray-400 py-1 rounded-sm transition-colors active:bg-[#f0b90b] active:text-black"
-                  >
-                    {p}%
-                  </button>
+                  <button key={p} onClick={() => handlePercentClick(p)} className="flex-1 bg-[#2b3139] text-[10px] text-gray-400 py-1 rounded-sm">{p}%</button>
                 ))}
               </div>
             </div>
 
-            <div className="flex-1 flex flex-col justify-between">
-              {activeTab === 'buy' ? (
-                <button 
-                  disabled={loading}
-                  onClick={() => handleTrade('buy')} 
-                  className="h-full w-full bg-[#02c076] text-[#0b0e11] rounded-sm font-bold text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center"
-                >
-                  {loading ? '...' : 'Long'}
-                </button>
-              ) : (
-                <button 
-                  disabled={loading}
-                  onClick={() => handleTrade('sell')} 
-                  className="h-full w-full bg-[#f6465d] text-white rounded-sm font-bold text-sm active:scale-95 transition-all shadow-lg flex items-center justify-center"
-                >
-                  {loading ? '...' : 'Short'}
-                </button>
-              )}
+            <div className="flex-1">
+              <button 
+                disabled={loading}
+                onClick={() => handleTrade(activeTab)} 
+                className={`h-full w-full rounded-sm font-bold text-sm transition-all ${activeTab === 'buy' ? 'bg-[#02c076] text-[#0b0e11]' : 'bg-[#f6465d] text-white'}`}
+              >
+                {loading ? '...' : activeTab === 'buy' ? 'Buy Long' : 'Sell Short'}
+              </button>
             </div>
           </div>
         </div>
       </div>
 
       {/* Footer Nav */}
-      <div className="fixed bottom-0 w-full flex justify-around items-center py-3 bg-[#161a1e] border-t border-[#1e2329] text-[10px] text-gray-500 z-[100]">
+      <div className="fixed bottom-0 w-full flex justify-around items-center py-3 bg-[#161a1e] border-t border-[#1e2329] text-[10px] text-gray-500">
         <div className="flex flex-col items-center gap-1 cursor-pointer"><MoreHorizontal size={18}/><span>More</span></div>
         <div className="flex flex-col items-center gap-1 cursor-pointer"><LayoutGrid size={18}/><span>Hub</span></div>
         <div className="flex flex-col items-center gap-1 text-[#f0b90b] cursor-pointer"><Zap size={18}/><span>Spot</span></div>
       </div>
-
     </div>
   );
 };
