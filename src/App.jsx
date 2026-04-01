@@ -285,12 +285,26 @@ const Market = ({ cryptoData }) => {
 const AppContent = ({ cryptoData }) => {
   const { user, token, logout, loading: authLoading } = useContext(UserContext);
   const location = useLocation();
+  const [showMoreMenu, setShowMoreMenu] = useState(false); 
 
   if (authLoading) return <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center text-[#f0b90b] font-black text-3xl animate-pulse italic">VINANCE</div>;
 
   const isAuthPage = ['/login', '/register'].includes(location.pathname);
   const isHomePage = location.pathname === '/';
   if (!token && !isAuthPage && !isHomePage) return <Navigate to="/login" replace />;
+
+  const allPages = [
+    { to: "/dashboard", icon: <LayoutDashboard size={22}/>, label: "Home" },
+    { to: "/market", icon: <BarChart3 size={22}/>, label: "Market" },
+    { to: "/invest", icon: <PieChart size={22}/>, label: "Invest" },
+    { to: `/futures/${cryptoData[0]?.symbol || 'btc'}`, icon: <Zap size={22}/>, label: "Futures" },
+    { to: `/trade/${cryptoData[0]?.symbol || 'btc'}`, icon: <TrendingUp size={22}/>, label: "Spot" },
+    { to: "/my-investments", icon: <History size={22}/>, label: "Logs" },
+    { to: "/wallet", icon: <Wallet size={22}/>, label: "Wallet" },
+    { to: "/deposit", icon: <ArrowDownLeft size={22}/>, label: "Deposit" },
+    { to: "/withdraw", icon: <ArrowUpRight size={22}/>, label: "Withdraw" },
+    { to: "/notifications", icon: <Bell size={22}/>, label: "Alerts" },
+  ];
 
   return (
     <div className="min-h-screen bg-[#0b0e11] text-white flex flex-col md:flex-row overflow-hidden text-left font-sans">
@@ -299,12 +313,9 @@ const AppContent = ({ cryptoData }) => {
         <aside className="w-20 lg:w-64 bg-[#161a1e] border-r border-[#1e2329] hidden md:flex flex-col p-4 h-screen sticky top-0 z-40">
           <div className="mb-12 px-4 py-2 text-2xl font-black text-[#f0b90b] italic uppercase tracking-tighter">VINANCE</div>
           <nav className="space-y-2 flex-1 overflow-y-auto">
-            <NavItem to="/dashboard" icon={<LayoutDashboard size={20}/>} label="Dashboard" />
-            <NavItem to="/market" icon={<BarChart3 size={20}/>} label="Market" />
-            <NavItem to={`/futures/${cryptoData[0]?.symbol || 'btc'}`} icon={<Zap size={20}/>} label="Futures" />
-            <NavItem to="/invest" icon={<PieChart size={20}/>} label="AI Invest" />
-            <NavItem to="/my-investments" icon={<History size={20}/>} label="Invest Logs" />
-            <NavItem to="/wallet" icon={<Wallet size={20}/>} label="Wallet" />
+            {allPages.slice(0, 7).map(page => (
+              <NavItem key={page.to} to={page.to} icon={page.icon} label={page.label} />
+            ))}
             
             {user?.role === 'admin' && (
                <>
@@ -350,14 +361,39 @@ const AppContent = ({ cryptoData }) => {
         </div>
       </main>
 
+      {/* --- Premium Mobile Navigation --- */}
       {token && !isHomePage && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e] border-t border-gray-800 flex justify-around items-center py-4 md:hidden z-50">
-          <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
-          <NavLink to="/invest" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><PieChart size={22}/></NavLink>
-          <NavLink to={`/futures/${cryptoData[0]?.symbol || 'btc'}`} className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Zap size={22}/></NavLink>
-          <NavLink to="/my-investments" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><History size={22}/></NavLink>
-          <NavLink to="/wallet" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Wallet size={22}/></NavLink>
-        </nav>
+        <>
+          {showMoreMenu && (
+            <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[60] p-8 flex flex-col">
+              <div className="flex justify-between items-center mb-10">
+                <h2 className="text-[#f0b90b] font-black text-xl uppercase italic">Services</h2>
+                <button onClick={() => setShowMoreMenu(false)} className="text-gray-400">Close</button>
+              </div>
+              <div className="grid grid-cols-3 gap-6">
+                {allPages.map((page) => (
+                  <Link 
+                    key={page.to} 
+                    to={page.to} 
+                    onClick={() => setShowMoreMenu(false)}
+                    className="flex flex-col items-center gap-2 text-gray-400 hover:text-[#f0b90b]"
+                  >
+                    <div className="p-4 bg-white/5 rounded-2xl">{page.icon}</div>
+                    <span className="text-[10px] font-bold uppercase">{page.label}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/95 backdrop-blur-md border-t border-gray-800 flex justify-around items-center py-4 md:hidden z-50">
+            <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
+            <NavLink to="/invest" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><PieChart size={22}/></NavLink>
+            <NavLink to={`/futures/${cryptoData[0]?.symbol || 'btc'}`} className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Zap size={22}/></NavLink>
+            <NavLink to="/wallet" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Wallet size={22}/></NavLink>
+            <button onClick={() => setShowMoreMenu(true)} className="text-gray-400"><LayoutGrid size={22}/></button>
+          </nav>
+        </>
       )}
     </div>
   );
