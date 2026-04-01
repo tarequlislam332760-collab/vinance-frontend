@@ -8,29 +8,25 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const Dashboard = ({ cryptoData }) => {
-  const { user, token } = useContext(UserContext);
+  const { user, token, API_URL } = useContext(UserContext); // API_URL যোগ করা হয়েছে
   const navigate = useNavigate();
   
-  // ড্যাশবোর্ড ডাটা স্টেট
   const [balance, setBalance] = useState(0);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ডাটাবেজ থেকে ডাটা নিয়ে আসা
   useEffect(() => {
     const fetchDashboardData = async () => {
-      if (!token) return; // টোকেন না থাকলে রিকোয়েস্ট করবে না
+      if (!token) return; 
       
       try {
         const config = { headers: { Authorization: `Bearer ${token}` } };
         
-        // ১. লেটেস্ট ব্যালেন্স এবং ইউজার ডাটা আনা
-        const userRes = await axios.get('http://localhost:5000/api/profile', config);
+        // ডাইনামিক API_URL ব্যবহার করা হচ্ছে
+        const userRes = await axios.get(`${API_URL}/api/profile`, config);
         setBalance(userRes.data.balance);
 
-        // ২. ট্রানজেকশন হিস্ট্রি আনা
-        const transRes = await axios.get('http://localhost:5000/api/transactions', config);
-        // নিশ্চিত করা হচ্ছে যেন শুধু সফল ডাটা সেট হয়
+        const transRes = await axios.get(`${API_URL}/api/transactions`, config);
         setTransactions(Array.isArray(transRes.data) ? transRes.data : []);
       } catch (err) {
         console.error("Dashboard Data loading failed", err);
@@ -40,14 +36,13 @@ const Dashboard = ({ cryptoData }) => {
     };
 
     fetchDashboardData();
-  }, [token]);
+  }, [token, API_URL]);
 
   if (loading) return <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center text-yellow-500 font-black tracking-widest uppercase">Loading Assets...</div>;
 
   return (
     <div className="p-4 md:p-8 bg-[#0b0e11] min-h-screen pb-24 md:pb-8 text-left">
       
-      {/* ১. ওয়েলকাম এবং ব্যালেন্স কার্ড */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
         <div>
           <h1 className="text-3xl font-black text-white uppercase tracking-tighter">
@@ -70,10 +65,7 @@ const Dashboard = ({ cryptoData }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* ২. পোর্টফোলিও স্ট্যাটাস এবং রিসেন্ট অ্যাক্টিভিটি */}
         <div className="lg:col-span-1 space-y-6">
-          
-          {/* ব্যালেন্স ডিসপ্লে */}
           <div className="bg-[#1e2329] border border-gray-800 rounded-[2.5rem] p-8 shadow-xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform">
                 <TrendingUp size={80} />
@@ -85,7 +77,6 @@ const Dashboard = ({ cryptoData }) => {
             </p>
           </div>
 
-          {/* ট্রানজেকশন হিস্ট্রি টেবিল */}
           <div className="bg-[#1e2329] border border-gray-800 rounded-[2.5rem] p-6 shadow-xl">
             <h3 className="text-white font-black uppercase text-xs mb-6 flex items-center gap-2 tracking-widest">
               <History size={16} className="text-yellow-500" /> Recent Activity
@@ -115,19 +106,19 @@ const Dashboard = ({ cryptoData }) => {
                 <p className="text-center py-10 text-gray-600 text-[10px] font-black uppercase tracking-widest">No Transactions Found</p>
               )}
             </div>
+            {/* এখানে পাথটি /history তে ঠিক করা হয়েছে */}
             <button onClick={() => navigate('/history')} className="w-full mt-6 py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest border-t border-gray-800 hover:text-yellow-500 transition-all">
               View All History
             </button>
           </div>
         </div>
 
-        {/* ৩. ট্রেডিং চার্ট */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-[#1e2329] border border-gray-800 rounded-[2.5rem] overflow-hidden h-[500px] shadow-2xl relative">
             <div className="absolute top-4 left-6 z-10 bg-[#0b0e11]/80 backdrop-blur-md px-4 py-2 rounded-xl border border-gray-800">
-               <span className="text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-2">
-                 <Zap size={14} className="text-yellow-500 animate-pulse" /> Live BTC/USDT Chart
-               </span>
+                <span className="text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-2">
+                  <Zap size={14} className="text-yellow-500 animate-pulse" /> Live BTC/USDT Chart
+                </span>
             </div>
             <iframe 
               title="TradingView" 

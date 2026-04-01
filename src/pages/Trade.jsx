@@ -19,9 +19,10 @@ const Trade = () => {
     if (!amount || parseFloat(amount) <= 0) return alert("অ্যামাউন্ট লিখুন");
     setLoading(true);
     try {
+      // এখানে type হিসেবে 'activeTab' এর ভ্যালু সরাসরি যাচ্ছে
       const res = await axios.post(`${API_URL}/api/trade`, 
         { 
-          type: type, // 'buy' or 'sell'
+          type: type, 
           amount: parseFloat(amount), 
           symbol: currentCoin 
         },
@@ -106,6 +107,7 @@ const Trade = () => {
             </div>
 
             <div className="flex-1">
+              {/* handleTrade ফাংশনে activeTab ভেরিয়েবলটি পাঠানো হচ্ছে */}
               <button 
                 disabled={loading}
                 onClick={() => handleTrade(activeTab)} 

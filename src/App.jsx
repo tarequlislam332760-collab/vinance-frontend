@@ -42,7 +42,6 @@ const Futures = () => {
     if (!amount || parseFloat(amount) <= 0) return alert("Enter amount");
     setLoading(true);
     try {
-      // ব্যাকএন্ডে লিভারেজসহ ডাটা পাঠানো হচ্ছে
       const res = await axios.post(`${API_URL}/api/futures/trade`, 
         { 
           type: side, 
@@ -81,7 +80,6 @@ const Futures = () => {
              <button onClick={() => setSide('buy')} className={`flex-1 py-2 rounded font-bold text-xs ${side === 'buy' ? 'bg-[#02c076] text-black' : 'bg-gray-800 text-gray-400'}`}>Buy</button>
              <button onClick={() => setSide('sell')} className={`flex-1 py-2 rounded font-bold text-xs ${side === 'sell' ? 'bg-[#f6465d] text-white' : 'bg-gray-800 text-gray-400'}`}>Sell</button>
           </div>
-          {/* Leverage Slider Simple Version */}
           <div className="mb-3 px-1 flex justify-between items-center">
             <span className="text-[10px] text-gray-500 font-bold uppercase">Leverage: {leverage}x</span>
             <input type="range" min="1" max="100" value={leverage} onChange={(e)=>setLeverage(e.target.value)} className="w-2/3 h-1 bg-gray-700 accent-[#f0b90b] rounded-lg" />
@@ -130,7 +128,7 @@ const Trade = () => {
   );
 };
 
-// --- Auth Components (Register & Login) ---
+// --- Auth Components ---
 const Register = () => {
   const { API_URL } = useContext(UserContext);
   const navigate = useNavigate();
@@ -243,7 +241,8 @@ const Dashboard = ({ cryptoData }) => {
               <h3 className="text-white font-black uppercase text-[10px] flex items-center gap-2 tracking-[0.2em]">
                  <Activity size={14} className="text-[#f0b90b]" /> Recent Activity
               </h3>
-              <Link to="/my-investments" className="text-[#f0b90b] text-[10px] font-black uppercase hover:underline">View All</Link>
+              {/* FIXED LINK TO WALLET */}
+              <Link to="/wallet" className="text-[#f0b90b] text-[10px] font-black uppercase hover:underline">View All</Link>
            </div>
            <div className="space-y-4">
             {transactions.slice(0, 5).map((trx) => (
