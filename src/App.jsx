@@ -54,7 +54,7 @@ const Futures = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#0b0e11] text-[#eaecef] overflow-hidden font-sans">
+    <div className="flex flex-col h-screen bg-[#0b0e11] text-[#eaecef] overflow-hidden font-sans text-left">
       <div className="flex justify-between items-center px-4 py-3 border-b border-gray-800 bg-[#0b0e11] sticky top-0 z-50">
         <div className="flex items-center gap-2">
           <ChevronLeft size={22} className="text-gray-400 cursor-pointer" onClick={() => window.history.back()} />
@@ -104,7 +104,7 @@ const Trade = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#0b0e11] text-[#eaecef] overflow-hidden">
+    <div className="flex flex-col h-screen bg-[#0b0e11] text-[#eaecef] overflow-hidden text-left">
       <div className="flex justify-between items-center px-4 py-2 border-b border-gray-800"><ChevronLeft onClick={() => window.history.back()} /><span className="font-bold">{currentCoin}/USDT</span><Activity size={18} /></div>
       <div className="flex-1 w-full relative">
         <iframe title="TV" src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${currentCoin}USDT&interval=240&theme=dark&style=1`} className="absolute inset-0 w-full h-full border-none"></iframe>
@@ -136,10 +136,10 @@ const Register = () => {
     finally { setLoading(false); }
   };
   return (
-    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6 text-left">
       <div className="w-full max-w-md bg-[#161a1e] border border-[#1e2329] rounded-3xl p-10 shadow-2xl">
         <h1 className="text-3xl font-bold text-[#f0b90b] mb-6 italic uppercase tracking-tighter">VINANCE</h1>
-        <form onSubmit={handleRegister} className="space-y-5 text-left">
+        <form onSubmit={handleRegister} className="space-y-5">
           <input type="text" placeholder="Full Name" required onChange={(e)=>setFormData({...formData, name: e.target.value})} className="w-full bg-[#0b0e11] border border-[#1e2329] rounded-xl py-3 px-4 text-white outline-none focus:border-[#f0b90b]" />
           <input type="email" placeholder="Email" required onChange={(e)=>setFormData({...formData, email: e.target.value})} className="w-full bg-[#0b0e11] border border-[#1e2329] rounded-xl py-3 px-4 text-white outline-none focus:border-[#f0b90b]" />
           <input type="password" placeholder="Password" required onChange={(e)=>setFormData({...formData, password: e.target.value})} className="w-full bg-[#0b0e11] border border-[#1e2329] rounded-xl py-3 px-4 text-white outline-none focus:border-[#f0b90b]" />
@@ -171,10 +171,10 @@ const Login = () => {
     finally { setLoading(false); }
   };
   return (
-    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6 text-left">
       <div className="w-full max-w-md bg-[#161a1e] border border-[#1e2329] rounded-3xl p-10 shadow-2xl">
         <h1 className="text-3xl font-bold text-[#f0b90b] mb-6 italic uppercase tracking-tighter">VINANCE</h1>
-        <form onSubmit={handleLogin} className="space-y-6 text-left">
+        <form onSubmit={handleLogin} className="space-y-6">
           <input type="email" placeholder="Email" required onChange={(e)=>setEmail(e.target.value)} className="w-full bg-[#0b0e11] border border-[#1e2329] rounded-xl py-3 px-4 text-white outline-none focus:border-[#f0b90b]" />
           <input type="password" placeholder="Password" required onChange={(e)=>setPassword(e.target.value)} className="w-full bg-[#0b0e11] border border-[#1e2329] rounded-xl py-3 px-4 text-white outline-none focus:border-[#f0b90b]" />
           <button type="submit" disabled={loading} className="w-full bg-[#f0b90b] text-black py-3.5 rounded-xl font-bold uppercase">{loading ? "Syncing..." : "Log In"}</button>
@@ -227,8 +227,17 @@ const Dashboard = ({ cryptoData }) => {
             </div>
           ))}
         </div>
-        <div className="bg-[#161a1e] border border-[#1e2329] rounded-[2.5rem] p-6 shadow-xl">
-           <h3 className="text-white font-black uppercase text-[10px] mb-6 flex items-center gap-2 tracking-[0.2em]"><Activity size={14} className="text-[#f0b90b]" /> Recent Activity</h3>
+
+        {/* Recent Activity Card with View All Button */}
+        <div className="bg-[#161a1e] border border-[#1e2329] rounded-[2.5rem] p-6 shadow-xl relative">
+           <div className="flex justify-between items-center mb-6">
+              <h3 className="text-white font-black uppercase text-[10px] flex items-center gap-2 tracking-[0.2em]">
+                 <Activity size={14} className="text-[#f0b90b]" /> Recent Activity
+              </h3>
+              <Link to="/my-investments" className="text-[#f0b90b] text-[10px] font-black uppercase hover:underline">
+                 View All
+              </Link>
+           </div>
            <div className="space-y-4">
             {transactions.slice(0, 5).map((trx) => (
               <div key={trx._id} className="flex justify-between items-center p-3 hover:bg-white/[0.03] rounded-2xl border border-transparent hover:border-[#1e2329]">
@@ -245,6 +254,7 @@ const Dashboard = ({ cryptoData }) => {
                 </div>
               </div>
             ))}
+            {transactions.length === 0 && <p className="text-center text-gray-500 text-[10px] py-4 uppercase font-bold">No activity found</p>}
           </div>
         </div>
       </div>
@@ -348,7 +358,8 @@ const AppContent = ({ cryptoData }) => {
           </header>
         )}
         
-        <div className={`flex-1 overflow-y-auto ${token && !isHomePage ? 'pb-24' : ''}`}>
+        {/* Increased Padding Bottom for Mobile to prevent overlap */}
+        <div className={`flex-1 overflow-y-auto ${token && !isHomePage ? 'pb-32 md:pb-8' : ''}`}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -380,24 +391,24 @@ const AppContent = ({ cryptoData }) => {
               </div>
 
               {/* User Services */}
-              <div className="grid grid-cols-3 gap-y-8 gap-x-4 mb-10">
+              <div className="grid grid-cols-3 gap-y-8 gap-x-4 mb-10 text-center">
                 {userPages.map((page) => (
                   <Link key={page.to} to={page.to} onClick={() => setShowMoreMenu(false)} className="flex flex-col items-center gap-2 text-gray-400 hover:text-[#f0b90b]">
                     <div className="p-4 bg-white/5 rounded-2xl border border-white/5">{page.icon}</div>
-                    <span className="text-[9px] font-black uppercase text-center leading-tight">{page.label}</span>
+                    <span className="text-[9px] font-black uppercase leading-tight">{page.label}</span>
                   </Link>
                 ))}
               </div>
 
-              {/* Mobile Admin Section at Bottom of Drawer */}
+              {/* Mobile Admin Section */}
               {user?.role === 'admin' && (
                 <div className="mt-auto border-t border-white/10 pt-6">
                    <h3 className="text-[#f0b90b] text-[10px] font-black uppercase mb-6 tracking-widest text-center italic">Admin Control Panel</h3>
-                   <div className="grid grid-cols-3 gap-y-8 gap-x-4 mb-8">
+                   <div className="grid grid-cols-3 gap-y-8 gap-x-4 mb-8 text-center">
                       {adminPages.map((page) => (
                         <Link key={page.to} to={page.to} onClick={() => setShowMoreMenu(false)} className="flex flex-col items-center gap-2 text-gray-300">
                           <div className="p-4 bg-[#f0b90b]/10 rounded-2xl border border-[#f0b90b]/20">{page.icon}</div>
-                          <span className="text-[9px] font-black uppercase text-center">{page.label}</span>
+                          <span className="text-[9px] font-black uppercase">{page.label}</span>
                         </Link>
                       ))}
                    </div>
