@@ -19,6 +19,13 @@ import MyInvestments from './pages/MyInvestments';
 import ManagePlans from './admin/ManagePlans';
 import InvestmentLogs from './admin/InvestmentLogs';
 
+// --- NavItem Component ---
+const NavItem = ({ to, icon, label }) => (
+  <NavLink to={to} className={({ isActive }) => `flex items-center gap-4 p-3.5 rounded-xl transition-all ${isActive ? 'text-[#f0b90b] bg-[#f0b90b]/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+    {icon} <span className="hidden lg:inline font-black text-[10px] uppercase tracking-widest">{label}</span>
+  </NavLink>
+);
+
 // --- Futures Component ---
 const Futures = () => {
   const { coinSymbol } = useParams();
@@ -83,7 +90,6 @@ const Trade = () => {
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
-  const activeTab = 'buy'; 
   const currentCoin = (coinSymbol || 'btc').toUpperCase();
 
   const handleTrade = async (type) => {
@@ -113,17 +119,173 @@ const Trade = () => {
   );
 };
 
-// --- NavItem Component ---
-const NavItem = ({ to, icon, label }) => (
-  <NavLink to={to} className={({ isActive }) => `flex items-center gap-4 p-3.5 rounded-xl transition-all ${isActive ? 'text-[#f0b90b] bg-[#f0b90b]/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-    {icon} <span className="hidden lg:inline font-black text-[10px] uppercase tracking-widest">{label}</span>
-  </NavLink>
-);
+// --- Auth Components ---
+const Register = () => {
+  const { API_URL } = useContext(UserContext);
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+  const [loading, setLoading] = useState(false);
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await axios.post(`${API_URL}/api/register`, { ...formData, email: formData.email.toLowerCase() });
+      alert("Registration Successful!");
+      navigate('/login');
+    } catch (err) { alert(err.response?.data?.message || "Error"); } 
+    finally { setLoading(false); }
+  };
+  return (
+    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6">
+      <div className="w-full max-w-md bg-[#161a1e] border border-[#1e2329] rounded-3xl p-10 shadow-2xl">
+        <h1 className="text-3xl font-bold text-[#f0b90b] mb-6 italic uppercase tracking-tighter">VINANCE</h1>
+        <form onSubmit={handleRegister} className="space-y-5 text-left">
+          <input type="text" placeholder="Full Name" required onChange={(e)=>setFormData({...formData, name: e.target.value})} className="w-full bg-[#0b0e11] border border-[#1e2329] rounded-xl py-3 px-4 text-white outline-none focus:border-[#f0b90b]" />
+          <input type="email" placeholder="Email" required onChange={(e)=>setFormData({...formData, email: e.target.value})} className="w-full bg-[#0b0e11] border border-[#1e2329] rounded-xl py-3 px-4 text-white outline-none focus:border-[#f0b90b]" />
+          <input type="password" placeholder="Password" required onChange={(e)=>setFormData({...formData, password: e.target.value})} className="w-full bg-[#0b0e11] border border-[#1e2329] rounded-xl py-3 px-4 text-white outline-none focus:border-[#f0b90b]" />
+          <button disabled={loading} className="w-full bg-[#f0b90b] text-black py-3.5 rounded-xl font-bold uppercase">{loading ? "Wait..." : "Register"}</button>
+        </form>
+        <p className="text-center mt-6 text-sm text-gray-400">Already have an account? <Link to="/login" className="text-[#f0b90b] hover:underline">Log In</Link></p>
+      </div>
+    </div>
+  );
+};
 
-// --- App Content ---
+const Login = () => {
+  const { setUser, setToken, refreshUser, API_URL } = useContext(UserContext);
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API_URL}/api/login`, { email: email.toLowerCase(), password });
+      localStorage.setItem('token', res.data.token);
+      setToken(res.data.token);
+      setUser(res.data.user);
+      if (refreshUser) await refreshUser(); 
+      navigate('/dashboard');
+    } catch (err) { alert(err.response?.data?.message || "Login Failed"); } 
+    finally { setLoading(false); }
+  };
+  return (
+    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6">
+      <div className="w-full max-w-md bg-[#161a1e] border border-[#1e2329] rounded-3xl p-10 shadow-2xl">
+        <h1 className="text-3xl font-bold text-[#f0b90b] mb-6 italic uppercase tracking-tighter">VINANCE</h1>
+        <form onSubmit={handleLogin} className="space-y-6 text-left">
+          <input type="email" placeholder="Email" required onChange={(e)=>setEmail(e.target.value)} className="w-full bg-[#0b0e11] border border-[#1e2329] rounded-xl py-3 px-4 text-white outline-none focus:border-[#f0b90b]" />
+          <input type="password" placeholder="Password" required onChange={(e)=>setPassword(e.target.value)} className="w-full bg-[#0b0e11] border border-[#1e2329] rounded-xl py-3 px-4 text-white outline-none focus:border-[#f0b90b]" />
+          <button type="submit" disabled={loading} className="w-full bg-[#f0b90b] text-black py-3.5 rounded-xl font-bold uppercase">{loading ? "Syncing..." : "Log In"}</button>
+        </form>
+        <p className="text-center mt-6 text-sm text-gray-400">Don't have an account? <Link to="/register" className="text-[#f0b90b] hover:underline">Register</Link></p>
+      </div>
+    </div>
+  );
+};
+
+// --- Dashboard Component ---
+const Dashboard = ({ cryptoData }) => {
+  const { user, refreshUser, API_URL, token } = useContext(UserContext);
+  const navigate = useNavigate();
+  const [transactions, setTransactions] = useState([]);
+
+  useEffect(() => {
+    if (refreshUser) refreshUser(); 
+    const fetchTransactions = async () => {  
+      if (!token) return;
+      try {
+        const res = await axios.get(`${API_URL}/api/transactions`, { headers: { Authorization: `Bearer ${token}` } });
+        setTransactions(Array.isArray(res.data) ? res.data : (res.data.transactions || []));
+      } catch (err) { console.warn("Activity fetch error"); }
+    };
+    fetchTransactions();
+  }, [token, API_URL, refreshUser]);
+
+  return (
+    <div className="p-4 md:p-8 text-left space-y-6 bg-[#0b0e11] min-h-screen">
+      <div className="bg-gradient-to-br from-[#161a1e] to-[#0b0e11] p-6 rounded-[2.5rem] border border-[#1e2329] flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl relative overflow-hidden">
+        <div className="w-full md:w-auto text-center md:text-left z-10">
+          <p className="text-gray-500 text-[10px] uppercase tracking-[0.3em] font-black mb-2">Estimated Balance</p>
+          <h1 className="text-3xl md:text-5xl font-mono font-black text-white tracking-tighter">${user?.balance?.toLocaleString() || '0.00'}</h1>
+        </div>
+        <div className="flex gap-3 w-full md:w-auto z-10">
+          <button onClick={() => navigate('/deposit')} className="flex-1 bg-[#f0b90b] text-black px-8 py-3.5 rounded-2xl font-black uppercase text-xs">Deposit</button>
+          <button onClick={() => navigate('/withdraw')} className="flex-1 bg-white/5 text-white px-8 py-3.5 rounded-2xl font-black border border-[#1e2329] uppercase text-xs">Withdraw</button>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 grid grid-cols-2 gap-4">
+          {cryptoData.slice(0,4).map((coin) => (
+            <div key={coin.id} onClick={() => navigate(`/trade/${coin.symbol}`)} className="bg-[#161a1e] p-5 rounded-[2rem] border border-[#1e2329] cursor-pointer hover:border-[#f0b90b]/50 shadow-lg">
+              <div className="flex justify-between mb-4 text-[10px] font-black uppercase">
+                <span className="text-[#f0b90b]">{coin.symbol.toUpperCase()}</span>
+                <span className={coin.up ? 'text-[#00c076]' : 'text-[#f6465d]'}>{coin.change}%</span>
+              </div>
+              <p className="text-xl md:text-2xl font-black text-white font-mono">${coin.price}</p>
+            </div>
+          ))}
+        </div>
+        <div className="bg-[#161a1e] border border-[#1e2329] rounded-[2.5rem] p-6 shadow-xl">
+           <h3 className="text-white font-black uppercase text-[10px] mb-6 flex items-center gap-2 tracking-[0.2em]"><Activity size={14} className="text-[#f0b90b]" /> Recent Activity</h3>
+           <div className="space-y-4">
+            {transactions.slice(0, 5).map((trx) => (
+              <div key={trx._id} className="flex justify-between items-center p-3 hover:bg-white/[0.03] rounded-2xl border border-transparent hover:border-[#1e2329]">
+                <div className="flex items-center gap-2">
+                  <div className={trx.type === 'deposit' ? 'text-[#00c076]' : 'text-[#f6465d]'}>{trx.type === 'deposit' ? <ArrowDownLeft size={14}/> : <ArrowUpRight size={14}/>}</div>
+                  <div>
+                    <p className="font-black text-[9px] text-white uppercase">{trx.type}</p>
+                    <p className="text-[8px] text-gray-500 font-bold">{new Date(trx.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-mono font-bold text-xs text-white">${trx.amount}</p>
+                  <p className={`text-[8px] font-black uppercase ${trx.status === 'completed' ? 'text-[#00c076]' : 'text-[#f0b90b]'}`}>{trx.status}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Market Component ---
+const Market = ({ cryptoData }) => {
+  const navigate = useNavigate();
+  return (
+    <div className="p-4 md:p-10 text-left pb-32 bg-[#0b0e11] min-h-screen">
+      <div className="mb-10"><h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter flex items-center gap-3">Market <Activity className="text-[#f0b90b]" size={32} /></h2></div>
+      <div className="bg-[#161a1e] rounded-[2.5rem] border border-[#1e2329] overflow-hidden shadow-2xl">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[600px]">
+            <thead className="bg-[#0b0e11]/50 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+              <tr><th className="p-6 text-left">Asset</th><th className="p-6 text-left">Price</th><th className="p-6 text-left">24h Change</th><th className="p-6 text-right">Action</th></tr>
+            </thead>
+            <tbody className="divide-y divide-[#1e2329]">
+              {cryptoData.map((coin) => (
+                <tr key={coin.id} className="hover:bg-white/[0.03]">
+                  <td className="p-6 font-black text-white text-md uppercase">{coin.name} <span className="text-[10px] text-gray-500 ml-2">{coin.symbol.toUpperCase()}</span></td>
+                  <td className="p-6 font-mono font-black text-white">${coin.price}</td>
+                  <td className={`p-6 font-mono font-black ${coin.up ? 'text-[#00c076]' : 'text-[#f6465d]'}`}>{coin.up ? '+' : ''}{coin.change}%</td>
+                  <td className="p-6 text-right"><button onClick={() => navigate(`/trade/${coin.symbol}`)} className="bg-[#f0b90b] text-black px-6 py-3 rounded-xl font-black text-[10px] uppercase">Trade</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Layout & Content Wrapper ---
 const AppContent = ({ cryptoData }) => {
   const { user, token, logout, loading: authLoading } = useContext(UserContext);
   const location = useLocation();
+
   if (authLoading) return <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center text-[#f0b90b] font-black text-3xl animate-pulse italic">VINANCE</div>;
 
   const isAuthPage = ['/login', '/register'].includes(location.pathname);
@@ -132,19 +294,21 @@ const AppContent = ({ cryptoData }) => {
 
   return (
     <div className="min-h-screen bg-[#0b0e11] text-white flex flex-col md:flex-row overflow-hidden text-left font-sans">
+      
       {token && !isHomePage && (
         <aside className="w-20 lg:w-64 bg-[#161a1e] border-r border-[#1e2329] hidden md:flex flex-col p-4 h-screen sticky top-0 z-40">
-          <div className="mb-12 px-4 py-2 text-2xl font-black text-[#f0b90b] italic uppercase">VINANCE</div>
-          <nav className="space-y-2 flex-1">
+          <div className="mb-12 px-4 py-2 text-2xl font-black text-[#f0b90b] italic uppercase tracking-tighter">VINANCE</div>
+          <nav className="space-y-2 flex-1 overflow-y-auto">
             <NavItem to="/dashboard" icon={<LayoutDashboard size={20}/>} label="Dashboard" />
             <NavItem to="/market" icon={<BarChart3 size={20}/>} label="Market" />
             <NavItem to={`/futures/${cryptoData[0]?.symbol || 'btc'}`} icon={<Zap size={20}/>} label="Futures" />
             <NavItem to="/invest" icon={<PieChart size={20}/>} label="AI Invest" />
             <NavItem to="/my-investments" icon={<History size={20}/>} label="Invest Logs" />
             <NavItem to="/wallet" icon={<Wallet size={20}/>} label="Wallet" />
+            
             {user?.role === 'admin' && (
                <>
-                 <div className="pt-4 pb-2 px-4 text-[9px] font-black text-gray-600 uppercase border-t border-gray-800">Admin</div>
+                 <div className="pt-4 pb-2 px-4 text-[9px] font-black text-gray-600 uppercase border-t border-gray-800 mt-4">Admin</div>
                  <NavItem to="/admin" icon={<ShieldCheck size={20}/>} label="Users" />
                  <NavItem to="/admin/manage-plans" icon={<LayoutGrid size={20}/>} label="Plans" />
                  <NavItem to="/admin/investment-logs" icon={<History size={20}/>} label="All Logs" />
@@ -164,6 +328,7 @@ const AppContent = ({ cryptoData }) => {
             <NotificationSystem />
           </header>
         )}
+        
         <div className={`flex-1 overflow-y-auto ${token && !isHomePage ? 'pb-24' : ''}`}>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -189,7 +354,7 @@ const AppContent = ({ cryptoData }) => {
         <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e] border-t border-gray-800 flex justify-around items-center py-4 md:hidden z-50">
           <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
           <NavLink to="/invest" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><PieChart size={22}/></NavLink>
-          <NavLink to={`/trade/${cryptoData[0]?.symbol || 'btc'}`} className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><TrendingUp size={22}/></NavLink>
+          <NavLink to={`/futures/${cryptoData[0]?.symbol || 'btc'}`} className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Zap size={22}/></NavLink>
           <NavLink to="/my-investments" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><History size={22}/></NavLink>
           <NavLink to="/wallet" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Wallet size={22}/></NavLink>
         </nav>
@@ -198,16 +363,18 @@ const AppContent = ({ cryptoData }) => {
   );
 };
 
-// --- App Component ---
+// --- App Root ---
 export default function App() {
   const [cryptoData, setCryptoData] = useState([
     { id: '1', name: 'Bitcoin', symbol: 'btc', price: '0', change: '0', up: true },
-    { id: '2', name: 'Ethereum', symbol: 'eth', price: '0', change: '0', up: true }
+    { id: '2', name: 'Ethereum', symbol: 'eth', price: '0', change: '0', up: true },
+    { id: '3', name: 'Solana', symbol: 'sol', price: '0', change: '0', up: true },
+    { id: '4', name: 'BNB', symbol: 'bnb', price: '0', change: '0', up: true }
   ]);
 
   const fetchCryptoPrices = async () => {
     try {
-      const symbols = ['BTCUSDT', 'ETHUSDT'];
+      const symbols = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT'];
       const requests = symbols.map(s => axios.get(`https://api.binance.com/api/v3/ticker/24hr?symbol=${s}`));
       const results = await Promise.all(requests);
       const newData = results.map((res, index) => ({
@@ -219,7 +386,7 @@ export default function App() {
         up: parseFloat(res.data.priceChangePercent) > 0
       }));
       setCryptoData(newData);
-    } catch (err) { console.warn("API Error"); }
+    } catch (err) { console.warn("API Connectivity Issue"); }
   };
 
   useEffect(() => {
