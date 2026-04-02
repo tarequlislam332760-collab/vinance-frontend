@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import API from '../api'; 
 import { UserContext } from '../context/UserContext';
+import { Search, TrendingUp, ShieldCheck, Users, Clock, PieChart, ListIcon } from 'lucide-react';
+
+// Sub-components
 import ManageUsers from './ManageUsers';
 import PendingRequests from './PendingRequests';
 import ManagePlans from './ManagePlans';
@@ -12,7 +15,7 @@ const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState('users');
   const [users, setUsers] = useState([]);
   const [requests, setRequests] = useState([]);
-  const [investments, setInvestments] = useState([]); // ইনভেস্টমেন্ট স্টেট
+  const [investments, setInvestments] = useState([]); 
   const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -20,7 +23,7 @@ const AdminPanel = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [newBalance, setNewBalance] = useState("");
 
-  // ডাটা ফেচ করার ফাংশন
+  // ✅ Updated fetchData with multi-key support for logs
   const fetchData = useCallback(async () => {
     if (!token) return;
 
@@ -28,13 +31,17 @@ const AdminPanel = () => {
       setLoading(true);
       const res = await API.get('/api/admin/all-data');
       
-      // ব্যাকএন্ড থেকে আসা ডাটা স্টেট এ সেট করা
+      console.log("Full Backend Data:", res.data); // Debugging line
+
       setUsers(res.data.users || []);
       setRequests(res.data.requests || []);
-      setInvestments(res.data.investments || []); // নিশ্চিত করুন ব্যাকএন্ডে 'investments' কী (key) আছে
+
+      // ব্যাকএন্ড থেকে আসা ডেটার কী (Key) চেক করা হচ্ছে
+      const logData = res.data.investments || res.data.logs || res.data.allInvestments || [];
+      setInvestments(logData);
       
     } catch (err) {
-      console.error("Fetch error:", err);
+      console.error("Admin Fetch error:", err);
     } finally {
       setLoading(false);
     }
@@ -57,8 +64,8 @@ const AdminPanel = () => {
       });
 
       setIsModalOpen(false);
-      fetchData(); // আপডেট এর পর ডাটা রিফ্রেশ
-      alert("Balance Updated!");
+      fetchData(); 
+      alert("Balance Updated Successfully!");
     } catch (err) {
       alert("Error updating balance");
     }
@@ -66,7 +73,7 @@ const AdminPanel = () => {
 
   if (loading) return (
     <div className="flex h-screen items-center justify-center bg-[#0b0e11]">
-      <div className="text-yellow-500 font-black italic animate-pulse uppercase tracking-widest">
+      <div className="text-[#f0b90b] font-black italic animate-pulse uppercase tracking-widest text-xl">
         Accessing Command Center...
       </div>
     </div>
@@ -74,29 +81,24 @@ const AdminPanel = () => {
 
   return (
     <div className="p-4 md:p-8 bg-[#0b0e11] min-h-screen text-white text-left">
-      {/* Header & Tabs */}
+      
+      {/* Header & Navigation Tabs */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
-        <h2 className="text-3xl font-black text-yellow-500 italic uppercase tracking-tighter">
-          Command <span className="text-white">Center</span>
+        <h2 className="text-3xl font-black text-[#f0b90b] italic uppercase tracking-tighter flex items-center gap-3">
+          Command <span className="text-white">Center</span> <ShieldCheck className="w-8 h-8"/>
         </h2>
 
-        <div className="flex gap-2 bg-[#1e2329] p-1.5 rounded-2xl overflow-x-auto no-scrollbar w-full md:w-auto shadow-xl border border-gray-800">
-          {['users', 'requests', 'plans', 'logs'].map(tab => (
-            <button 
-              key={tab} 
-              onClick={() => setActiveTab(tab)}
-              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all whitespace-nowrap ${
-                activeTab === tab ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/20' : 'text-gray-500 hover:text-white'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+        {/* Responsive Tab Switcher */}
+        <div className="flex gap-1 bg-[#161a1e] p-1.5 rounded-2xl overflow-x-auto no-scrollbar w-full md:w-auto shadow-2xl border border-[#1e2329]">
+          <TabButton active={activeTab === 'users'} onClick={() => setActiveTab('users')} icon={<Users size={14}/>} label="Users" />
+          <TabButton active={activeTab === 'requests'} onClick={() => setActiveTab('requests')} icon={<Clock size={14}/>} label="Requests" />
+          <TabButton active={activeTab === 'plans'} onClick={() => setActiveTab('plans')} icon={<PieChart size={14}/>} label="Plans" />
+          <TabButton active={activeTab === 'logs'} onClick={() => setActiveTab('logs')} icon={<ListIcon size={14}/>} label="Logs" />
         </div>
       </div>
 
-      {/* Content Area */}
-      <div className="bg-[#1e2329] rounded-[2.5rem] p-4 md:p-8 border border-gray-800 shadow-2xl overflow-hidden min-h-[400px]">
+      {/* Main Content Area */}
+      <div className="bg-[#161a1e] rounded-[2.5rem] p-4 md:p-8 border border-[#1e2329] shadow-2xl overflow-hidden min-h-[500px]">
         {activeTab === 'users' && (
           <ManageUsers
             users={users}
@@ -116,31 +118,34 @@ const AdminPanel = () => {
 
         {activeTab === 'plans' && <ManagePlans fetchData={fetchData} />}
 
-        {/* Investment Logs pass kora hocche */}
+        {/* Investment Logs Section */}
         {activeTab === 'logs' && <InvestmentLogs data={investments} />}
       </div>
 
       {/* Balance Update Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black/90 backdrop-blur-sm z-[999] p-4">
-          <div className="bg-[#1e2329] p-8 rounded-[2.5rem] border border-gray-800 w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-300">
-            <h3 className="text-xl font-black uppercase italic text-yellow-500 mb-2">Update Balance</h3>
-            <p className="text-[10px] text-gray-500 mb-6 uppercase tracking-widest font-bold border-b border-gray-800 pb-2">
-              User: <span className="text-white">{selectedUser?.name}</span>
+        <div className="fixed inset-0 flex justify-center items-center bg-black/90 backdrop-blur-md z-[999] p-4">
+          <div className="bg-[#161a1e] p-8 rounded-[2.5rem] border border-[#1e2329] w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-300">
+            <h3 className="text-xl font-black uppercase italic text-[#f0b90b] mb-2">Update Balance</h3>
+            <p className="text-[10px] text-gray-500 mb-6 uppercase tracking-widest font-bold border-b border-[#1e2329] pb-3">
+              User: <span className="text-white ml-2">{selectedUser?.name}</span>
             </p>
 
             <div className="mb-6">
-              <label className="text-[10px] text-gray-500 uppercase font-black mb-2 block">New Balance (USD)</label>
-              <input
-                type="number"
-                value={newBalance}
-                onChange={(e) => setNewBalance(e.target.value)}
-                className="w-full bg-black border border-gray-800 p-4 rounded-2xl text-white font-mono text-xl outline-none focus:border-yellow-500 transition-colors"
-                placeholder="0.00"
-              />
+              <label className="text-[10px] text-gray-500 uppercase font-black mb-3 block">Set New Balance (USD)</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#f0b90b] font-bold">$</span>
+                <input
+                    type="number"
+                    value={newBalance}
+                    onChange={(e) => setNewBalance(e.target.value)}
+                    className="w-full bg-[#0b0e11] border border-[#1e2329] p-4 pl-8 rounded-2xl text-white font-mono text-2xl outline-none focus:border-[#f0b90b] transition-all"
+                    placeholder="0.00"
+                />
+              </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               <button 
                 onClick={() => setIsModalOpen(false)} 
                 className="flex-1 text-gray-500 font-black uppercase text-[10px] py-4 hover:text-white transition-colors"
@@ -149,9 +154,9 @@ const AdminPanel = () => {
               </button>
               <button 
                 onClick={handleBalanceUpdate} 
-                className="flex-1 bg-yellow-500 text-black py-4 rounded-2xl font-black uppercase text-[10px] hover:bg-yellow-400 transition-all shadow-lg active:scale-95"
+                className="flex-1 bg-[#f0b90b] text-black py-4 rounded-2xl font-black uppercase text-[10px] hover:bg-[#d4a30a] transition-all shadow-lg active:scale-95"
               >
-                Save Changes
+                Confirm
               </button>
             </div>
           </div>
@@ -160,5 +165,17 @@ const AdminPanel = () => {
     </div>
   );
 };
+
+// --- Helper Component for Styled Tabs ---
+const TabButton = ({ active, onClick, icon, label }) => (
+  <button 
+    onClick={onClick}
+    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all whitespace-nowrap ${
+      active ? 'bg-[#f0b90b] text-black shadow-lg shadow-[#f0b90b]/20' : 'text-gray-500 hover:text-white'
+    }`}
+  >
+    {icon} {label}
+  </button>
+);
 
 export default AdminPanel;
