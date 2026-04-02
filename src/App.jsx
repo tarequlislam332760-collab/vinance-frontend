@@ -326,7 +326,6 @@ const AppContent = ({ cryptoData }) => {
   const adminPages = [
     { to: "/admin", icon: <ShieldCheck size={22}/>, label: "Users" },
     { to: "/admin/manage-plans", icon: <LayoutGrid size={22}/>, label: "Plans" },
-    { to: "/admin/investment-logs", icon: <History size={22}/>, label: "All Logs" },
   ];
 
   return (
@@ -376,7 +375,6 @@ const AppContent = ({ cryptoData }) => {
             <Route path="/my-investments" element={<MyInvestments />} />
             <Route path="/admin" element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/dashboard" />} />
             <Route path="/admin/manage-plans" element={user?.role === 'admin' ? <ManagePlans /> : <Navigate to="/dashboard" />} />
-            <Route path="/admin/investment-logs" element={user?.role === 'admin' ? <InvestmentLogs /> : <Navigate to="/dashboard" />} />
           </Routes>
         </div>
       </main>
