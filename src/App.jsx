@@ -317,16 +317,14 @@ const AppContent = ({ cryptoData }) => {
     { to: "/invest", icon: <PieChart size={22}/>, label: "Invest" },
     { to: `/futures/${cryptoData[0]?.symbol || 'btc'}`, icon: <Zap size={22}/>, label: "Futures" },
     { to: `/trade/${cryptoData[0]?.symbol || 'btc'}`, icon: <TrendingUp size={22}/>, label: "Spot" },
-    { to: "/my-investments", icon: <History size={22}/>, label: "Logs" },
+    { to: "/my-investments", icon: <History size={22}/>, label: "My Logs" }, // ইউজার নিজের লগ দেখবে
     { to: "/wallet", icon: <Wallet size={22}/>, label: "Wallet" },
-    { to: "/deposit", icon: <ArrowDownLeft size={22}/>, label: "Deposit" },
-    { to: "/withdraw", icon: <ArrowUpRight size={22}/>, label: "Withdraw" },
   ];
 
   const adminPages = [
-    { to: "/admin", icon: <ShieldCheck size={22}/>, label: "Users" },
+    { to: "/admin", icon: <ShieldCheck size={22}/>, label: "Admin Panel" }, // User management
     { to: "/admin/manage-plans", icon: <LayoutGrid size={22}/>, label: "Plans" },
-    { to: "/admin/investment-logs", icon: <History size={22}/>, label: "All Logs" },
+    { to: "/admin/investment-logs", icon: <History size={22}/>, label: "All Logs" }, // অ্যাডমিন সবার লগ দেখবে
   ];
 
   return (
@@ -374,6 +372,8 @@ const AppContent = ({ cryptoData }) => {
             <Route path="/wallet" element={<WalletPage />} /> 
             <Route path="/invest" element={<Investment />} />
             <Route path="/my-investments" element={<MyInvestments />} />
+            
+            {/* Admin Routes */}
             <Route path="/admin" element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/dashboard" />} />
             <Route path="/admin/manage-plans" element={user?.role === 'admin' ? <ManagePlans /> : <Navigate to="/dashboard" />} />
             <Route path="/admin/investment-logs" element={user?.role === 'admin' ? <InvestmentLogs /> : <Navigate to="/dashboard" />} />

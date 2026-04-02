@@ -23,7 +23,6 @@ const AdminPanel = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [newBalance, setNewBalance] = useState("");
 
-  // ✅ Updated fetchData with multi-key support for logs
   const fetchData = useCallback(async () => {
     if (!token) return;
 
@@ -31,13 +30,14 @@ const AdminPanel = () => {
       setLoading(true);
       const res = await API.get('/api/admin/all-data');
       
-      console.log("Full Backend Data:", res.data); // Debugging line
+      console.log("Full Backend Data:", res.data); 
 
       setUsers(res.data.users || []);
       setRequests(res.data.requests || []);
 
-      // ব্যাকএন্ড থেকে আসা ডেটার কী (Key) চেক করা হচ্ছে
-      const logData = res.data.investments || res.data.logs || res.data.allInvestments || [];
+      // ✅ ব্যাকএন্ড থেকে আসা ডাটা ফিল্টার করা হচ্ছে
+      // এখানে investments এর পাশাপাশি requests ডাটাও চেক করা হচ্ছে যাতে লগ খালি না থাকে
+      const logData = res.data.investments || res.data.logs || res.data.allInvestments || res.data.requests || [];
       setInvestments(logData);
       
     } catch (err) {
@@ -81,14 +81,11 @@ const AdminPanel = () => {
 
   return (
     <div className="p-4 md:p-8 bg-[#0b0e11] min-h-screen text-white text-left">
-      
-      {/* Header & Navigation Tabs */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
         <h2 className="text-3xl font-black text-[#f0b90b] italic uppercase tracking-tighter flex items-center gap-3">
           Command <span className="text-white">Center</span> <ShieldCheck className="w-8 h-8"/>
         </h2>
 
-        {/* Responsive Tab Switcher */}
         <div className="flex gap-1 bg-[#161a1e] p-1.5 rounded-2xl overflow-x-auto no-scrollbar w-full md:w-auto shadow-2xl border border-[#1e2329]">
           <TabButton active={activeTab === 'users'} onClick={() => setActiveTab('users')} icon={<Users size={14}/>} label="Users" />
           <TabButton active={activeTab === 'requests'} onClick={() => setActiveTab('requests')} icon={<Clock size={14}/>} label="Requests" />
@@ -97,7 +94,6 @@ const AdminPanel = () => {
         </div>
       </div>
 
-      {/* Main Content Area */}
       <div className="bg-[#161a1e] rounded-[2.5rem] p-4 md:p-8 border border-[#1e2329] shadow-2xl overflow-hidden min-h-[500px]">
         {activeTab === 'users' && (
           <ManageUsers
@@ -111,18 +107,11 @@ const AdminPanel = () => {
             }}
           />
         )}
-
-        {activeTab === 'requests' && (
-          <PendingRequests requests={requests} fetchData={fetchData} />
-        )}
-
+        {activeTab === 'requests' && <PendingRequests requests={requests} fetchData={fetchData} />}
         {activeTab === 'plans' && <ManagePlans fetchData={fetchData} />}
-
-        {/* Investment Logs Section */}
         {activeTab === 'logs' && <InvestmentLogs data={investments} />}
       </div>
 
-      {/* Balance Update Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-black/90 backdrop-blur-md z-[999] p-4">
           <div className="bg-[#161a1e] p-8 rounded-[2.5rem] border border-[#1e2329] w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-300">
@@ -146,18 +135,8 @@ const AdminPanel = () => {
             </div>
 
             <div className="flex gap-4">
-              <button 
-                onClick={() => setIsModalOpen(false)} 
-                className="flex-1 text-gray-500 font-black uppercase text-[10px] py-4 hover:text-white transition-colors"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleBalanceUpdate} 
-                className="flex-1 bg-[#f0b90b] text-black py-4 rounded-2xl font-black uppercase text-[10px] hover:bg-[#d4a30a] transition-all shadow-lg active:scale-95"
-              >
-                Confirm
-              </button>
+              <button onClick={() => setIsModalOpen(false)} className="flex-1 text-gray-500 font-black uppercase text-[10px] py-4 hover:text-white transition-colors">Cancel</button>
+              <button onClick={handleBalanceUpdate} className="flex-1 bg-[#f0b90b] text-black py-4 rounded-2xl font-black uppercase text-[10px] hover:bg-[#d4a30a] transition-all shadow-lg active:scale-95">Confirm</button>
             </div>
           </div>
         </div>
@@ -166,16 +145,8 @@ const AdminPanel = () => {
   );
 };
 
-// --- Helper Component for Styled Tabs ---
 const TabButton = ({ active, onClick, icon, label }) => (
-  <button 
-    onClick={onClick}
-    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all whitespace-nowrap ${
-      active ? 'bg-[#f0b90b] text-black shadow-lg shadow-[#f0b90b]/20' : 'text-gray-500 hover:text-white'
-    }`}
-  >
-    {icon} {label}
-  </button>
+  <button onClick={onClick} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all whitespace-nowrap ${active ? 'bg-[#f0b90b] text-black shadow-lg shadow-[#f0b90b]/20' : 'text-gray-500 hover:text-white'}`}>{icon} {label}</button>
 );
 
 export default AdminPanel;
