@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { Search, TrendingUp } from 'lucide-center';
+import { Search, TrendingUp } from 'lucide-react';
 
 const InvestmentLogs = ({ data }) => { 
   const [searchTerm, setSearchTerm] = useState("");
 
+  // নিশ্চিত করা হচ্ছে যে ডাটা সবসময় একটি অ্যারে
   const logs = Array.isArray(data) ? data : [];
 
   const filteredLogs = logs.filter(log => {
     const search = searchTerm.toLowerCase();
     return (
       log.userId?.name?.toLowerCase().includes(search) || 
-      log.planName?.toLowerCase().includes(search) || // ✅ ইউজার প্যানেল অনুযায়ী
       log.planId?.name?.toLowerCase().includes(search) ||
       log.userId?.email?.toLowerCase().includes(search)
     );
@@ -29,7 +29,7 @@ const InvestmentLogs = ({ data }) => {
           <input 
             type="text" 
             placeholder="Search User or Plan..." 
-            className="w-full bg-[#0b0e11] border border-gray-800 p-3 pl-10 rounded-2xl text-white outline-none focus:border-yellow-500 transition-all text-sm font-bold"
+            className="w-full bg-[#0b0e11] border border-gray-800 p-3 pl-10 rounded-2xl text-white outline-none focus:border-yellow-500 transition-all text-sm"
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
@@ -40,7 +40,7 @@ const InvestmentLogs = ({ data }) => {
           <thead className="bg-[#0b0e11]/50 text-gray-500">
             <tr>
               <th className="p-5 text-[10px] font-black uppercase tracking-widest">User Details</th>
-              <th className="p-5 text-[10px] font-black uppercase tracking-widest">Plan / Type</th>
+              <th className="p-5 text-[10px] font-black uppercase tracking-widest">Plan & ROI</th>
               <th className="p-5 text-[10px] font-black uppercase tracking-widest">Amount</th>
               <th className="p-5 text-[10px] font-black uppercase tracking-widest text-center">Status</th>
             </tr>
@@ -50,24 +50,21 @@ const InvestmentLogs = ({ data }) => {
               filteredLogs.map((log) => (
                 <tr key={log._id} className="border-b border-gray-800/50 hover:bg-white/5 transition-colors">
                   <td className="p-5">
-                    <p className="font-black uppercase text-xs md:text-sm">{log.userId?.name || "User"}</p>
-                    <p className="text-[10px] text-gray-500 font-bold">{log.userId?.email || "N/A"}</p>
+                    <p className="font-black uppercase text-xs md:text-sm">{log.userId?.name || "Deleted User"}</p>
+                    <p className="text-[10px] text-gray-500">{log.userId?.email || "N/A"}</p>
                   </td>
                   <td className="p-5">
-                    {/* ✅ planName অথবা planId.name যেটা পাওয়া যায় সেটাই দেখাবে */}
-                    <p className="font-bold text-xs md:text-sm uppercase text-yellow-500">
-                        {log.planName || log.planId?.name || log.type || "Investment"}
-                    </p>
-                    <p className="text-[10px] text-gray-400 font-black">
+                    <p className="font-bold text-xs md:text-sm">{log.planId?.name || "Unknown Plan"}</p>
+                    <p className="text-[10px] text-yellow-500 font-black">
                       {log.planId?.profitPercent || 0}% ROI
                     </p>
                   </td>
-                  <td className="p-5 font-black text-green-400 text-sm font-mono">
-                    ${log.amount?.toLocaleString() || "0.00"}
+                  <td className="p-5 font-black text-green-400 text-sm">
+                    ${log.amount?.toLocaleString()}
                   </td>
                   <td className="p-5 text-center">
                     <span className={`px-3 py-1 rounded-full text-[9px] uppercase font-black border ${
-                      log.status?.toLowerCase() === 'active' || log.status?.toLowerCase() === 'approved'
+                      log.status === 'active' 
                       ? 'bg-green-500/10 text-green-400 border-green-500/20' 
                       : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
                     }`}>
@@ -78,8 +75,8 @@ const InvestmentLogs = ({ data }) => {
               ))
             ) : (
               <tr>
-                <td colSpan="4" className="p-24 text-center text-gray-600 italic text-sm font-black uppercase">
-                  No transaction data found in the records.
+                <td colSpan="4" className="p-20 text-center text-gray-600 italic text-sm">
+                  No investment data found in the records.
                 </td>
               </tr>
             )}
