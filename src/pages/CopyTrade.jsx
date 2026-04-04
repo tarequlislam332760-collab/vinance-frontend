@@ -9,7 +9,6 @@ const CopyTrade = () => {
 
   // আপনার লাইভ ব্যাকএন্ড লিঙ্কটি এখানে দিন (নিচেরটি উদাহরণ)
   const API_URL = "https://vinance-backend.vercel.app/api/traders";
-
   useEffect(() => {
     const fetchTraders = async () => {
       try {
