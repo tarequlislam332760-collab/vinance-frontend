@@ -18,6 +18,7 @@ import Investment from './pages/Investment';
 import MyInvestments from './pages/MyInvestments';
 import ManagePlans from './admin/ManagePlans';
 import InvestmentLogs from './admin/InvestmentLogs';
+import TraderProfile from './pages/TraderProfile'; // নতুন পেজ ইম্পোর্ট করা হয়েছে
 
 // --- NavItem Component ---
 const NavItem = ({ to, icon, label }) => (
@@ -315,7 +316,8 @@ const AppContent = ({ cryptoData }) => {
     { to: "/dashboard", icon: <LayoutDashboard size={22}/>, label: "Home" },
     { to: "/market", icon: <BarChart3 size={22}/>, label: "Market" },
     { to: "/invest", icon: <PieChart size={22}/>, label: "Invest" },
-    { to: `/futures/${cryptoData[0]?.symbol || 'btc'}`, icon: <Zap size={22}/>, label: "Futures" },
+    { to: "/copy-trade", icon: <Zap size={22}/>, label: "Copy Trade" }, // নতুন আইটেম যোগ করা হয়েছে
+    { to: `/futures/${cryptoData[0]?.symbol || 'btc'}`, icon: <Activity size={22}/>, label: "Futures" },
     { to: `/trade/${cryptoData[0]?.symbol || 'btc'}`, icon: <TrendingUp size={22}/>, label: "Spot" },
     { to: "/my-investments", icon: <History size={22}/>, label: "Logs" },
     { to: "/wallet", icon: <Wallet size={22}/>, label: "Wallet" },
@@ -373,6 +375,7 @@ const AppContent = ({ cryptoData }) => {
             <Route path="/wallet" element={<WalletPage />} /> 
             <Route path="/invest" element={<Investment />} />
             <Route path="/my-investments" element={<MyInvestments />} />
+            <Route path="/copy-trade" element={<TraderProfile />} /> {/* নতুন রুট */}
             <Route path="/admin" element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/dashboard" />} />
             <Route path="/admin/manage-plans" element={user?.role === 'admin' ? <ManagePlans /> : <Navigate to="/dashboard" />} />
           </Routes>
@@ -382,7 +385,7 @@ const AppContent = ({ cryptoData }) => {
       {token && !isHomePage && (
         <>
           {showMoreMenu && (
-            <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[60] p-8 flex flex-col overflow-y-auto">
+            <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[60] p-8 flex flex-col overflow-y-auto text-left">
               <div className="flex justify-between items-center mb-10">
                 <h2 className="text-[#f0b90b] font-black text-xl uppercase italic">Services</h2>
                 <button onClick={() => setShowMoreMenu(false)} className="bg-white/10 p-2 rounded-full text-gray-400">Close</button>
@@ -396,7 +399,7 @@ const AppContent = ({ cryptoData }) => {
                 ))}
               </div>
               {user?.role === 'admin' && (
-                <div className="mt-auto border-t border-white/10 pt-6">
+                <div className="mt-auto border-t border-white/10 pt-6 text-left">
                    <h3 className="text-[#f0b90b] text-[10px] font-black uppercase mb-6 tracking-widest text-center italic">Admin Control Panel</h3>
                    <div className="grid grid-cols-3 gap-y-8 gap-x-4 mb-8 text-center">
                       {adminPages.map((page) => (
@@ -416,7 +419,7 @@ const AppContent = ({ cryptoData }) => {
           <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/95 backdrop-blur-md border-t border-gray-800 flex justify-around items-center py-4 md:hidden z-50">
             <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
             <NavLink to="/invest" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><PieChart size={22}/></NavLink>
-            <NavLink to={`/futures/${cryptoData[0]?.symbol || 'btc'}`} className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Zap size={22}/></NavLink>
+            <NavLink to="/copy-trade" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Zap size={22}/></NavLink> {/* মোবাইল মেনুতে যোগ করা হয়েছে */}
             <NavLink to="/wallet" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Wallet size={22}/></NavLink>
             <button onClick={() => setShowMoreMenu(true)} className="text-gray-400 relative">
                 <LayoutGrid size={22}/>
