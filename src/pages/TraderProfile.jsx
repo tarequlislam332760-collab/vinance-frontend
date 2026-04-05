@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
-import { Zap, ChevronRight, TrendingUp, Heart, Star, CheckCircle2 } from 'lucide-react'; // CheckCircle2 যোগ করা হয়েছে
+import { Zap, ChevronRight, TrendingUp, Heart, Star } from 'lucide-react';
 import TraderCard from '../components/TraderCard';
 
 const TraderProfile = () => {
@@ -10,7 +10,6 @@ const TraderProfile = () => {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Recommended');
-  const [copySuccess, setCopySuccess] = useState(null); // কপি স্ট্যাটাস ট্র্যাক করার জন্য
   
   const { API_URL } = useContext(UserContext);
   const navigate = useNavigate();
@@ -30,18 +29,6 @@ const TraderProfile = () => {
     fetchTraders();
   }, [API_URL]);
 
-  // --- কপি ফাংশন ---
-  const handleCopy = async (e, text, id) => {
-    e.stopPropagation(); // কার্ডের ক্লিক ইভেন্ট থামাবে
-    try {
-      await navigator.clipboard.writeText(text); // ক্লিপবোর্ডে কপি করবে
-      setCopySuccess(id); // নির্দিষ্ট ট্রেডারের জন্য সাকসেস দেখাবে
-      setTimeout(() => setCopySuccess(null), 2000); // ২ সেকেন্ড পর মেসেজ চলে যাবে
-    } catch (err) {
-      console.error("Failed to copy!", err);
-    }
-  };
-
   const filteredTraders = useMemo(() => {
     if (activeTab === 'All Portfolios') return traders;
     if (activeTab === 'Favorite') return traders.filter(t => favorites.includes(t._id));
@@ -49,7 +36,8 @@ const TraderProfile = () => {
     return traders;
   }, [activeTab, traders, favorites]);
 
-  const toggleFavorite = (id) => {
+  const toggleFavorite = (e, id) => {
+    e.stopPropagation(); // কার্ডের ক্লিকে যেন অন্য কোথাও না যায়
     setFavorites(prev => 
       prev.includes(id) ? prev.filter(favId => favId !== id) : [...prev, id]
     );
@@ -103,35 +91,19 @@ const TraderProfile = () => {
         ) : filteredTraders.length > 0 ? (
           filteredTraders.map((trader) => (
             <div key={trader._id} className="relative group">
+                {/* হার্ট আইকন পজিশন ঠিক করা হয়েছে */}
                 <button 
-                 onClick={() => toggleFavorite(trader._id)}
-                 className="absolute top-6 right-4 md:right-6 z-20 p-2 hover:scale-110 transition-transform"
+                 onClick={(e) => toggleFavorite(e, trader._id)}
+                 className="absolute top-4 right-4 z-40 p-2 hover:scale-110 transition-transform bg-[#0b0e11]/50 rounded-full backdrop-blur-md"
                 >
                  <Heart 
-                   size={20} 
+                   size={18} 
                    fill={favorites.includes(trader._id) ? "#ef4444" : "none"} 
-                   className={favorites.includes(trader._id) ? "text-red-500" : "text-gray-600 hover:text-red-400"} 
+                   className={favorites.includes(trader._id) ? "text-red-500" : "text-gray-500"} 
                  />
                 </button>
 
-                {/* --- Copy Button Overlay --- */}
-                <div className="absolute bottom-6 right-4 md:right-6 z-30">
-                  <button 
-                    onClick={(e) => handleCopy(e, trader.name, trader._id)} 
-                    className={`flex items-center gap-2 px-4 py-1.5 rounded-lg font-black text-[10px] uppercase transition-all duration-300 pointer-events-auto border ${
-                      copySuccess === trader._id 
-                      ? 'bg-[#00c076] text-white border-[#00c076]' 
-                      : 'bg-[#f0b90b] text-black border-[#f0b90b] hover:bg-white hover:text-black'
-                    }`}
-                  >
-                    {copySuccess === trader._id ? (
-                      <><CheckCircle2 size={12} /> Copied</>
-                    ) : (
-                      'Copy'
-                    )}
-                  </button>
-                </div>
-
+                {/* বাড়তি কপি বাটন এখান থেকে সরিয়ে দেওয়া হয়েছে কারণ এটি TraderCard এর ভেতরে আছে */}
                 <TraderCard trader={trader} />
             </div>
           ))
@@ -143,7 +115,7 @@ const TraderProfile = () => {
         )}
       </div>
 
-      {/* --- Professional Floating Button --- */}
+      {/* Professional Floating Button */}
       <div className="fixed bottom-24 left-0 w-full px-4 flex justify-center z-[50] pointer-events-none">
           <button 
             onClick={() => navigate('/become-trader')}
