@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 
 import { UserProvider, UserContext } from './context/UserContext'; 
+import BecomeTrader from './pages/BecomeTrader';
 import Home from './pages/Home'; 
 import NotificationSystem from './components/NotificationSystem'; 
 import AdminPanel from './admin/AdminPanel';
@@ -363,6 +364,7 @@ const AppContent = ({ cryptoData }) => {
         )}
         <div className={`flex-1 overflow-y-auto ${token && !isHomePage ? 'pb-32 md:pb-8' : ''}`}>
           <Routes>
+            <Route path="/become-trader" element={<BecomeTrader />} />
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />

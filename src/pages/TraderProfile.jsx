@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // ১. রাউটিং এর জন্য এটি যোগ করা হয়েছে
 import { UserContext } from '../context/UserContext';
 import { Zap, ChevronRight, TrendingUp, Heart } from 'lucide-react';
 import TraderCard from '../components/TraderCard';
@@ -10,12 +11,13 @@ const TraderProfile = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Recommended');
   const { API_URL } = useContext(UserContext);
+  
+  const navigate = useNavigate(); // ২. নেভিগেশন হুক কল করা হয়েছে
 
   useEffect(() => {
     const fetchTraders = async () => {
       try {
         setLoading(true);
-        // সরাসরি ডাটাবেস থেকে সব ট্রেডার নিয়ে আসা
         const res = await axios.get(`${API_URL}/api/traders/all`);
         setTraders(res.data);
       } catch (err) {
@@ -27,19 +29,10 @@ const TraderProfile = () => {
     fetchTraders();
   }, [API_URL]);
 
-  // --- Professional Filtering Logic ---
   const filteredTraders = useMemo(() => {
-    if (activeTab === 'All Portfolios') {
-      return traders; // এখানে কোনো ফিল্টার নেই, ডাটাবেসের সব ডাটা দেখাবে
-    }
-    if (activeTab === 'Favorite') {
-      return traders.filter(t => favorites.includes(t._id)); // শুধু লাইক করাগুলো
-    }
-    if (activeTab === 'Recommended') {
-      // এখানে শুধু সেই ট্রেডারদের দেখাবে যারা আপনার ক্রাইটেরিয়া পূরণ করে (যেমন: লাভ ১০ এর বেশি)
-      // যদি ডাটাবেসে কম ডাটা থাকে তবে আপাতত সব দেখাবে, কিন্তু প্রফেশনালি এটি ফিল্টারড হবে
-      return traders.filter(t => t.profit > 10 || t.winRate >= 90);
-    }
+    if (activeTab === 'All Portfolios') return traders;
+    if (activeTab === 'Favorite') return traders.filter(t => favorites.includes(t._id));
+    if (activeTab === 'Recommended') return traders.filter(t => t.profit > 10 || t.winRate >= 90);
     return traders;
   }, [activeTab, traders, favorites]);
 
@@ -49,13 +42,12 @@ const TraderProfile = () => {
     );
   };
 
-  // ট্যাবগুলোর নাম ঠিক আপনার চাহিদা অনুযায়ী
   const tabs = ['Recommended', 'All Portfolios', 'Favorite'];
 
   return (
-    <div className="p-4 md:p-8 bg-[#0b0e11] min-h-screen text-left pb-32 max-w-7xl mx-auto">
+    <div className="p-4 md:p-8 bg-[#0b0e11] min-h-screen text-left pb-40 max-w-7xl mx-auto relative">
       
-      {/* Premium Banner - Responsive Fix */}
+      {/* Premium Banner */}
       <div className="relative overflow-hidden bg-gradient-to-br from-[#f0b90b]/20 via-[#161a1e] to-transparent p-5 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] border border-[#f0b90b]/20 mb-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
         <div className="flex items-center gap-4 w-full">
           <div className="p-3 md:p-4 bg-[#f0b90b] rounded-2xl text-black">
@@ -71,7 +63,7 @@ const TraderProfile = () => {
         </button>
       </div>
 
-      {/* Tabs Menu - Mobile & Laptop Optimized */}
+      {/* Tabs Menu */}
       <div className="flex gap-6 md:gap-10 mb-8 border-b border-[#1e2329] overflow-x-auto scrollbar-hide sticky top-0 bg-[#0b0e11] z-40 py-3">
         {tabs.map((tab) => (
           <button
@@ -89,7 +81,7 @@ const TraderProfile = () => {
         ))}
       </div>
 
-      {/* Trader List - Grid View for Laptop, Single Column for Mobile */}
+      {/* Trader List Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {loading ? (
           [1, 2, 3, 4].map(i => (
@@ -98,7 +90,6 @@ const TraderProfile = () => {
         ) : filteredTraders.length > 0 ? (
           filteredTraders.map((trader) => (
             <div key={trader._id} className="relative group">
-               {/* Favorite Icon */}
                <button 
                 onClick={() => toggleFavorite(trader._id)}
                 className="absolute top-6 right-20 z-20 p-2 hover:scale-110 transition-transform"
@@ -115,17 +106,21 @@ const TraderProfile = () => {
         ) : (
           <div className="col-span-full text-center py-24 bg-[#161a1e] rounded-[2rem] border border-dashed border-gray-800">
             <TrendingUp size={30} className="text-gray-700 mx-auto mb-4 opacity-20" />
-            <p className="text-gray-600 font-bold uppercase text-[10px] tracking-[0.2em]">
-              No Traders found in {activeTab}
-            </p>
+            <p className="text-gray-600 font-bold uppercase text-[10px] tracking-[0.2em]">No Traders found in {activeTab}</p>
           </div>
         )}
       </div>
 
-      {/* Floating Button - Mobile Fix */}
-      <div className="fixed bottom-8 left-0 w-full px-4 md:hidden z-50">
-         <button className="w-full bg-[#f0b90b] text-black py-4 rounded-2xl font-black uppercase text-[11px] shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex items-center justify-center gap-3">
-            <Zap size={16} fill="black" /> Become a Lead Trader
+      {/* --- Professional Floating Button Section --- */}
+      <div className="h-20 md:h-10"></div> 
+
+      <div className="fixed bottom-6 left-0 w-full px-4 flex justify-center z-[100] pointer-events-none">
+         <button 
+           onClick={() => navigate('/become-trader')} // ৩. ক্লিক করলে এই রাউটে নিয়ে যাবে
+           className="pointer-events-auto w-full md:w-auto md:min-w-[400px] bg-[#f0b90b] text-black py-4 md:py-5 px-10 rounded-2xl md:rounded-full font-black uppercase text-[11px] md:text-sm shadow-[0_15px_40px_rgba(240,185,11,0.4)] flex items-center justify-center gap-3 active:scale-95 transition-all duration-300 border border-white/10"
+         >
+            <Zap size={18} fill="black" /> 
+            Become a Lead Trader
          </button>
       </div>
     </div>
