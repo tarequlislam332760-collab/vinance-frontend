@@ -43,6 +43,19 @@ const TraderProfile = () => {
     );
   };
 
+  // --- Explore Now বাটন ফাংশন ---
+  const handleExplore = () => {
+    setActiveTab('All Portfolios'); // ট্যাব পরিবর্তন করবে
+    
+    // অল্প সময় পর স্ক্রোল হবে যাতে UI আপডেট হওয়ার সময় পায়
+    setTimeout(() => {
+      const element = document.getElementById('trader-list-section');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
+
   const tabs = ['Recommended', 'All Portfolios', 'Favorite'];
 
   return (
@@ -59,10 +72,19 @@ const TraderProfile = () => {
             <p className="text-gray-400 text-[10px] md:text-xs font-bold uppercase tracking-tight">Copy High-Performance <span className="text-[#f0b90b]">Elite Strategies!</span></p>
           </div>
         </div>
-        <button className="w-full md:w-auto bg-[#f0b90b] text-black py-2.5 px-5 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-1 hover:scale-105 transition-all">
-          Explore Now <ChevronRight size={14} />
+        
+        {/* আপডেট করা Explore Now বাটন */}
+        <button 
+          onClick={handleExplore}
+          className="group w-full md:w-auto bg-[#f0b90b] text-black py-3 px-8 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-[0_10px_20px_rgba(240,185,11,0.2)]"
+        >
+          Explore Now 
+          <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
         </button>
       </div>
+
+      {/* স্ক্রোল টার্গেট আইডি (ট্যাব মেনুর ঠিক ওপরে) */}
+      <div id="trader-list-section" className="scroll-mt-24"></div>
 
       {/* Tabs Menu */}
       <div className="flex gap-6 md:gap-10 mb-8 border-b border-[#1e2329] overflow-x-auto scrollbar-hide sticky top-0 bg-[#0b0e11] z-[70] py-3">
@@ -91,8 +113,6 @@ const TraderProfile = () => {
         ) : filteredTraders.length > 0 ? (
           filteredTraders.map((trader) => (
             <div key={trader._id} className="relative group">
-                
-                {/* --- হার্ট আইকন (Positioned over the profile image area) --- */}
                 <button 
                  onClick={(e) => toggleFavorite(e, trader._id)}
                  className="absolute top-4 left-4 z-40 p-1.5 hover:scale-125 transition-all bg-black/40 rounded-full backdrop-blur-sm border border-white/5"
@@ -103,7 +123,6 @@ const TraderProfile = () => {
                    className={favorites.includes(trader._id) ? "text-red-500" : "text-gray-400"} 
                  />
                 </button>
-
                 <TraderCard trader={trader} />
             </div>
           ))
