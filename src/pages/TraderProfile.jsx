@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
-import { Zap, ChevronRight, TrendingUp, Heart, Star } from 'lucide-react'; // Star আইকন যোগ করা হয়েছে
+import { Zap, ChevronRight, TrendingUp, Heart, Star } from 'lucide-react';
 import TraderCard from '../components/TraderCard';
 
 const TraderProfile = () => {
@@ -45,9 +45,9 @@ const TraderProfile = () => {
   const tabs = ['Recommended', 'All Portfolios', 'Favorite'];
 
   return (
-    <div className="p-4 md:p-8 bg-[#0b0e11] min-h-screen text-left pb-40 max-w-7xl mx-auto relative">
+    <div className="p-4 md:p-8 bg-[#0b0e11] min-h-screen text-left pb-60 max-w-7xl mx-auto relative">
       
-      {/* Premium Banner - (Elite Trader -> Master Portfolio) */}
+      {/* Premium Banner */}
       <div className="relative overflow-hidden bg-gradient-to-br from-[#f0b90b]/20 via-[#161a1e] to-transparent p-5 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] border border-[#f0b90b]/20 mb-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
         <div className="flex items-center gap-4 w-full">
           <div className="p-3 md:p-4 bg-[#f0b90b] rounded-2xl text-black">
@@ -111,17 +111,17 @@ const TraderProfile = () => {
         )}
       </div>
 
-      {/* --- Professional Floating Button Section (Become a Lead Trader -> Master Trader) --- */}
-      <div className="h-20 md:h-10"></div> 
-
-      <div className="fixed bottom-6 left-0 w-full px-4 flex justify-center z-[100] pointer-events-none">
-         <button 
-           onClick={() => navigate('/become-trader')}
-           className="pointer-events-auto w-full md:w-auto md:min-w-[400px] bg-[#f0b90b] text-black py-4 md:py-5 px-10 rounded-2xl md:rounded-full font-black uppercase text-[11px] md:text-sm shadow-[0_15px_40px_rgba(240,185,11,0.4)] flex items-center justify-center gap-3 active:scale-95 transition-all duration-300 border border-white/10"
-         >
-            <Zap size={18} fill="black" /> 
-            Apply to be a Master Trader
-         </button>
+      {/* --- Professional Floating Button --- */}
+      {/* bottom-24 দেওয়া হয়েছে যাতে এটি মেইন মেনুর উপরে থাকে কিন্তু আইকন না ঢাকে */}
+      {/* z-[50] দেওয়া হয়েছে যাতে মেইন মেনু (z-60) এর উপরে থাকে */}
+      <div className="fixed bottom-24 left-0 w-full px-4 flex justify-center z-[50] pointer-events-none">
+          <button 
+            onClick={() => navigate('/become-trader')}
+            className="pointer-events-auto w-full md:w-auto md:min-w-[400px] bg-[#f0b90b] text-black py-4 md:py-5 px-10 rounded-2xl md:rounded-full font-black uppercase text-[11px] md:text-sm shadow-[0_15px_40px_rgba(240,185,11,0.4)] flex items-center justify-center gap-3 active:scale-95 transition-all duration-300 border border-white/10"
+          >
+             <Zap size={18} fill="black" /> 
+             Apply to be a Master Trader
+          </button>
       </div>
     </div>
   );

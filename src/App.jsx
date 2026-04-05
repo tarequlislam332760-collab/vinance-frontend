@@ -362,8 +362,9 @@ const AppContent = ({ cryptoData }) => {
             <NotificationSystem />
           </header>
         )}
-        {/* Main Content Area: Padding Bottom adjusted for Mobile responsiveness */}
-        <div className={`flex-1 overflow-y-auto ${token && !isHomePage ? 'pb-44 md:pb-8' : ''}`}>
+        
+        {/* Main Content Area: padding bottom adjusted (pb-56) for mobile to ensure content isn't hidden behind the floating button and nav */}
+        <div className={`flex-1 overflow-y-auto ${token && !isHomePage ? 'pb-56 md:pb-8' : ''}`}>
           <Routes>
             <Route path="/become-trader" element={<BecomeTrader />} />
             <Route path="/" element={<Home />} />
@@ -388,7 +389,7 @@ const AppContent = ({ cryptoData }) => {
       {token && !isHomePage && (
         <>
           {showMoreMenu && (
-            <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[70] p-8 flex flex-col overflow-y-auto text-left">
+            <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[100] p-8 flex flex-col overflow-y-auto text-left">
               <div className="flex justify-between items-center mb-10">
                 <h2 className="text-[#f0b90b] font-black text-xl uppercase italic">Services</h2>
                 <button onClick={() => setShowMoreMenu(false)} className="bg-white/10 p-2 rounded-full text-gray-400">Close</button>
@@ -403,15 +404,15 @@ const AppContent = ({ cryptoData }) => {
               </div>
               {user?.role === 'admin' && (
                 <div className="mt-auto border-t border-white/10 pt-6 text-left">
-                   <h3 className="text-[#f0b90b] text-[10px] font-black uppercase mb-6 tracking-widest text-center italic">Admin Control Panel</h3>
-                   <div className="grid grid-cols-3 gap-y-8 gap-x-4 mb-8 text-center">
-                      {adminPages.map((page) => (
-                        <Link key={page.to} to={page.to} onClick={() => setShowMoreMenu(false)} className="flex flex-col items-center gap-2 text-gray-300">
-                          <div className="p-4 bg-[#f0b90b]/10 rounded-2xl border border-[#f0b90b]/20">{page.icon}</div>
-                          <span className="text-[9px] font-black uppercase">{page.label}</span>
-                        </Link>
-                      ))}
-                   </div>
+                    <h3 className="text-[#f0b90b] text-[10px] font-black uppercase mb-6 tracking-widest text-center italic">Admin Control Panel</h3>
+                    <div className="grid grid-cols-3 gap-y-8 gap-x-4 mb-8 text-center">
+                       {adminPages.map((page) => (
+                         <Link key={page.to} to={page.to} onClick={() => setShowMoreMenu(false)} className="flex flex-col items-center gap-2 text-gray-300">
+                           <div className="p-4 bg-[#f0b90b]/10 rounded-2xl border border-[#f0b90b]/20">{page.icon}</div>
+                           <span className="text-[9px] font-black uppercase">{page.label}</span>
+                         </Link>
+                       ))}
+                    </div>
                 </div>
               )}
               <button onClick={logout} className="flex items-center justify-center gap-2 text-red-500 font-black uppercase text-[10px] py-4 bg-red-500/5 rounded-2xl border border-red-500/10 mt-4">
@@ -420,8 +421,8 @@ const AppContent = ({ cryptoData }) => {
             </div>
           )}
           
-          {/* Mobile Bottom Navigation: Z-index set to ensure it stays on top */}
-          <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/95 backdrop-blur-md border-t border-gray-800 flex justify-around items-center py-4 md:hidden z-[60]">
+          {/* Mobile Bottom Navigation: Z-index set to [80] to stay above the floating button (z-50) */}
+          <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/95 backdrop-blur-md border-t border-gray-800 flex justify-around items-center py-4 md:hidden z-[80] shadow-[0_-10px_20px_rgba(0,0,0,0.4)]">
             <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
             <NavLink to="/invest" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><PieChart size={22}/></NavLink>
             <NavLink to="/copy-trade" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Zap size={22}/></NavLink>
