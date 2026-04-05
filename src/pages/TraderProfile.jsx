@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // ১. রাউটিং এর জন্য এটি যোগ করা হয়েছে
+import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
-import { Zap, ChevronRight, TrendingUp, Heart } from 'lucide-react';
+import { Zap, ChevronRight, TrendingUp, Heart, Star } from 'lucide-react'; // Star আইকন যোগ করা হয়েছে
 import TraderCard from '../components/TraderCard';
 
 const TraderProfile = () => {
@@ -12,7 +12,7 @@ const TraderProfile = () => {
   const [activeTab, setActiveTab] = useState('Recommended');
   const { API_URL } = useContext(UserContext);
   
-  const navigate = useNavigate(); // ২. নেভিগেশন হুক কল করা হয়েছে
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTraders = async () => {
@@ -47,19 +47,19 @@ const TraderProfile = () => {
   return (
     <div className="p-4 md:p-8 bg-[#0b0e11] min-h-screen text-left pb-40 max-w-7xl mx-auto relative">
       
-      {/* Premium Banner */}
+      {/* Premium Banner - (Elite Trader -> Master Portfolio) */}
       <div className="relative overflow-hidden bg-gradient-to-br from-[#f0b90b]/20 via-[#161a1e] to-transparent p-5 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] border border-[#f0b90b]/20 mb-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
         <div className="flex items-center gap-4 w-full">
           <div className="p-3 md:p-4 bg-[#f0b90b] rounded-2xl text-black">
-            <Zap size={24} fill="black" />
+            <Star size={24} fill="black" /> 
           </div>
           <div>
-            <h2 className="text-white font-black text-lg md:text-xl uppercase italic tracking-tighter">Elite Trader Program</h2>
-            <p className="text-gray-400 text-[10px] md:text-xs font-bold uppercase tracking-tight">Earn up to <span className="text-[#f0b90b]">30% Profit Share!</span></p>
+            <h2 className="text-white font-black text-lg md:text-xl uppercase italic tracking-tighter">Master Portfolio Selection</h2>
+            <p className="text-gray-400 text-[10px] md:text-xs font-bold uppercase tracking-tight">Copy High-Performance <span className="text-[#f0b90b]">Elite Strategies!</span></p>
           </div>
         </div>
         <button className="w-full md:w-auto bg-[#f0b90b] text-black py-2.5 px-5 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-1 hover:scale-105 transition-all">
-          Check Now <ChevronRight size={14} />
+          Explore Now <ChevronRight size={14} />
         </button>
       </div>
 
@@ -106,21 +106,21 @@ const TraderProfile = () => {
         ) : (
           <div className="col-span-full text-center py-24 bg-[#161a1e] rounded-[2rem] border border-dashed border-gray-800">
             <TrendingUp size={30} className="text-gray-700 mx-auto mb-4 opacity-20" />
-            <p className="text-gray-600 font-bold uppercase text-[10px] tracking-[0.2em]">No Traders found in {activeTab}</p>
+            <p className="text-gray-600 font-bold uppercase text-[10px] tracking-[0.2em]">No Portfolios found in {activeTab}</p>
           </div>
         )}
       </div>
 
-      {/* --- Professional Floating Button Section --- */}
+      {/* --- Professional Floating Button Section (Become a Lead Trader -> Master Trader) --- */}
       <div className="h-20 md:h-10"></div> 
 
       <div className="fixed bottom-6 left-0 w-full px-4 flex justify-center z-[100] pointer-events-none">
          <button 
-           onClick={() => navigate('/become-trader')} // ৩. ক্লিক করলে এই রাউটে নিয়ে যাবে
+           onClick={() => navigate('/become-trader')}
            className="pointer-events-auto w-full md:w-auto md:min-w-[400px] bg-[#f0b90b] text-black py-4 md:py-5 px-10 rounded-2xl md:rounded-full font-black uppercase text-[11px] md:text-sm shadow-[0_15px_40px_rgba(240,185,11,0.4)] flex items-center justify-center gap-3 active:scale-95 transition-all duration-300 border border-white/10"
          >
             <Zap size={18} fill="black" /> 
-            Become a Lead Trader
+            Apply to be a Master Trader
          </button>
       </div>
     </div>

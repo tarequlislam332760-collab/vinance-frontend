@@ -19,7 +19,7 @@ import Investment from './pages/Investment';
 import MyInvestments from './pages/MyInvestments';
 import ManagePlans from './admin/ManagePlans';
 import InvestmentLogs from './admin/InvestmentLogs';
-import TraderProfile from './pages/TraderProfile'; // নতুন পেজ ইম্পোর্ট করা হয়েছে
+import TraderProfile from './pages/TraderProfile';
 
 // --- NavItem Component ---
 const NavItem = ({ to, icon, label }) => (
@@ -116,7 +116,7 @@ const Trade = () => {
 
   return (
     <div className="flex flex-col h-screen bg-[#0b0e11] text-[#eaecef] overflow-hidden text-left">
-      <div className="flex justify-between items-center px-4 py-2 border-b border-gray-800"><ChevronLeft onClick={() => window.history.back()} /><span className="font-bold">{currentCoin}/USDT</span><Activity size={18} /></div>
+      <div className="flex justify-between items-center px-4 py-2 border-b border-gray-800 bg-[#0b0e11]"><ChevronLeft className="cursor-pointer" onClick={() => window.history.back()} /><span className="font-bold">{currentCoin}/USDT</span><Activity size={18} /></div>
       <div className="flex-1 w-full relative">
         <iframe title="TV" src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${currentCoin}USDT&interval=240&theme=dark&style=1`} className="absolute inset-0 w-full h-full border-none"></iframe>
       </div>
@@ -317,7 +317,7 @@ const AppContent = ({ cryptoData }) => {
     { to: "/dashboard", icon: <LayoutDashboard size={22}/>, label: "Home" },
     { to: "/market", icon: <BarChart3 size={22}/>, label: "Market" },
     { to: "/invest", icon: <PieChart size={22}/>, label: "Invest" },
-    { to: "/copy-trade", icon: <Zap size={22}/>, label: "Copy Trade" }, // নতুন আইটেম যোগ করা হয়েছে
+    { to: "/copy-trade", icon: <Zap size={22}/>, label: "Portfolio" }, 
     { to: `/futures/${cryptoData[0]?.symbol || 'btc'}`, icon: <Activity size={22}/>, label: "Futures" },
     { to: `/trade/${cryptoData[0]?.symbol || 'btc'}`, icon: <TrendingUp size={22}/>, label: "Spot" },
     { to: "/my-investments", icon: <History size={22}/>, label: "Logs" },
@@ -362,7 +362,8 @@ const AppContent = ({ cryptoData }) => {
             <NotificationSystem />
           </header>
         )}
-        <div className={`flex-1 overflow-y-auto ${token && !isHomePage ? 'pb-32 md:pb-8' : ''}`}>
+        {/* Main Content Area: Padding Bottom adjusted for Mobile responsiveness */}
+        <div className={`flex-1 overflow-y-auto ${token && !isHomePage ? 'pb-44 md:pb-8' : ''}`}>
           <Routes>
             <Route path="/become-trader" element={<BecomeTrader />} />
             <Route path="/" element={<Home />} />
@@ -377,7 +378,7 @@ const AppContent = ({ cryptoData }) => {
             <Route path="/wallet" element={<WalletPage />} /> 
             <Route path="/invest" element={<Investment />} />
             <Route path="/my-investments" element={<MyInvestments />} />
-            <Route path="/copy-trade" element={<TraderProfile />} /> {/* নতুন রুট */}
+            <Route path="/copy-trade" element={<TraderProfile />} /> 
             <Route path="/admin" element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/dashboard" />} />
             <Route path="/admin/manage-plans" element={user?.role === 'admin' ? <ManagePlans /> : <Navigate to="/dashboard" />} />
           </Routes>
@@ -387,7 +388,7 @@ const AppContent = ({ cryptoData }) => {
       {token && !isHomePage && (
         <>
           {showMoreMenu && (
-            <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[60] p-8 flex flex-col overflow-y-auto text-left">
+            <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[70] p-8 flex flex-col overflow-y-auto text-left">
               <div className="flex justify-between items-center mb-10">
                 <h2 className="text-[#f0b90b] font-black text-xl uppercase italic">Services</h2>
                 <button onClick={() => setShowMoreMenu(false)} className="bg-white/10 p-2 rounded-full text-gray-400">Close</button>
@@ -418,10 +419,12 @@ const AppContent = ({ cryptoData }) => {
               </button>
             </div>
           )}
-          <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/95 backdrop-blur-md border-t border-gray-800 flex justify-around items-center py-4 md:hidden z-50">
+          
+          {/* Mobile Bottom Navigation: Z-index set to ensure it stays on top */}
+          <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/95 backdrop-blur-md border-t border-gray-800 flex justify-around items-center py-4 md:hidden z-[60]">
             <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
             <NavLink to="/invest" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><PieChart size={22}/></NavLink>
-            <NavLink to="/copy-trade" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Zap size={22}/></NavLink> {/* মোবাইল মেনুতে যোগ করা হয়েছে */}
+            <NavLink to="/copy-trade" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Zap size={22}/></NavLink>
             <NavLink to="/wallet" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Wallet size={22}/></NavLink>
             <button onClick={() => setShowMoreMenu(true)} className="text-gray-400 relative">
                 <LayoutGrid size={22}/>
