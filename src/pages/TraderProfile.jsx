@@ -37,7 +37,7 @@ const TraderProfile = () => {
   }, [activeTab, traders, favorites]);
 
   const toggleFavorite = (e, id) => {
-    e.stopPropagation(); // কার্ডের ক্লিকে যেন অন্য কোথাও না যায়
+    e.stopPropagation(); 
     setFavorites(prev => 
       prev.includes(id) ? prev.filter(favId => favId !== id) : [...prev, id]
     );
@@ -91,19 +91,19 @@ const TraderProfile = () => {
         ) : filteredTraders.length > 0 ? (
           filteredTraders.map((trader) => (
             <div key={trader._id} className="relative group">
-                {/* হার্ট আইকন পজিশন ঠিক করা হয়েছে */}
+                
+                {/* --- হার্ট আইকন (Positioned over the profile image area) --- */}
                 <button 
                  onClick={(e) => toggleFavorite(e, trader._id)}
-                 className="absolute top-4 right-4 z-40 p-2 hover:scale-110 transition-transform bg-[#0b0e11]/50 rounded-full backdrop-blur-md"
+                 className="absolute top-4 left-4 z-40 p-1.5 hover:scale-125 transition-all bg-black/40 rounded-full backdrop-blur-sm border border-white/5"
                 >
                  <Heart 
-                   size={18} 
+                   size={14} 
                    fill={favorites.includes(trader._id) ? "#ef4444" : "none"} 
-                   className={favorites.includes(trader._id) ? "text-red-500" : "text-gray-500"} 
+                   className={favorites.includes(trader._id) ? "text-red-500" : "text-gray-400"} 
                  />
                 </button>
 
-                {/* বাড়তি কপি বাটন এখান থেকে সরিয়ে দেওয়া হয়েছে কারণ এটি TraderCard এর ভেতরে আছে */}
                 <TraderCard trader={trader} />
             </div>
           ))
