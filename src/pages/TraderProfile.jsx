@@ -43,11 +43,9 @@ const TraderProfile = () => {
     );
   };
 
-  // --- Explore Now বাটন ফাংশন ---
+  // --- Explore Now ফাংশন (ট্যাব সুইচ + স্মুথ স্ক্রোল) ---
   const handleExplore = () => {
-    setActiveTab('All Portfolios'); // ট্যাব পরিবর্তন করবে
-    
-    // অল্প সময় পর স্ক্রোল হবে যাতে UI আপডেট হওয়ার সময় পায়
+    setActiveTab('All Portfolios'); 
     setTimeout(() => {
       const element = document.getElementById('trader-list-section');
       if (element) {
@@ -73,7 +71,6 @@ const TraderProfile = () => {
           </div>
         </div>
         
-        {/* আপডেট করা Explore Now বাটন */}
         <button 
           onClick={handleExplore}
           className="group w-full md:w-auto bg-[#f0b90b] text-black py-3 px-8 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-[0_10px_20px_rgba(240,185,11,0.2)]"
@@ -83,7 +80,6 @@ const TraderProfile = () => {
         </button>
       </div>
 
-      {/* স্ক্রোল টার্গেট আইডি (ট্যাব মেনুর ঠিক ওপরে) */}
       <div id="trader-list-section" className="scroll-mt-24"></div>
 
       {/* Tabs Menu */}
@@ -104,7 +100,6 @@ const TraderProfile = () => {
         ))}
       </div>
 
-      {/* Trader List Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {loading ? (
           [1, 2, 3, 4].map(i => (
@@ -113,6 +108,7 @@ const TraderProfile = () => {
         ) : filteredTraders.length > 0 ? (
           filteredTraders.map((trader) => (
             <div key={trader._id} className="relative group">
+                {/* হার্ট আইকন এখন প্রোফাইল ইমেজের ওপর (Safe Position) */}
                 <button 
                  onClick={(e) => toggleFavorite(e, trader._id)}
                  className="absolute top-4 left-4 z-40 p-1.5 hover:scale-125 transition-all bg-black/40 rounded-full backdrop-blur-sm border border-white/5"
@@ -134,7 +130,6 @@ const TraderProfile = () => {
         )}
       </div>
 
-      {/* Professional Floating Button */}
       <div className="fixed bottom-24 left-0 w-full px-4 flex justify-center z-[50] pointer-events-none">
           <button 
             onClick={() => navigate('/become-trader')}
