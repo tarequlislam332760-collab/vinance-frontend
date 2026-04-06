@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
-import { Zap, ChevronRight, TrendingUp, Heart, Star } from 'lucide-react';
+import { Zap, ChevronRight, TrendingUp, Heart, Star, MoreHorizontal } from 'lucide-react';
 import TraderCard from '../components/TraderCard';
 
 const TraderProfile = () => {
@@ -43,7 +43,6 @@ const TraderProfile = () => {
     );
   };
 
-  // --- Explore Now ফাংশন (ট্যাব সুইচ + স্মুথ স্ক্রোল) ---
   const handleExplore = () => {
     setActiveTab('All Portfolios'); 
     setTimeout(() => {
@@ -57,86 +56,106 @@ const TraderProfile = () => {
   const tabs = ['Recommended', 'All Portfolios', 'Favorite'];
 
   return (
-    <div className="p-4 md:p-8 bg-[#0b0e11] min-h-screen text-left pb-60 max-w-7xl mx-auto relative">
+    <div className="p-4 md:p-8 bg-[#0b0e11] min-h-screen text-left pb-60 max-w-7xl mx-auto relative font-sans">
       
-      {/* Premium Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#f0b90b]/20 via-[#161a1e] to-transparent p-5 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] border border-[#f0b90b]/20 mb-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
-        <div className="flex items-center gap-4 w-full">
-          <div className="p-3 md:p-4 bg-[#f0b90b] rounded-2xl text-black">
-            <Star size={24} fill="black" /> 
+      {/* Header Info - স্ক্রিনশটের মতো "Spot Copy" লুক */}
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-2 text-gray-300 font-bold text-sm">
+          <span>Spot Copy</span>
+          <ChevronRight size={14} className="rotate-90" />
+        </div>
+        <div className="flex gap-4">
+          <MoreHorizontal size={20} className="text-gray-400" />
+          <span className="text-gray-400 text-xl">×</span>
+        </div>
+      </div>
+
+      {/* Premium Banner - স্ক্রিনশটের মতো টেক্সট ও আইকন */}
+      <div className="relative overflow-hidden bg-[#1e2329] p-6 rounded-2xl border border-[#f0b90b]/10 mb-8 flex justify-between items-center shadow-xl">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-[#f0b90b]/10 rounded-xl text-[#f0b90b]">
+            <Star size={22} fill="#f0b90b" /> 
           </div>
-          <div>
-            <h2 className="text-white font-black text-lg md:text-xl uppercase italic tracking-tighter">Master Portfolio Selection</h2>
-            <p className="text-gray-400 text-[10px] md:text-xs font-bold uppercase tracking-tight">Copy High-Performance <span className="text-[#f0b90b]">Elite Strategies!</span></p>
+          <div className="space-y-1">
+            <h2 className="text-white font-bold text-sm">Join Elite Trader Program, Up To 30% Profit Share!</h2>
+            <button onClick={handleExplore} className="text-[#f0b90b] text-[11px] font-bold flex items-center gap-1 hover:underline">
+              Check Now
+            </button>
           </div>
         </div>
-        
-        <button 
-          onClick={handleExplore}
-          className="group w-full md:w-auto bg-[#f0b90b] text-black py-3 px-8 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-[0_10px_20px_rgba(240,185,11,0.2)]"
-        >
-          Explore Now 
-          <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
-        </button>
+        <div className="text-gray-600 text-[10px] font-bold">2/2</div>
       </div>
 
       <div id="trader-list-section" className="scroll-mt-24"></div>
 
-      {/* Tabs Menu */}
-      <div className="flex gap-6 md:gap-10 mb-8 border-b border-[#1e2329] overflow-x-auto scrollbar-hide sticky top-0 bg-[#0b0e11] z-[70] py-3">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`text-[10px] md:text-xs font-black uppercase tracking-[0.15em] whitespace-nowrap pb-4 transition-all duration-300 relative ${
-              activeTab === tab ? 'text-[#f0b90b]' : 'text-gray-500 hover:text-gray-300'
-            }`}
-          >
-            {tab}
-            {activeTab === tab && (
-              <span className="absolute bottom-[-1px] left-0 w-full h-[2px] bg-[#f0b90b] shadow-[0_0_10px_#f0b90b]"></span>
-            )}
-          </button>
-        ))}
+      {/* Tabs Menu - স্ক্রিনশটের মতো ডাইনামিক লুক */}
+      <div className="flex items-center justify-between mb-6 border-b border-[#1e2329] sticky top-0 bg-[#0b0e11] z-[70] pt-2">
+        <div className="flex gap-6 overflow-x-auto scrollbar-hide">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`text-[12px] font-bold whitespace-nowrap pb-3 transition-all relative ${
+                activeTab === tab ? 'text-white border-b-2 border-[#f0b90b]' : 'text-gray-500'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+        {/* Smart Copy Badge */}
+        <div className="flex items-center gap-1 bg-[#2b3139] px-2 py-1 rounded text-[10px] text-[#929aa5] font-bold">
+           <Zap size={10} className="text-[#f0b90b]" fill="#f0b90b" /> Smart Copy
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+      {/* Filter Row */}
+      <div className="flex justify-between items-center mb-4 text-[11px] font-bold text-gray-500">
+        <div className="flex items-center gap-1">
+          High ROI <ChevronRight size={12} className="rotate-90" />
+        </div>
+        <div className="flex items-center gap-1">
+          More <ChevronRight size={12} />
+        </div>
+      </div>
+
+      {/* Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {loading ? (
           [1, 2, 3, 4].map(i => (
-            <div key={i} className="h-44 bg-[#161a1e] rounded-[1.5rem] animate-pulse border border-[#1e2329]"></div>
+            <div key={i} className="h-44 bg-[#161a1e] rounded-2xl animate-pulse border border-[#1e2329]"></div>
           ))
         ) : filteredTraders.length > 0 ? (
           filteredTraders.map((trader) => (
             <div key={trader._id} className="relative group">
-                {/* হার্ট আইকন এখন প্রোফাইল ইমেজের ওপর (Safe Position) */}
                 <button 
                  onClick={(e) => toggleFavorite(e, trader._id)}
-                 className="absolute top-4 left-4 z-40 p-1.5 hover:scale-125 transition-all bg-black/40 rounded-full backdrop-blur-sm border border-white/5"
+                 className="absolute top-4 left-4 z-40 p-1.5 hover:scale-125 transition-all bg-black/20 rounded-full"
                 >
                  <Heart 
-                   size={14} 
-                   fill={favorites.includes(trader._id) ? "#ef4444" : "none"} 
-                   className={favorites.includes(trader._id) ? "text-red-500" : "text-gray-400"} 
+                    size={14} 
+                    fill={favorites.includes(trader._id) ? "#ef4444" : "none"} 
+                    className={favorites.includes(trader._id) ? "text-red-500" : "text-gray-500"} 
                  />
                 </button>
                 <TraderCard trader={trader} />
             </div>
           ))
         ) : (
-          <div className="col-span-full text-center py-24 bg-[#161a1e] rounded-[2rem] border border-dashed border-gray-800">
-            <TrendingUp size={30} className="text-gray-700 mx-auto mb-4 opacity-20" />
-            <p className="text-gray-600 font-bold uppercase text-[10px] tracking-[0.2em]">No Portfolios found in {activeTab}</p>
+          <div className="col-span-full text-center py-20">
+            <TrendingUp size={30} className="text-gray-800 mx-auto mb-3" />
+            <p className="text-gray-600 text-xs font-bold uppercase tracking-widest">No Portfolios Found</p>
           </div>
         )}
       </div>
 
-      <div className="fixed bottom-24 left-0 w-full px-4 flex justify-center z-[50] pointer-events-none">
+      {/* Fixed Apply Button */}
+      <div className="fixed bottom-10 left-0 w-full px-4 flex justify-center z-[50]">
           <button 
             onClick={() => navigate('/become-trader')}
-            className="pointer-events-auto w-full md:w-auto md:min-w-[400px] bg-[#f0b90b] text-black py-4 md:py-5 px-10 rounded-2xl md:rounded-full font-black uppercase text-[11px] md:text-sm shadow-[0_15px_40px_rgba(240,185,11,0.4)] flex items-center justify-center gap-3 active:scale-95 transition-all duration-300 border border-white/10"
+            className="w-full max-w-md bg-[#f0b90b] text-black py-4 rounded-xl font-bold uppercase text-[12px] shadow-2xl flex items-center justify-center gap-2 active:scale-95 transition-all"
           >
-             <Zap size={18} fill="black" /> 
-             Apply to be a Master Trader
+             <Zap size={16} fill="black" /> Apply to be a Master Trader
           </button>
       </div>
     </div>
