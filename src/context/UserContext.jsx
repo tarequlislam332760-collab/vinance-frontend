@@ -8,17 +8,12 @@ export const UserProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
-  // --- API URL কনফিগারেশন ---
+  // --- API URL কনফিগারেশন (একদম ফিক্সড) ---
+  // প্রোডাকশনে সবসময় এই লিঙ্কটি ব্যবহার করবে, লোকালহোস্টের ঝামেলা এড়াতে সরাসরি লিঙ্ক দেওয়াই ভালো
   const API_URL = "https://vinance-backend.vercel.app"; 
-
-  // Axios এর জন্য ডিফল্ট কনফিগারেশন (টোকেন থাকলে অটোমেটিক সেট হবে)
-  if (token) {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  }
 
   const logout = useCallback(() => {
     localStorage.removeItem('token');
-    delete axios.defaults.headers.common['Authorization']; // লগআউটে হেডার ডিলিট হবে
     setToken(null);
     setUser(null);
     setLoading(false);
