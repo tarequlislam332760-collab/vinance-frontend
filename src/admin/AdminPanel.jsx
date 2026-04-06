@@ -8,7 +8,7 @@ import ManageUsers from './ManageUsers';
 import PendingRequests from './PendingRequests';
 import ManagePlans from './ManagePlans';
 import InvestmentLogs from './InvestmentLogs';
-import AddTrader from './AddTrader'; 
+import AddTrader from './AddTrader'; // ✅ AddTrader কম্পোনেন্টটি ইম্পোর্ট করা হয়েছে
 
 const AdminPanel = () => {
   const { token } = useContext(UserContext);
@@ -31,6 +31,8 @@ const AdminPanel = () => {
       setLoading(true);
       const res = await API.get('/api/admin/all-data');
       
+      console.log("Full Backend Data:", res.data); 
+
       setUsers(res.data.users || []);
       setRequests(res.data.requests || []);
 
@@ -88,12 +90,12 @@ const AdminPanel = () => {
           <TabButton active={activeTab === 'requests'} onClick={() => setActiveTab('requests')} icon={<Clock size={14}/>} label="Requests" />
           <TabButton active={activeTab === 'plans'} onClick={() => setActiveTab('plans')} icon={<PieChart size={14}/>} label="Plans" />
           <TabButton active={activeTab === 'logs'} onClick={() => setActiveTab('logs')} icon={<ListIcon size={14}/>} label="Logs" />
+          {/* ✅ নতুন Traders ট্যাব যোগ করা হয়েছে */}
           <TabButton active={activeTab === 'traders'} onClick={() => setActiveTab('traders')} icon={<UserPlus size={14}/>} label="Traders" />
         </div>
       </div>
 
       <div className="bg-[#161a1e] rounded-[2.5rem] p-4 md:p-8 border border-[#1e2329] shadow-2xl overflow-hidden min-h-[500px]">
-        {/* রেন্ডারিং সেকশন */}
         {activeTab === 'users' && (
           <ManageUsers
             users={users}
@@ -109,16 +111,10 @@ const AdminPanel = () => {
         {activeTab === 'requests' && <PendingRequests requests={requests} fetchData={fetchData} />}
         {activeTab === 'plans' && <ManagePlans fetchData={fetchData} />}
         {activeTab === 'logs' && <InvestmentLogs data={investments} />}
-        
-        {/* Traders কন্টেন্ট */}
-        {activeTab === 'traders' && (
-          <div className="animate-in fade-in duration-500">
-            <AddTrader />
-          </div>
-        )}
+        {/* ✅ Traders ট্যাবে ক্লিক করলে AddTrader কম্পোনেন্ট দেখাবে */}
+        {activeTab === 'traders' && <AddTrader />}
       </div>
 
-      {/* Balance Update Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-black/90 backdrop-blur-md z-[999] p-4">
           <div className="bg-[#161a1e] p-8 rounded-[2.5rem] border border-[#1e2329] w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-300">
@@ -153,12 +149,7 @@ const AdminPanel = () => {
 };
 
 const TabButton = ({ active, onClick, icon, label }) => (
-  <button 
-    onClick={onClick} 
-    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all whitespace-nowrap ${active ? 'bg-[#f0b90b] text-black shadow-lg shadow-[#f0b90b]/20' : 'text-gray-500 hover:text-white'}`}
-  >
-    {icon} {label}
-  </button>
+  <button onClick={onClick} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all whitespace-nowrap ${active ? 'bg-[#f0b90b] text-black shadow-lg shadow-[#f0b90b]/20' : 'text-gray-500 hover:text-white'}`}>{icon} {label}</button>
 );
 
 export default AdminPanel;
