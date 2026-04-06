@@ -4,7 +4,6 @@ import { CheckCircle2, Copy } from 'lucide-react';
 const TraderCard = ({ trader }) => {
   const [copied, setCopied] = useState(false);
 
-  // কপি ফাংশন
   const handleCardCopy = async (e) => {
     e.stopPropagation();
     const textToCopy = trader.name || "Trader ID";
@@ -18,12 +17,10 @@ const TraderCard = ({ trader }) => {
     }
   };
 
-  // ডাইনামিক গ্রাফ জেনারেটর
   const generatePath = () => {
-    // ডাটাবেস থেকে chartData অ্যারে না আসলে ডিফল্ট ডাটা ব্যবহার হবে
     const data = trader.chartData && Array.isArray(trader.chartData) && trader.chartData.length > 0 
-                 ? trader.chartData 
-                 : [20, 35, 25, 45, 30, 55, 40]; 
+                  ? trader.chartData 
+                  : [20, 35, 25, 45, 30, 55, 40]; 
     
     const width = 100;
     const height = 40;
@@ -48,8 +45,9 @@ const TraderCard = ({ trader }) => {
         <div className="flex justify-between items-start mb-5">
           <div className="flex items-center gap-3">
             <div className="relative">
+              {/* এখানে ছবি না থাকলে একটি সুন্দর র্যান্ডম অ্যাভাটার দেখাবে */}
               <img 
-                src={trader.image || "https://cdn-icons-png.flaticon.com/512/149/149071.png"} 
+                src={trader.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${trader.name}`} 
                 className="w-11 h-11 rounded-full bg-gray-800 border-2 border-[#2b3139] object-cover group-hover:border-[#f0b90b]/50 transition-colors" 
                 alt={trader.name} 
               />

@@ -1,12 +1,13 @@
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
-import { UserContext } from '../context/UserContext'; // '../../' থেকে কমিয়ে '../' করা হয়েছে
-import { UserPlus, Save } from 'lucide-react';
+import { UserContext } from '../context/UserContext'; 
+import { UserPlus, Save, Image as ImageIcon } from 'lucide-center';
 
 const AddTrader = () => {
   const { API_URL } = useContext(UserContext);
   const [formData, setFormData] = useState({
     name: '',
+    image: '', // নতুন যোগ করা হয়েছে
     profit: '',
     winRate: '',
     aum: '',
@@ -33,7 +34,15 @@ const AddTrader = () => {
       });
 
       alert("Trader Created Successfully!");
-      setFormData({ name: '', profit: '', winRate: '', aum: '', mdd: '', chartData: '10, 25, 20, 45, 30, 60' });
+      setFormData({ 
+        name: '', 
+        image: '', 
+        profit: '', 
+        winRate: '', 
+        aum: '', 
+        mdd: '', 
+        chartData: '10, 25, 20, 45, 30, 60' 
+      });
     } catch (err) {
       alert("Error: " + (err.response?.data?.message || "Failed to create trader"));
     }
@@ -47,13 +56,34 @@ const AddTrader = () => {
         </h2>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5 text-left">
-          <div className="col-span-full">
+          
+          {/* Trader Name */}
+          <div className="col-span-full md:col-span-1">
             <label className="text-xs text-gray-400 block mb-2">Trader Name</label>
             <input 
               type="text" required placeholder="e.g. BilluGulati"
               value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})}
               className="w-full bg-[#0b0e11] border border-gray-700 p-3 rounded-xl focus:border-[#f0b90b] outline-none text-white"
             />
+          </div>
+
+          {/* Trader Image URL - নতুন ইনপুট ফিল্ড */}
+          <div className="col-span-full md:col-span-1">
+            <label className="text-xs text-gray-400 block mb-2 flex items-center gap-1">
+              <ImageIcon size={12} /> Trader Image URL
+            </label>
+            <div className="flex gap-2">
+              <input 
+                type="text" placeholder="https://imgur.com/photo.jpg"
+                value={formData.image} onChange={(e) => setFormData({...formData, image: e.target.value})}
+                className="flex-1 bg-[#0b0e11] border border-gray-700 p-3 rounded-xl focus:border-[#f0b90b] outline-none text-white text-sm"
+              />
+              {formData.image && (
+                <div className="w-12 h-12 rounded-xl border border-gray-700 overflow-hidden bg-black flex-shrink-0">
+                  <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                </div>
+              )}
+            </div>
           </div>
 
           <div>
