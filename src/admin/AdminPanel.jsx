@@ -8,8 +8,7 @@ import ManageUsers from './ManageUsers';
 import PendingRequests from './PendingRequests';
 import ManagePlans from './ManagePlans';
 import InvestmentLogs from './InvestmentLogs';
-import AddTrader from './AddTrader'; 
-
+import AddTrader from './AddTrader'
 const AdminPanel = () => {
   const { token } = useContext(UserContext);
 
