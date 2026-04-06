@@ -9,6 +9,7 @@ import {
 
 import { UserProvider, UserContext } from './context/UserContext'; 
 import BecomeTrader from './pages/BecomeTrader';
+import Profile from './pages/Profile';
 import Home from './pages/Home'; 
 import NotificationSystem from './components/NotificationSystem'; 
 import AdminPanel from './admin/AdminPanel';
@@ -366,6 +367,7 @@ const AppContent = ({ cryptoData }) => {
         {/* Main Content Area: padding bottom adjusted (pb-56) for mobile to ensure content isn't hidden behind the floating button and nav */}
         <div className={`flex-1 overflow-y-auto ${token && !isHomePage ? 'pb-56 md:pb-8' : ''}`}>
           <Routes>
+            <Route path="/profile" element={<Profile />} />
             <Route path="/become-trader" element={<BecomeTrader />} />
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />

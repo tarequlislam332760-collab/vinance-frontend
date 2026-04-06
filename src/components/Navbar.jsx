@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X, Bell, User, LogOut, Settings } from 'lucide-react';
+import React, { useState, useEffect, useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Menu, X, Bell, User, LogOut, Settings, Wallet } from 'lucide-react';
+import { UserContext } from '../context/UserContext'; // Context ইমপোর্ট করুন
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false); // মোবাইল মেনুর জন্য
+  const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false); // নোটিফিকেশনের জন্য
-  const [showProfile, setShowProfile] = useState(false); // প্রোফাইল ড্রপডাউনের জন্য
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
-  // স্ক্রল ইফেক্ট
+  // ✅ Context থেকে ইউজার ডাটা এবং লগআউট ফাংশন নিন
+  const { user, setUser } = useContext(UserContext); 
+  const navigate = useNavigate();
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -17,7 +21,14 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // নোটিফিকেশন ডাটা (এটি পরে আপনার ব্যাকেন্ড এপিআই থেকে আসবে)
+  // ✅ লগআউট ফাংশন
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setUser(null);
+    setShowProfile(false);
+    navigate('/login');
+  };
+
   const notifications = [
     { id: 1, text: "Success! $5,000 demo balance added.", time: "2m ago" },
     { id: 2, text: "Bitcoin price reached $70,880.", time: "1h ago" }
@@ -34,9 +45,7 @@ const Navbar = () => {
           <div className="w-10 h-10 bg-yellow-500 rounded-xl flex items-center justify-center rotate-3 group-hover:rotate-12 transition-transform shadow-lg shadow-yellow-500/20">
             <span className="text-black font-black text-xl">V</span>
           </div>
-          <span className="text-2xl font-black text-white tracking-tighter uppercase italic">
-            Vinance
-          </span>
+          <span className="text-2xl font-black text-white tracking-tighter uppercase italic">Vinance</span>
         </Link>
 
         {/* Desktop Menu */}
@@ -58,23 +67,20 @@ const Navbar = () => {
           {/* Icons & Actions */}
           <div className="flex items-center gap-5 relative">
             
-            {/* ১. সচল নোটিফিকেশন বাটন */}
+            {/* Notification */}
             <div className="relative">
               <button 
                 onClick={() => { setShowNotifications(!showNotifications); setShowProfile(false); }}
                 className="text-gray-400 hover:text-yellow-500 transition-colors relative p-1"
               >
                 <Bell size={22} />
-                {/* নোটিফিকেশন ব্যাজ */}
                 <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-[#0b0e11]"></span>
               </button>
 
-              {/* নোটিফিকেশন ড্রপডাউন মেনু */}
               {showNotifications && (
                 <div className="absolute right-0 mt-4 w-72 bg-[#1e2329] border border-gray-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
                   <div className="p-4 border-b border-gray-800 flex justify-between items-center">
                     <span className="font-bold text-white">Notifications</span>
-                    <span className="text-[10px] bg-yellow-500/10 text-yellow-500 px-2 py-0.5 rounded-full">2 New</span>
                   </div>
                   <div className="max-h-80 overflow-y-auto">
                     {notifications.map(n => (
@@ -84,42 +90,57 @@ const Navbar = () => {
                       </div>
                     ))}
                   </div>
-                  <button className="w-full py-3 text-xs font-bold text-yellow-500 hover:bg-yellow-500/5 transition-colors">View All Messages</button>
                 </div>
               )}
             </div>
 
-            {/* ২. প্রোফাইল মেনু (User Context এর সাথে যুক্ত করা সহজ হবে) */}
-            <div className="relative">
-              <button 
-                onClick={() => { setShowProfile(!showProfile); setShowNotifications(false); }}
-                className="w-9 h-9 bg-gray-800 rounded-full flex items-center justify-center text-gray-400 hover:text-white border border-gray-700 transition-all active:scale-95"
-              >
-                <User size={20} />
-              </button>
+            {/* ✅ প্রোফাইল ড্রপডাউন (শুধুমাত্র লগইন থাকলে দেখাবে) */}
+            {user ? (
+              <div className="relative">
+                <button 
+                  onClick={() => { setShowProfile(!showProfile); setShowNotifications(false); }}
+                  className="flex items-center gap-2 bg-gray-800/50 hover:bg-gray-800 px-3 py-1.5 rounded-full border border-gray-700 transition-all"
+                >
+                  <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-black text-[10px] font-bold uppercase">
+                    {user.name?.charAt(0)}
+                  </div>
+                  <span className="text-xs font-bold text-gray-300">${user.balance?.toLocaleString()}</span>
+                </button>
 
-              {showProfile && (
-                <div className="absolute right-0 mt-4 w-56 bg-[#1e2329] border border-gray-800 rounded-2xl shadow-2xl p-2 animate-in fade-in zoom-in duration-200">
-                  <Link to="/profile" className="flex items-center gap-3 p-3 text-sm font-bold text-gray-300 hover:bg-gray-800 rounded-xl transition-colors">
-                    <User size={16} /> My Profile
-                  </Link>
-                  <Link to="/wallet" className="flex items-center gap-3 p-3 text-sm font-bold text-gray-300 hover:bg-gray-800 rounded-xl transition-colors">
-                    <Settings size={16} /> Wallet Settings
-                  </Link>
-                  <div className="h-[1px] bg-gray-800 my-1 mx-2"></div>
-                  <button className="w-full flex items-center gap-3 p-3 text-sm font-bold text-red-500 hover:bg-red-500/10 rounded-xl transition-colors">
-                    <LogOut size={16} /> Log Out
-                  </button>
-                </div>
-              )}
-            </div>
-            
-            <Link 
-              to="/register" 
-              className="bg-yellow-500 text-black px-6 py-2.5 rounded-full text-sm font-bold hover:bg-yellow-400 transition-all shadow-xl active:scale-95 ml-2"
-            >
-              Get Started
-            </Link>
+                {showProfile && (
+                  <div className="absolute right-0 mt-4 w-56 bg-[#1e2329] border border-gray-800 rounded-2xl shadow-2xl p-2 animate-in fade-in zoom-in duration-200">
+                    <div className="p-3 border-b border-gray-800 mb-2">
+                        <p className="text-xs text-gray-500 font-bold uppercase">Account</p>
+                        <p className="text-sm text-white font-bold truncate">{user.email}</p>
+                    </div>
+                    <Link to="/profile" onClick={() => setShowProfile(false)} className="flex items-center gap-3 p-3 text-sm font-bold text-gray-300 hover:bg-gray-800 rounded-xl transition-colors">
+                      <User size={16} /> My Profile
+                    </Link>
+                    <Link to="/wallet" onClick={() => setShowProfile(false)} className="flex items-center gap-3 p-3 text-sm font-bold text-gray-300 hover:bg-gray-800 rounded-xl transition-colors">
+                      <Wallet size={16} /> Wallet
+                    </Link>
+                    <div className="h-[1px] bg-gray-800 my-1 mx-2"></div>
+                    <button 
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 p-3 text-sm font-bold text-red-500 hover:bg-red-500/10 rounded-xl transition-colors"
+                    >
+                      <LogOut size={16} /> Log Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* ✅ লগইন না থাকলে এই বাটনগুলো দেখাবে */
+              <div className="flex items-center gap-4">
+                 <Link to="/login" className="text-sm font-bold text-gray-400 hover:text-white">Log In</Link>
+                 <Link 
+                  to="/register" 
+                  className="bg-yellow-500 text-black px-6 py-2.5 rounded-full text-sm font-bold hover:bg-yellow-400 transition-all shadow-xl active:scale-95"
+                >
+                  Get Started
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 
@@ -135,11 +156,18 @@ const Navbar = () => {
       {/* Mobile Menu Dropdown */}
       {isOpen && (
         <div className="absolute top-full left-0 w-full bg-[#1e2329] border-b border-gray-800 p-6 flex flex-col gap-6 md:hidden">
-          <Link to="/markets" className="text-lg font-bold text-white">Markets</Link>
-          <Link to="/trade" className="text-lg font-bold text-white">Trade</Link>
+          <Link to="/markets" onClick={()=>setIsOpen(false)} className="text-lg font-bold text-white">Markets</Link>
+          <Link to="/trade" onClick={()=>setIsOpen(false)} className="text-lg font-bold text-white">Trade</Link>
+          {user && <Link to="/profile" onClick={()=>setIsOpen(false)} className="text-lg font-bold text-white">Profile</Link>}
           <div className="h-[1px] bg-gray-800"></div>
-          <Link to="/login" className="text-lg font-bold text-gray-400">Log In</Link>
-          <Link to="/register" className="bg-yellow-500 text-black p-4 rounded-2xl text-center font-bold">Register Now</Link>
+          {!user ? (
+            <>
+              <Link to="/login" onClick={()=>setIsOpen(false)} className="text-lg font-bold text-gray-400">Log In</Link>
+              <Link to="/register" onClick={()=>setIsOpen(false)} className="bg-yellow-500 text-black p-4 rounded-2xl text-center font-bold">Register Now</Link>
+            </>
+          ) : (
+            <button onClick={handleLogout} className="text-lg font-bold text-red-500 text-left">Log Out</button>
+          )}
         </div>
       )}
     </nav>
