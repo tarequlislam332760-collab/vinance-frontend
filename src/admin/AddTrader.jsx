@@ -41,10 +41,11 @@ const AddTrader = () => {
   };
 
   return (
-    <div className="p-6 bg-[#0b0e11] min-h-screen text-white">
-      <div className="max-w-2xl mx-auto bg-[#1e2329] p-8 rounded-3xl border border-gray-800 shadow-2xl">
-        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-[#f0b90b]">
-          <UserPlus /> Create New Master Trader
+    <div className="w-full text-white"> {/* min-h-screen এবং bg-[#0b0e11] সরিয়ে দিন */}
+    <div className="max-w-2xl mx-auto bg-[#1e2329] p-6 md:p-8 rounded-3xl border border-gray-800 shadow-2xl">
+      <h2 className="text-xl font-black mb-6 flex items-center gap-2 text-[#f0b90b] uppercase italic">
+        <UserPlus size={20} /> Create New Master Trader
+      
         </h2>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
