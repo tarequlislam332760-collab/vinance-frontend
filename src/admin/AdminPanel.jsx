@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import API from '../api'; 
 import { UserContext } from '../context/UserContext';
-import { Search, TrendingUp, ShieldCheck, Users, Clock, PieChart, ListIcon, UserPlus } from 'lucide-react';
+import { ShieldCheck, Users, Clock, PieChart, ListIcon, UserPlus } from 'lucide-react';
 
-// Sub-components
+// ✅ আপনার ফোল্ডার স্ট্রাকচার ও ফাইল নেম অনুযায়ী সুনির্দিষ্ট ইম্পোর্ট
 import ManageUsers from './ManageUsers';
 import PendingRequests from './PendingRequests';
 import ManagePlans from './ManagePlans';
 import InvestmentLogs from './InvestmentLogs';
-import AddTrader from './AddTrader'; // ✅ AddTrader কম্পোনেন্টটি ইম্পোর্ট করা হয়েছে
+import AddTrader from './AddTrader'; 
 
 const AdminPanel = () => {
   const { token } = useContext(UserContext);
@@ -90,7 +90,6 @@ const AdminPanel = () => {
           <TabButton active={activeTab === 'requests'} onClick={() => setActiveTab('requests')} icon={<Clock size={14}/>} label="Requests" />
           <TabButton active={activeTab === 'plans'} onClick={() => setActiveTab('plans')} icon={<PieChart size={14}/>} label="Plans" />
           <TabButton active={activeTab === 'logs'} onClick={() => setActiveTab('logs')} icon={<ListIcon size={14}/>} label="Logs" />
-          {/* ✅ নতুন Traders ট্যাব যোগ করা হয়েছে */}
           <TabButton active={activeTab === 'traders'} onClick={() => setActiveTab('traders')} icon={<UserPlus size={14}/>} label="Traders" />
         </div>
       </div>
@@ -111,7 +110,6 @@ const AdminPanel = () => {
         {activeTab === 'requests' && <PendingRequests requests={requests} fetchData={fetchData} />}
         {activeTab === 'plans' && <ManagePlans fetchData={fetchData} />}
         {activeTab === 'logs' && <InvestmentLogs data={investments} />}
-        {/* ✅ Traders ট্যাবে ক্লিক করলে AddTrader কম্পোনেন্ট দেখাবে */}
         {activeTab === 'traders' && <AddTrader />}
       </div>
 
@@ -119,12 +117,12 @@ const AdminPanel = () => {
         <div className="fixed inset-0 flex justify-center items-center bg-black/90 backdrop-blur-md z-[999] p-4">
           <div className="bg-[#161a1e] p-8 rounded-[2.5rem] border border-[#1e2329] w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-300">
             <h3 className="text-xl font-black uppercase italic text-[#f0b90b] mb-2">Update Balance</h3>
-            <p className="text-[10px] text-gray-500 mb-6 uppercase tracking-widest font-bold border-b border-[#1e2329] pb-3">
+            <p className="text-[10px] text-gray-500 mb-6 uppercase tracking-widest font-bold border-b border-[#1e2329] pb-3 text-left">
               User: <span className="text-white ml-2">{selectedUser?.name}</span>
             </p>
 
             <div className="mb-6">
-              <label className="text-[10px] text-gray-500 uppercase font-black mb-3 block">Set New Balance (USD)</label>
+              <label className="text-[10px] text-gray-500 uppercase font-black mb-3 block text-left">Set New Balance (USD)</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#f0b90b] font-bold">$</span>
                 <input
