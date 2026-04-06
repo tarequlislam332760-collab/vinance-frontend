@@ -1,7 +1,27 @@
 import React from 'react';
-import { Search, Edit3 } from 'lucide-react';
+import axios from 'axios';
+import { Search, Edit3, Trash2 } from 'lucide-react';
 
-const ManageUsers = ({ users, search, setSearch, onEdit }) => {
+const ManageUsers = ({ users, search, setSearch, onEdit, fetchData }) => {
+
+  // ইউজার ডিলিট করার ফাংশন
+  const handleDelete = async (userId) => {
+    const token = localStorage.getItem('token');
+    const API_URL = "https://vinance-backend.vercel.app"; // আপনার ব্যাকএন্ড ইউআরএল চেক করে নেবেন
+
+    if (window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
+      try {
+        await axios.delete(`${API_URL}/api/admin/delete-user/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        alert("User deleted successfully!");
+        if (fetchData) fetchData(); // ডাটা রিফ্রেশ করার জন্য
+      } catch (err) {
+        alert("Error: " + (err.response?.data?.message || "Failed to delete user"));
+      }
+    }
+  };
+
   return (
     <div className="bg-[#1e2329] rounded-[2.5rem] border border-gray-800 overflow-hidden shadow-2xl animate-in fade-in duration-500">
       <div className="p-6 border-b border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 text-left">
@@ -33,9 +53,18 @@ const ManageUsers = ({ users, search, setSearch, onEdit }) => {
                   <p className="text-[10px] text-gray-500">{user.email}</p>
                 </td>
                 <td className="p-5 font-mono text-emerald-400 font-black text-sm">${user.balance.toFixed(2)}</td>
-                <td className="p-5 text-right">
+                <td className="p-5 text-right flex justify-end gap-2">
+                  {/* Edit Button */}
                   <button onClick={() => onEdit(user)} className="p-2 hover:bg-yellow-500/20 rounded-lg text-yellow-500 transition-all">
                     <Edit3 size={18}/>
+                  </button>
+                  
+                  {/* Delete Button */}
+                  <button 
+                    onClick={() => handleDelete(user._id)} 
+                    className="p-2 hover:bg-red-500/20 rounded-lg text-red-500 transition-all"
+                  >
+                    <Trash2 size={18}/>
                   </button>
                 </td>
               </tr>
