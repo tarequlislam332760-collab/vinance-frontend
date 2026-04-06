@@ -8,8 +8,7 @@ export const UserProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
-  // --- API URL কনফিগারেশন (একদম ফিক্সড) ---
-  // প্রোডাকশনে সবসময় এই লিঙ্কটি ব্যবহার করবে, লোকালহোস্টের ঝামেলা এড়াতে সরাসরি লিঙ্ক দেওয়াই ভালো
+  // --- API URL কনফিগারেশন ---
   const API_URL = "https://vinance-backend.vercel.app"; 
 
   const logout = useCallback(() => {
@@ -22,6 +21,7 @@ export const UserProvider = ({ children }) => {
   const refreshUser = useCallback(async () => {
     const currentToken = localStorage.getItem('token');
     if (!currentToken) {
+      setUser(null);
       setLoading(false);
       return;
     }
