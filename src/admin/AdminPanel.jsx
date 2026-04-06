@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import API from '../api'; 
 import { UserContext } from '../context/UserContext';
-import { ShieldCheck, Users, Clock, PieChart, ListIcon, UserPlus } from 'lucide-react';
+import { ShieldCheck, Users, Clock, PieChart, ListIcon, UserPlus, Trash2, TrendingUp } from 'lucide-react';
 
-// ✅ আপনার ফোল্ডার স্ট্রাকচার ও ফাইল নেম অনুযায়ী সুনির্দিষ্ট ইম্পোর্ট
+// ✅ আপনার ফোল্ডার স্ট্রাকচার ও ফাইল নেম অনুযায়ী সুনির্দিষ্ট ইম্পোর্ট
 import ManageUsers from './ManageUsers';
 import PendingRequests from './PendingRequests';
 import ManagePlans from './ManagePlans';
 import InvestmentLogs from './InvestmentLogs';
 import AddTrader from './AddTrader'
+
 const AdminPanel = () => {
   const { token } = useContext(UserContext);
 
@@ -16,6 +17,7 @@ const AdminPanel = () => {
   const [users, setUsers] = useState([]);
   const [requests, setRequests] = useState([]);
   const [investments, setInvestments] = useState([]); 
+  const [traders, setTraders] = useState([]); // 👈 ট্রেডারদের জন্য নতুন স্টেট
   const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -34,6 +36,7 @@ const AdminPanel = () => {
 
       setUsers(res.data.users || []);
       setRequests(res.data.requests || []);
+      setTraders(res.data.traders || []); // 👈 ব্যাকএন্ড থেকে ট্রেডার ডাটা নেওয়া হচ্ছে
 
       const logData = res.data.investments || res.data.logs || res.data.allInvestments || res.data.requests || [];
       setInvestments(logData);
@@ -48,6 +51,19 @@ const AdminPanel = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // ✅ ট্রেডার ডিলিট করার নতুন ফাংশন
+  const handleDeleteTrader = async (traderId) => {
+    if (window.confirm("Are you sure you want to delete this master trader?")) {
+      try {
+        await API.delete(`/api/admin/delete-trader/${traderId}`);
+        alert("Trader deleted successfully!");
+        fetchData(); // ডিলিট হওয়ার পর লিস্ট আপডেট করবে
+      } catch (err) {
+        alert("Failed to delete trader");
+      }
+    }
+  };
 
   const handleBalanceUpdate = async () => {
     if (!newBalance || newBalance < 0) {
@@ -99,6 +115,7 @@ const AdminPanel = () => {
             users={users}
             search={searchTerm}
             setSearch={setSearchTerm}
+            fetchData={fetchData} // ডিলিট রিফ্রেশ করার জন্য পাঠানো হলো
             onEdit={(user) => {
               setSelectedUser(user);
               setNewBalance(user.balance);
@@ -109,7 +126,39 @@ const AdminPanel = () => {
         {activeTab === 'requests' && <PendingRequests requests={requests} fetchData={fetchData} />}
         {activeTab === 'plans' && <ManagePlans fetchData={fetchData} />}
         {activeTab === 'logs' && <InvestmentLogs data={investments} />}
-        {activeTab === 'traders' && <AddTrader />}
+        
+        {/* ✅ ট্রেডার ট্যাব আপডেট: এখানে AddTrader এবং ডিলিট লিস্ট দুটোই থাকবে */}
+        {activeTab === 'traders' && (
+          <div className="space-y-12">
+            <AddTrader fetchData={fetchData} />
+            
+            <div className="pt-10 border-t border-gray-800">
+              <h3 className="font-black uppercase text-xs tracking-widest text-gray-400 mb-6">Existing Master Traders</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {traders.map((trader) => (
+                  <div key={trader._id} className="bg-[#0b0e11] p-5 rounded-3xl border border-gray-800 flex justify-between items-center group hover:border-[#f0b90b]/50 transition-all">
+                    <div className="flex items-center gap-4">
+                      <img src={trader.image} className="w-12 h-12 rounded-full object-cover border-2 border-gray-800 group-hover:border-[#f0b90b]" alt="" />
+                      <div>
+                        <p className="text-white font-black text-sm">{trader.name}</p>
+                        <p className="text-emerald-400 text-[10px] flex items-center gap-1 font-bold">
+                          <TrendingUp size={10}/> +{trader.profit}% ROI
+                        </p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => handleDeleteTrader(trader._id)}
+                      className="p-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-2xl transition-all shadow-xl shadow-red-500/5"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              {traders.length === 0 && <p className="text-gray-600 text-xs italic">No master traders found.</p>}
+            </div>
+          </div>
+        )}
       </div>
 
       {isModalOpen && (
