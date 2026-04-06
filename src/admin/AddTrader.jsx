@@ -1,13 +1,13 @@
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { UserContext } from '../context/UserContext'; 
-import { UserPlus, Save, Image as ImageIcon } from 'lucide-center';
+import { UserPlus, Save, Image as ImageIcon } from 'lucide-react'; // এখানে 'lucide-react' হবে
 
 const AddTrader = () => {
   const { API_URL } = useContext(UserContext);
   const [formData, setFormData] = useState({
     name: '',
-    image: '', // নতুন যোগ করা হয়েছে
+    image: '', 
     profit: '',
     winRate: '',
     aum: '',
@@ -57,7 +57,6 @@ const AddTrader = () => {
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5 text-left">
           
-          {/* Trader Name */}
           <div className="col-span-full md:col-span-1">
             <label className="text-xs text-gray-400 block mb-2">Trader Name</label>
             <input 
@@ -67,7 +66,6 @@ const AddTrader = () => {
             />
           </div>
 
-          {/* Trader Image URL - নতুন ইনপুট ফিল্ড */}
           <div className="col-span-full md:col-span-1">
             <label className="text-xs text-gray-400 block mb-2 flex items-center gap-1">
               <ImageIcon size={12} /> Trader Image URL
@@ -105,7 +103,7 @@ const AddTrader = () => {
           </div>
 
           <div>
-            <label className="text-xs text-gray-400 block mb-2">AUM (Assets Under Management)</label>
+            <label className="text-xs text-gray-400 block mb-2">AUM</label>
             <input 
               type="number" required placeholder="26170.62"
               value={formData.aum} onChange={(e) => setFormData({...formData, aum: e.target.value})}
@@ -123,7 +121,7 @@ const AddTrader = () => {
           </div>
 
           <div className="col-span-full">
-            <label className="text-xs text-gray-400 block mb-2">Chart Data (Comma Separated)</label>
+            <label className="text-xs text-gray-400 block mb-2">Chart Data</label>
             <input 
               type="text" required placeholder="10, 20, 15, 35..."
               value={formData.chartData} onChange={(e) => setFormData({...formData, chartData: e.target.value})}
