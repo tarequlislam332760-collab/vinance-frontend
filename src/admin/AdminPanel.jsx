@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import API from '../api'; 
 import { UserContext } from '../context/UserContext';
-import { Search, TrendingUp, ShieldCheck, Users, Clock, PieChart, ListIcon } from 'lucide-react';
+import { Search, TrendingUp, ShieldCheck, Users, Clock, PieChart, ListIcon, UserPlus } from 'lucide-react';
 
 // Sub-components
 import ManageUsers from './ManageUsers';
 import PendingRequests from './PendingRequests';
 import ManagePlans from './ManagePlans';
 import InvestmentLogs from './InvestmentLogs';
+import AddTrader from './AddTrader'; // ✅ AddTrader কম্পোনেন্টটি ইম্পোর্ট করা হয়েছে
 
 const AdminPanel = () => {
   const { token } = useContext(UserContext);
@@ -35,8 +36,6 @@ const AdminPanel = () => {
       setUsers(res.data.users || []);
       setRequests(res.data.requests || []);
 
-      // ✅ ব্যাকএন্ড থেকে আসা ডাটা ফিল্টার করা হচ্ছে
-      // এখানে investments এর পাশাপাশি requests ডাটাও চেক করা হচ্ছে যাতে লগ খালি না থাকে
       const logData = res.data.investments || res.data.logs || res.data.allInvestments || res.data.requests || [];
       setInvestments(logData);
       
@@ -91,6 +90,8 @@ const AdminPanel = () => {
           <TabButton active={activeTab === 'requests'} onClick={() => setActiveTab('requests')} icon={<Clock size={14}/>} label="Requests" />
           <TabButton active={activeTab === 'plans'} onClick={() => setActiveTab('plans')} icon={<PieChart size={14}/>} label="Plans" />
           <TabButton active={activeTab === 'logs'} onClick={() => setActiveTab('logs')} icon={<ListIcon size={14}/>} label="Logs" />
+          {/* ✅ নতুন Traders ট্যাব যোগ করা হয়েছে */}
+          <TabButton active={activeTab === 'traders'} onClick={() => setActiveTab('traders')} icon={<UserPlus size={14}/>} label="Traders" />
         </div>
       </div>
 
@@ -110,6 +111,8 @@ const AdminPanel = () => {
         {activeTab === 'requests' && <PendingRequests requests={requests} fetchData={fetchData} />}
         {activeTab === 'plans' && <ManagePlans fetchData={fetchData} />}
         {activeTab === 'logs' && <InvestmentLogs data={investments} />}
+        {/* ✅ Traders ট্যাবে ক্লিক করলে AddTrader কম্পোনেন্ট দেখাবে */}
+        {activeTab === 'traders' && <AddTrader />}
       </div>
 
       {isModalOpen && (
