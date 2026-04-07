@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import API from '../api'; 
 import { UserContext } from '../context/UserContext';
-import { ShieldCheck, Users, Clock, PieChart, ListIcon, UserPlus, Trash2, TrendingUp } from 'lucide-react';
+import { ShieldCheck, Users, Clock, PieChart, ListIcon, UserPlus, Trash2, TrendingUp, CheckCircle } from 'lucide-react';
 
 // ✅ আপনার ফোল্ডার স্ট্রাকচার ও ফাইল নেম অনুযায়ী সুনির্দিষ্ট ইম্পোর্ট
 import ManageUsers from './ManageUsers';
@@ -17,7 +17,8 @@ const AdminPanel = () => {
   const [users, setUsers] = useState([]);
   const [requests, setRequests] = useState([]);
   const [investments, setInvestments] = useState([]); 
-  const [traders, setTraders] = useState([]); // 👈 ট্রেডারদের জন্য নতুন স্টেট
+  const [traders, setTraders] = useState([]); 
+  const [pendingTraders, setPendingTraders] = useState([]); // 👈 নতুন আবেদন দেখার জন্য স্টেট
   const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,7 +37,8 @@ const AdminPanel = () => {
 
       setUsers(res.data.users || []);
       setRequests(res.data.requests || []);
-      setTraders(res.data.traders || []); // 👈 ব্যাকএন্ড থেকে ট্রেডার ডাটা নেওয়া হচ্ছে
+      setTraders(res.data.traders || []); 
+      setPendingTraders(res.data.pendingApplications || []); // 👈 ব্যাকএন্ড থেকে পেন্ডিং ডাটা নেওয়া হচ্ছে
 
       const logData = res.data.investments || res.data.logs || res.data.allInvestments || res.data.requests || [];
       setInvestments(logData);
@@ -52,13 +54,23 @@ const AdminPanel = () => {
     fetchData();
   }, [fetchData]);
 
-  // ✅ ট্রেডার ডিলিট করার নতুন ফাংশন
+  // ✅ ট্রেডার এপ্রুভ করার ফাংশন (Status True করে দেওয়া)
+  const handleApproveTrader = async (traderId) => {
+    try {
+      await API.put(`/api/admin/edit-trader/${traderId}`, { status: true });
+      alert("Trader Approved Successfully!");
+      fetchData();
+    } catch (err) {
+      alert("Approval failed");
+    }
+  };
+
   const handleDeleteTrader = async (traderId) => {
-    if (window.confirm("Are you sure you want to delete this master trader?")) {
+    if (window.confirm("Are you sure you want to delete this trader?")) {
       try {
         await API.delete(`/api/admin/delete-trader/${traderId}`);
         alert("Trader deleted successfully!");
-        fetchData(); // ডিলিট হওয়ার পর লিস্ট আপডেট করবে
+        fetchData();
       } catch (err) {
         alert("Failed to delete trader");
       }
@@ -115,7 +127,7 @@ const AdminPanel = () => {
             users={users}
             search={searchTerm}
             setSearch={setSearchTerm}
-            fetchData={fetchData} // ডিলিট রিফ্রেশ করার জন্য পাঠানো হলো
+            fetchData={fetchData}
             onEdit={(user) => {
               setSelectedUser(user);
               setNewBalance(user.balance);
@@ -127,18 +139,46 @@ const AdminPanel = () => {
         {activeTab === 'plans' && <ManagePlans fetchData={fetchData} />}
         {activeTab === 'logs' && <InvestmentLogs data={investments} />}
         
-        {/* ✅ ট্রেডার ট্যাব আপডেট: এখানে AddTrader এবং ডিলিট লিস্ট দুটোই থাকবে */}
         {activeTab === 'traders' && (
-          <div className="space-y-12">
+          <div className="space-y-12 text-left">
+            {/* ১. নতুন লিড আবেদন সেকশন */}
+            <div className="pb-10 border-b border-gray-800">
+              <h3 className="font-black uppercase text-xs tracking-widest text-[#f0b90b] mb-6 flex items-center gap-2">
+                <Clock size={14}/> Pending Lead Applications
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {pendingTraders.map((trader) => (
+                  <div key={trader._id} className="bg-[#0b0e11] p-5 rounded-3xl border border-dashed border-gray-700 flex justify-between items-center group">
+                    <div>
+                      <p className="text-white font-black text-sm">{trader.name}</p>
+                      <div className="flex gap-3 mt-1">
+                         <p className="text-gray-500 text-[10px] font-bold uppercase">Exp: <span className="text-white">{trader.profit}Y</span></p>
+                         <p className="text-gray-500 text-[10px] font-bold uppercase">Capital: <span className="text-white">${trader.aum}</span></p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                       <button onClick={() => handleApproveTrader(trader._id)} className="p-2.5 bg-emerald-500/10 text-emerald-500 rounded-xl hover:bg-emerald-500 hover:text-white transition-all">
+                         <CheckCircle size={18} />
+                       </button>
+                       <button onClick={() => handleDeleteTrader(trader._id)} className="p-2.5 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all">
+                         <Trash2 size={18} />
+                       </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {pendingTraders.length === 0 && <p className="text-gray-600 text-[10px] italic uppercase tracking-widest">No new applications yet.</p>}
+            </div>
+
             <AddTrader fetchData={fetchData} />
             
-            <div className="pt-10 border-t border-gray-800">
+            <div className="pt-10">
               <h3 className="font-black uppercase text-xs tracking-widest text-gray-400 mb-6">Existing Master Traders</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {traders.map((trader) => (
+                {traders.filter(t => t.status === true).map((trader) => (
                   <div key={trader._id} className="bg-[#0b0e11] p-5 rounded-3xl border border-gray-800 flex justify-between items-center group hover:border-[#f0b90b]/50 transition-all">
                     <div className="flex items-center gap-4">
-                      <img src={trader.image} className="w-12 h-12 rounded-full object-cover border-2 border-gray-800 group-hover:border-[#f0b90b]" alt="" />
+                      <img src={trader.image || 'https://via.placeholder.com/150'} className="w-12 h-12 rounded-full object-cover border-2 border-gray-800 group-hover:border-[#f0b90b]" alt="" />
                       <div>
                         <p className="text-white font-black text-sm">{trader.name}</p>
                         <p className="text-emerald-400 text-[10px] flex items-center gap-1 font-bold">
