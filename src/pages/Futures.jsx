@@ -1,116 +1,202 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
-import { ChevronDown, MoreHorizontal, LayoutGrid, Info, Maximize2, History } from 'lucide-react';
-import OrderBook from '../components/OrderBook';
-import LeverageSlider from '../components/LeverageSlider';
-import PositionTable from '../components/PositionTable';
+import axios from 'axios';
+import { ChevronDown, MoreHorizontal, Settings, Plus, Minus, Info, LayoutGrid } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+
+const api = axios.create({
+  baseURL: "https://vinance-backend.vercel.app",
+  withCredentials: true 
+});
 
 const Futures = () => {
   const { coinSymbol } = useParams();
-  const { user } = useContext(UserContext);
+  const { user, refreshUser, token } = useContext(UserContext);
+  const [leverage, setLeverage] = useState(60);
+  const [amount, setAmount] = useState('');
   const [side, setSide] = useState('buy'); 
+  const [loading, setLoading] = useState(false);
+  const [currentPrice, setCurrentPrice] = useState('0.0');
+  const [orderData, setOrderData] = useState({ sell: [], buy: [] });
+  
   const currentCoin = (coinSymbol || 'BTC').toUpperCase();
 
-  return (
-    <div className="flex flex-col h-screen bg-[#0b0e11] text-[#848e9c] font-sans overflow-hidden select-none">
-      
-      {/* 1. Header Tabs */}
-      <div className="flex justify-between items-center px-4 py-2 bg-[#161a1e] border-b border-gray-900">
-        <div className="flex items-center gap-5 text-[12px] font-bold tracking-tight">
-          <span className="text-gray-500 hover:text-white cursor-pointer">USDⓈ-M</span>
-          <span className="text-white border-b-2 border-[#f0b90b] pb-1">COIN-M</span>
-          <span className="text-gray-500 hover:text-white cursor-pointer">Options</span>
-        </div>
-        <div className="flex items-center gap-3 text-gray-400">
-           <History size={18} />
-           <MoreHorizontal size={20} />
-        </div>
-      </div>
+  useEffect(() => {
+    const priceWs = new WebSocket(`wss://stream.binance.com:9443/ws/${currentCoin.toLowerCase()}usdt@ticker`);
+    priceWs.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      setCurrentPrice(parseFloat(data.c).toFixed(1)); 
+    };
 
-      {/* 2. Coin Info */}
-      <div className="flex justify-between items-center px-4 py-3">
-        <div className="flex flex-col">
-          <h2 className="text-white font-bold text-[17px] flex items-center gap-1 italic">
-            {currentCoin}USD <span className="bg-[#2b3139] text-[9px] px-1 py-0.5 rounded text-[#02c076] font-normal not-italic ml-1">Perp</span> 
-            <ChevronDown size={14} className="text-gray-500" />
+    const depthWs = new WebSocket(`wss://stream.binance.com:9443/ws/${currentCoin.toLowerCase()}usdt@depth10@100ms`);
+    depthWs.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      const asks = data.a.slice(0, 6).map(item => ({ price: parseFloat(item[0]).toFixed(1), amount: parseFloat(item[1]).toFixed(3) })).reverse();
+      const bids = data.b.slice(0, 6).map(item => ({ price: parseFloat(item[0]).toFixed(1), amount: parseFloat(item[1]).toFixed(3) }));
+      setOrderData({ sell: asks, buy: bids });
+    };
+
+    return () => { priceWs.close(); depthWs.close(); };
+  }, [currentCoin]);
+
+  const handleTrade = async () => {
+    if (!amount || parseFloat(amount) <= 0) return toast.error("Enter valid amount");
+    if (parseFloat(amount) > (user?.balance || 0)) return toast.error("Insufficient balance");
+
+    setLoading(true);
+    try {
+      const res = await api.post('/api/futures/trade', { 
+        type: side, 
+        amount: parseFloat(amount), 
+        leverage: Number(leverage),
+        symbol: currentCoin,
+        entryPrice: parseFloat(currentPrice) 
+      }, {
+        headers: { Authorization: `Bearer ${token}` } 
+      });
+
+      if (res.data.success) {
+        toast.success(res.data.message);
+        setAmount(""); // 🚀 এটি এখন নিশ্চিতভাবে ইনপুট বক্স খালি করবে
+        if (refreshUser) await refreshUser(); 
+      }
+    } catch (err) { 
+      toast.error(err.response?.data?.message || "Trade failed"); 
+    } finally { 
+      setLoading(false); 
+    }
+  };
+
+  const adjustAmount = (val) => {
+    setAmount(prev => {
+      const currentVal = parseFloat(prev) || 0;
+      const newVal = Math.max(0, currentVal + val);
+      return newVal === 0 ? "" : newVal.toString();
+    });
+  };
+
+  const handleSlider = (percent) => {
+    if (!user?.balance) return;
+    const calculated = (user.balance * (percent / 100)).toFixed(2);
+    setAmount(calculated === "0.00" ? "" : calculated);
+  };
+
+  return (
+    <div className="flex flex-col h-screen bg-[#12161c] text-[#848e9c] overflow-hidden font-sans select-none">
+      {/* Header */}
+      <div className="flex justify-between items-center px-4 py-3 bg-[#12161c]">
+        <div className="flex items-center gap-3">
+          <h2 className="text-white font-bold text-xl flex items-center gap-1">
+            {currentCoin}USDT <span className="text-[#02c076] text-xs font-medium">+2.44%</span> <ChevronDown size={16} />
           </h2>
-          <span className="text-[#f6465d] text-[11px] font-bold font-mono">-2.51%</span>
+          <div className="flex gap-3 text-gray-400 border-l border-gray-700 pl-3">
+             <LayoutGrid size={18} />
+          </div>
         </div>
         <div className="flex gap-4 items-center text-gray-400">
-          <LayoutGrid size={18} className="hover:text-white cursor-pointer" />
-          <div className="w-8 h-8 flex items-center justify-center bg-[#2b3139] rounded-full text-[#f0b90b]">
-             <span className="text-[10px] font-black italic">!</span>
-          </div>
+          <Settings size={18} />
+          <MoreHorizontal size={18} />
         </div>
       </div>
 
-      {/* 3. Main Trading Section */}
-      <div className="flex flex-1 overflow-hidden px-3 gap-3">
-        
-        {/* Left Side: Trade Controller */}
-        <div className="w-[58%] flex flex-col gap-3 overflow-y-auto pb-24 no-scrollbar">
-          <div className="flex gap-1.5 text-[10px] font-black uppercase italic">
-            <button className="bg-[#2b3139] flex-1 py-1.5 rounded flex items-center justify-center gap-1 text-white border border-gray-800">Cross <ChevronDown size={10}/></button>
-            <button className="bg-[#2b3139] flex-1 py-1.5 rounded flex items-center justify-center gap-1 text-white border border-gray-800">20x <ChevronDown size={10}/></button>
+      <div className="flex flex-1 overflow-hidden border-t border-gray-800">
+        {/* Left Side: Order Form */}
+        <div className="w-[58%] p-3 space-y-4 overflow-y-auto border-r border-gray-800">
+          <div className="flex gap-1.5">
+            <button className="bg-[#2b3139] px-3 py-1 rounded text-[11px] text-white font-medium flex items-center gap-1">Cross <ChevronDown size={10}/></button>
+            <button className="bg-[#2b3139] px-3 py-1 rounded text-[11px] text-white font-medium flex items-center gap-1">{leverage}x <ChevronDown size={10}/></button>
           </div>
 
-          <div className="flex bg-[#2b3139] rounded-lg h-9 overflow-hidden relative border border-gray-800">
-            <button onClick={() => setSide('buy')} className={`flex-1 text-[12px] font-black uppercase italic transition-all ${side === 'buy' ? 'bg-[#02c076] text-[#0b0e11] clip-path-buy z-10' : 'text-gray-500'}`}>Buy</button>
-            <button onClick={() => setSide('sell')} className={`flex-1 text-[12px] font-black uppercase italic transition-all ${side === 'sell' ? 'bg-[#f6465d] text-white clip-path-sell z-10' : 'text-gray-500'}`}>Sell</button>
+          <div className="flex bg-[#2b3139] rounded p-0.5 h-9">
+            <button onClick={() => setSide('buy')} className={`flex-1 flex items-center justify-center text-[13px] font-bold rounded transition-all ${side === 'buy' ? 'bg-[#02c076] text-[#12161c]' : 'text-gray-400'}`}>Buy</button>
+            <button onClick={() => setSide('sell')} className={`flex-1 flex items-center justify-center text-[13px] font-bold rounded transition-all ${side === 'sell' ? 'bg-[#f6465d] text-white' : 'text-gray-400'}`}>Sell</button>
           </div>
 
           <div className="space-y-2.5">
-            <div className="bg-[#2b3139] py-2 px-3 rounded text-[11px] text-gray-300 flex justify-between items-center font-bold border border-gray-800/50">
-              <span>Limit Order</span>
+            <div className="flex justify-between items-center text-[11px]">
+              <span className="flex items-center gap-1">Avbl <Info size={10}/></span>
+              <span className="text-white font-medium">{user?.balance?.toFixed(2) || '0.00'} USDT <Plus size={10} className="inline text-[#f0b90b] ml-1" /></span>
+            </div>
+
+            <div className="bg-[#2b3139] py-2.5 px-3 rounded text-[13px] text-white flex justify-between items-center">
+              <span>Market</span>
               <ChevronDown size={14} className="text-gray-500" />
             </div>
 
-            <div className="flex items-center bg-[#2b3139] rounded h-10 px-3 border border-transparent focus-within:border-[#f0b90b]">
-              <div className="flex-1 flex flex-col">
-                <span className="text-[8px] text-gray-500 uppercase font-black">Price (USD)</span>
-                <input type="text" value="68274.4" className="bg-transparent text-white text-[14px] font-bold outline-none font-mono" readOnly/>
+            <div className="bg-[#2b3139] py-2.5 rounded text-center text-[13px] text-gray-500 font-bold">
+              {currentPrice}
+            </div>
+
+            <div className="flex items-center bg-[#2b3139] rounded h-10 border border-transparent focus-within:border-[#f0b90b]">
+              <button onClick={() => adjustAmount(-1)} className="px-3 text-gray-400 hover:text-white"><Minus size={16}/></button>
+              <input 
+                type="number" 
+                placeholder="Amount" 
+                value={amount} 
+                onChange={(e) => setAmount(e.target.value)} 
+                className="w-full bg-transparent text-center text-white text-[13px] font-bold outline-none" 
+              />
+              <div className="flex items-center gap-1 pr-2 text-[11px] text-gray-400 border-l border-gray-700 pl-2">USDT</div>
+              <button onClick={() => adjustAmount(1)} className="px-3 text-gray-400 hover:text-white"><Plus size={16}/></button>
+            </div>
+
+            {/* Slider */}
+            <div className="py-4 px-1 relative">
+              <div className="h-[2px] bg-[#2b3139] w-full rounded relative">
+                <div className="absolute h-full bg-[#f0b90b]" style={{ width: `${(parseFloat(amount) / user?.balance * 100) || 0}%` }}></div>
+                {[0, 25, 50, 75, 100].map(p => (
+                  <div 
+                    key={p} 
+                    onClick={() => handleSlider(p)}
+                    className={`absolute top-1/2 -translate-y-1/2 w-3 h-3 border-2 border-[#12161c] rounded-sm cursor-pointer transition-colors ${ (parseFloat(amount) / user?.balance * 100) >= p ? 'bg-[#f0b90b]' : 'bg-[#2b3139]' }`} 
+                    style={{left: `${p}%`}}
+                  ></div>
+                ))}
               </div>
-              <span className="text-[#f0b90b] text-[10px] font-black border-l border-gray-700 pl-3">BBO</span>
             </div>
 
-            <div className="flex items-center bg-[#2b3139] rounded h-10 px-3 border border-transparent focus-within:border-[#f0b90b]">
-              <div className="flex-1 flex flex-col">
-                <span className="text-[8px] text-gray-500 uppercase font-black">Amount (Cont)</span>
-                <input type="number" placeholder="0" className="bg-transparent text-white text-[14px] font-bold outline-none placeholder:text-gray-700" />
-              </div>
-              <ChevronDown size={14} className="text-gray-500" />
-            </div>
-
-            <LeverageSlider />
-
-            <div className="flex justify-between text-[10px] font-bold mt-1">
-               <span className="text-gray-500">Available</span>
-               <span className="text-white">0.0000 BTC <span className="text-[#f0b90b] ml-1">⇄</span></span>
-            </div>
-
-            <button className={`w-full py-3 rounded-lg font-black text-[14px] uppercase italic tracking-tighter shadow-lg transition-transform active:scale-95 ${side === 'buy' ? 'bg-[#02c076] text-[#0b0e11]' : 'bg-[#f6465d] text-white'}`}>
-              {side === 'buy' ? 'Open Long' : 'Open Short'}
+            <button 
+              onClick={handleTrade} 
+              disabled={loading} 
+              className={`w-full py-3.5 rounded-lg font-bold text-sm transition-all active:scale-[0.98] mt-2 ${loading ? 'opacity-50' : side === 'buy' ? 'bg-[#02c076] text-[#12161c]' : 'bg-[#f6465d] text-white'}`}
+            >
+              {loading ? "Processing..." : side === 'buy' ? "Buy / Long" : "Sell / Short"}
             </button>
           </div>
         </div>
 
         {/* Right Side: Order Book */}
-        <div className="w-[42%] flex flex-col pt-1">
-          <OrderBook />
+        <div className="w-[42%] flex flex-col pt-3">
+          <div className="flex justify-between px-3 text-[10px] text-gray-500 font-medium mb-3">
+            <div className="flex flex-col"><span>Price</span><span>(USDT)</span></div>
+            <div className="flex flex-col text-right"><span>Amount</span><span>(USDT)</span></div>
+          </div>
+
+          <div className="flex-1 px-2 space-y-[1px]">
+            {orderData.sell.map((order, i) => (
+              <div key={i} className="flex justify-between text-[11px] relative h-5 items-center">
+                <div className="absolute right-0 top-0 bottom-0 bg-[#f6465d15]" style={{width: `${Math.random() * 80}%`}}></div>
+                <span className="text-[#f6465d] z-10">{order.price}</span>
+                <span className="text-gray-300 z-10">{order.amount}</span>
+              </div>
+            ))}
+
+            <div className="py-3 text-center border-y border-gray-800 my-2">
+              <div className="text-lg font-bold text-[#02c076] leading-none">{currentPrice}</div>
+              <div className="text-[11px] text-gray-500 mt-1">≈ ${currentPrice}</div>
+            </div>
+
+            {orderData.buy.map((order, i) => (
+              <div key={i} className="flex justify-between text-[11px] relative h-5 items-center">
+                <div className="absolute right-0 top-0 bottom-0 bg-[#02c07615]" style={{width: `${Math.random() * 80}%`}}></div>
+                <span className="text-[#02c076] z-10">{order.price}</span>
+                <span className="text-gray-300 z-10">{order.amount}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-
-      {/* 4. Bottom Positions Section */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#0b0e11] border-t border-gray-900 pb-16 md:pb-0 z-40">
-        <PositionTable />
-      </div>
-
-      {/* 5. Chart Floating Button */}
-      <div className="absolute bottom-32 right-4 bg-[#1e2329] p-3 rounded-full border border-gray-700 shadow-2xl text-[#f0b90b] active:scale-90 transition-all cursor-pointer">
-          <Maximize2 size={20} />
-      </div>
-
     </div>
   );
 };
