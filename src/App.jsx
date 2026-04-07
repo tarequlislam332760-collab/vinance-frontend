@@ -4,10 +4,11 @@ import axios from 'axios';
 import { 
   LayoutDashboard, BarChart3, TrendingUp, Wallet, LogOut, 
   ShieldCheck, Activity, ArrowUpRight, ArrowDownLeft,
-  PieChart, ChevronLeft, Star, Bell, MoreHorizontal, LayoutGrid, Zap, ChevronDown, History
+  PieChart, ChevronLeft, Star, Bell, MoreHorizontal, LayoutGrid, Zap, ChevronDown, History, Maximize2
 } from 'lucide-react';
 
 import { UserProvider, UserContext } from './context/UserContext'; 
+// আপনার অন্যান্য ইম্পোর্টগুলো ঠিক আছে...
 import BecomeTrader from './pages/BecomeTrader';
 import Profile from './pages/Profile';
 import Home from './pages/Home'; 
@@ -19,7 +20,6 @@ import WalletPage from './pages/Wallet';
 import Investment from './pages/Investment'; 
 import MyInvestments from './pages/MyInvestments';
 import ManagePlans from './admin/ManagePlans';
-import InvestmentLogs from './admin/InvestmentLogs';
 import TraderProfile from './pages/TraderProfile';
 
 // --- NavItem Component ---
@@ -29,7 +29,7 @@ const NavItem = ({ to, icon, label }) => (
   </NavLink>
 );
 
-// --- Futures Component ---
+// --- Futures Component (Updated for better Layout) ---
 const Futures = () => {
   const { coinSymbol } = useParams();
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
@@ -37,72 +37,72 @@ const Futures = () => {
   const [amount, setAmount] = useState('');
   const [side, setSide] = useState('buy'); 
   const [loading, setLoading] = useState(false);
-  const [timeframe, setTimeframe] = useState('15');
-
   const currentCoin = (coinSymbol || 'BTC').toUpperCase();
 
   const handleTrade = async () => {
-    if (!amount || parseFloat(amount) <= 0) return alert("Enter amount");
+    if (!amount || parseFloat(amount) <= 0) return alert("অ্যামাউন্ট লিখুন");
     setLoading(true);
     try {
       const res = await axios.post(`${API_URL}/api/futures/trade`, 
-        { 
-          type: side, 
-          amount: parseFloat(amount), 
-          leverage: leverage, 
-          symbol: currentCoin 
-        },
+        { type: side, amount: parseFloat(amount), leverage, symbol: currentCoin },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       alert(res.data.message);
       if (refreshUser) await refreshUser();
     } catch (err) { 
-      alert(err.response?.data?.message || "Futures trade failed"); 
+      alert(err.response?.data?.message || "ট্রেড ব্যর্থ হয়েছে"); 
     } finally { setLoading(false); }
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#0b0e11] text-[#eaecef] overflow-hidden font-sans text-left">
-      <div className="flex justify-between items-center px-4 py-3 border-b border-gray-800 bg-[#0b0e11] sticky top-0 z-50">
+    <div className="flex flex-col h-screen bg-[#0b0e11] text-[#eaecef] overflow-hidden text-left relative">
+      <div className="flex justify-between items-center px-4 py-3 border-b border-gray-800 bg-[#0b0e11] z-50">
         <div className="flex items-center gap-2">
           <ChevronLeft size={22} className="text-gray-400 cursor-pointer" onClick={() => window.history.back()} />
-          <h2 className="text-sm md:text-lg font-bold flex items-center gap-1">
-            {currentCoin}/USDT <span className="text-[10px] bg-[#2b3139] px-1 rounded text-gray-400">Perp</span>
-            <ChevronDown size={14} className="text-gray-500" />
+          <h2 className="text-sm font-bold flex items-center gap-1 italic uppercase">
+            {currentCoin}USDT <span className="bg-[#2b3139] text-[9px] px-1 rounded text-[#02c076] not-italic">Perp</span>
           </h2>
         </div>
         <div className="flex gap-4 text-gray-400 items-center">
-          <Star size={18} /><Bell size={18} /><MoreHorizontal size={18} />
+          <History size={18} className="hover:text-white cursor-pointer" />
+          <MoreHorizontal size={20} />
         </div>
       </div>
+
       <div className="flex-1 relative bg-black">
-         <iframe title="Futures Chart" src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${currentCoin}USDT&interval=${timeframe}&theme=dark&style=1`} className="absolute inset-0 w-full h-full border-none"></iframe>
+         <iframe title="Futures Chart" src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${currentCoin}USDT&interval=15&theme=dark&style=1`} className="absolute inset-0 w-full h-full border-none"></iframe>
       </div>
-      <div className="w-full bg-[#161a1e] p-4 pb-20 md:pb-6 border-t border-gray-900">
-          <div className="flex gap-2 mb-3">
-             <button onClick={() => setSide('buy')} className={`flex-1 py-2 rounded font-bold text-xs ${side === 'buy' ? 'bg-[#02c076] text-black' : 'bg-gray-800 text-gray-400'}`}>Buy</button>
-             <button onClick={() => setSide('sell')} className={`flex-1 py-2 rounded font-bold text-xs ${side === 'sell' ? 'bg-[#f6465d] text-white' : 'bg-gray-800 text-gray-400'}`}>Sell</button>
+
+      <div className="w-full bg-[#161a1e] p-4 pb-24 md:pb-6 border-t border-gray-900 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+          <div className="flex gap-2 mb-4">
+             <button onClick={() => setSide('buy')} className={`flex-1 py-2.5 rounded-lg font-black text-[11px] uppercase italic transition-all ${side === 'buy' ? 'bg-[#02c076] text-black' : 'bg-[#2b3139] text-gray-500'}`}>Buy</button>
+             <button onClick={() => setSide('sell')} className={`flex-1 py-2.5 rounded-lg font-black text-[11px] uppercase italic transition-all ${side === 'sell' ? 'bg-[#f6465d] text-white' : 'bg-[#2b3139] text-gray-500'}`}>Sell</button>
           </div>
-          <div className="mb-3 px-1 flex justify-between items-center">
-            <span className="text-[10px] text-gray-500 font-bold uppercase">Leverage: {leverage}x</span>
-            <input type="range" min="1" max="100" value={leverage} onChange={(e)=>setLeverage(e.target.value)} className="w-2/3 h-1 bg-gray-700 accent-[#f0b90b] rounded-lg" />
-          </div>
-          <div className="flex gap-2">
-             <input type="number" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} className="flex-1 bg-[#2b3139] rounded p-2 text-xs outline-none text-white" />
-             <button onClick={handleTrade} className={`px-6 py-2 rounded font-bold text-xs ${side === 'buy' ? 'bg-[#02c076] text-black' : 'bg-[#f6465d] text-white'}`}>{loading ? '...' : 'Trade'}</button>
+          
+          <div className="flex gap-3 items-end">
+            <div className="flex-1 space-y-3">
+              <div className="flex justify-between items-center bg-[#2b3139] rounded p-2 border border-gray-800">
+                <span className="text-[9px] font-black text-gray-500 uppercase">Lev: {leverage}x</span>
+                <input type="range" min="1" max="100" value={leverage} onChange={(e)=>setLeverage(e.target.value)} className="w-24 h-1 accent-[#f0b90b] cursor-pointer" />
+              </div>
+              <input type="number" placeholder="Amount (USDT)" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-[#2b3139] rounded p-2.5 text-xs outline-none text-white border border-gray-800 focus:border-[#f0b90b]" />
+            </div>
+            <button onClick={handleTrade} className={`h-20 px-6 rounded-xl font-black text-xs uppercase italic tracking-tighter transition-all active:scale-95 ${side === 'buy' ? 'bg-[#02c076] text-black shadow-[0_0_15px_rgba(2,192,118,0.3)]' : 'bg-[#f6465d] text-white shadow-[0_0_15px_rgba(246,70,93,0.3)]'}`}>
+              {loading ? '...' : side === 'buy' ? 'Long' : 'Short'}
+            </button>
           </div>
       </div>
     </div>
   );
 };
 
-// --- Trade Component ---
+// --- Trade (Spot) Component ---
 const Trade = () => {
   const { coinSymbol } = useParams();
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
-  const currentCoin = (coinSymbol || 'btc').toUpperCase();
+  const currentCoin = (coinSymbol || 'BTC').toUpperCase();
 
   const handleTrade = async (type) => {
     if (!amount || parseFloat(amount) <= 0) return alert("অ্যামাউন্ট লিখুন");
@@ -112,21 +112,28 @@ const Trade = () => {
       alert(res.data.message);
       if (refreshUser) await refreshUser(); 
       setAmount('');
-    } catch (err) { alert("ট্রেড সফল হয়নি"); } finally { setLoading(false); }
+    } catch (err) { alert(err.response?.data?.message || "ট্রেড সফল হয়নি"); } finally { setLoading(false); }
   };
 
   return (
     <div className="flex flex-col h-screen bg-[#0b0e11] text-[#eaecef] overflow-hidden text-left">
-      <div className="flex justify-between items-center px-4 py-2 border-b border-gray-800 bg-[#0b0e11]"><ChevronLeft className="cursor-pointer" onClick={() => window.history.back()} /><span className="font-bold">{currentCoin}/USDT</span><Activity size={18} /></div>
+      <div className="flex justify-between items-center px-4 py-2 border-b border-gray-800 bg-[#0b0e11]">
+        <ChevronLeft className="cursor-pointer text-gray-400" onClick={() => window.history.back()} />
+        <span className="font-black italic uppercase text-sm tracking-widest">{currentCoin}/USDT</span>
+        <Activity size={18} className="text-[#f0b90b]" />
+      </div>
       <div className="flex-1 w-full relative">
-        <iframe title="TV" src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${currentCoin}USDT&interval=240&theme=dark&style=1`} className="absolute inset-0 w-full h-full border-none"></iframe>
+        <iframe title="Spot Chart" src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${currentCoin}USDT&interval=240&theme=dark&style=1`} className="absolute inset-0 w-full h-full border-none"></iframe>
       </div>
       <div className="p-4 pb-24 bg-[#161a1e] border-t border-gray-800">
         <div className="flex flex-col gap-3 max-w-md mx-auto">
-          <input type="number" value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="0.00" className="w-full bg-[#2b3139] rounded py-3 px-3 text-sm outline-none text-white border border-transparent focus:border-[#f0b90b]" />
-          <div className="flex gap-2">
-            <button onClick={() => handleTrade('buy')} className="flex-1 bg-[#02c076] text-black py-3 rounded font-bold">{loading ? '...' : 'Buy'}</button>
-            <button onClick={() => handleTrade('sell')} className="flex-1 bg-[#f6465d] text-white py-3 rounded font-bold">{loading ? '...' : 'Sell'}</button>
+          <div className="relative">
+            <input type="number" value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="0.00" className="w-full bg-[#2b3139] rounded-xl py-4 px-4 text-sm font-bold outline-none text-white border border-gray-800 focus:border-[#f0b90b]" />
+            <span className="absolute right-4 top-4 text-[10px] text-gray-500 font-black italic">USDT</span>
+          </div>
+          <div className="flex gap-3">
+            <button onClick={() => handleTrade('buy')} className="flex-1 bg-[#02c076] text-black py-3.5 rounded-xl font-black uppercase italic tracking-tighter">{loading ? '...' : 'Buy'}</button>
+            <button onClick={() => handleTrade('sell')} className="flex-1 bg-[#f6465d] text-white py-3.5 rounded-xl font-black uppercase italic tracking-tighter">{loading ? '...' : 'Sell'}</button>
           </div>
         </div>
       </div>
@@ -134,222 +141,44 @@ const Trade = () => {
   );
 };
 
-// --- Auth Components ---
-const Register = () => {
-  const { API_URL } = useContext(UserContext);
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
-  const [loading, setLoading] = useState(false);
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await axios.post(`${API_URL}/api/register`, { ...formData, email: formData.email.toLowerCase() });
-      alert("Registration Successful!");
-      navigate('/login');
-    } catch (err) { alert(err.response?.data?.message || "Error"); } 
-    finally { setLoading(false); }
-  };
-  return (
-    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6 text-left">
-      <div className="w-full max-w-md bg-[#161a1e] border border-[#1e2329] rounded-3xl p-10 shadow-2xl">
-        <h1 className="text-3xl font-bold text-[#f0b90b] mb-6 italic uppercase tracking-tighter">VINANCE</h1>
-        <form onSubmit={handleRegister} className="space-y-5">
-          <input type="text" placeholder="Full Name" required onChange={(e)=>setFormData({...formData, name: e.target.value})} className="w-full bg-[#0b0e11] border border-[#1e2329] rounded-xl py-3 px-4 text-white outline-none focus:border-[#f0b90b]" />
-          <input type="email" placeholder="Email" required onChange={(e)=>setFormData({...formData, email: e.target.value})} className="w-full bg-[#0b0e11] border border-[#1e2329] rounded-xl py-3 px-4 text-white outline-none focus:border-[#f0b90b]" />
-          <input type="password" placeholder="Password" required onChange={(e)=>setFormData({...formData, password: e.target.value})} className="w-full bg-[#0b0e11] border border-[#1e2329] rounded-xl py-3 px-4 text-white outline-none focus:border-[#f0b90b]" />
-          <button disabled={loading} className="w-full bg-[#f0b90b] text-black py-3.5 rounded-xl font-bold uppercase">{loading ? "Wait..." : "Register"}</button>
-        </form>
-        <p className="text-center mt-6 text-sm text-gray-400">Already have an account? <Link to="/login" className="text-[#f0b90b] hover:underline">Log In</Link></p>
-      </div>
-    </div>
-  );
-};
-
-const Login = () => {
-  const { setUser, setToken, refreshUser, API_URL } = useContext(UserContext);
-  const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await axios.post(`${API_URL}/api/login`, { email: email.toLowerCase(), password });
-      localStorage.setItem('token', res.data.token);
-      setToken(res.data.token);
-      setUser(res.data.user);
-      if (refreshUser) await refreshUser(); 
-      navigate('/dashboard');
-    } catch (err) { alert(err.response?.data?.message || "Login Failed"); } 
-    finally { setLoading(false); }
-  };
-  return (
-    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6 text-left">
-      <div className="w-full max-w-md bg-[#161a1e] border border-[#1e2329] rounded-3xl p-10 shadow-2xl">
-        <h1 className="text-3xl font-bold text-[#f0b90b] mb-6 italic uppercase tracking-tighter">VINANCE</h1>
-        <form onSubmit={handleLogin} className="space-y-6">
-          <input type="email" placeholder="Email" required onChange={(e)=>setEmail(e.target.value)} className="w-full bg-[#0b0e11] border border-[#1e2329] rounded-xl py-3 px-4 text-white outline-none focus:border-[#f0b90b]" />
-          <input type="password" placeholder="Password" required onChange={(e)=>setPassword(e.target.value)} className="w-full bg-[#0b0e11] border border-[#1e2329] rounded-xl py-3 px-4 text-white outline-none focus:border-[#f0b90b]" />
-          <button type="submit" disabled={loading} className="w-full bg-[#f0b90b] text-black py-3.5 rounded-xl font-bold uppercase">{loading ? "Syncing..." : "Log In"}</button>
-        </form>
-        <p className="text-center mt-6 text-sm text-gray-400">Don't have an account? <Link to="/register" className="text-[#f0b90b] hover:underline">Register</Link></p>
-      </div>
-    </div>
-  );
-};
-
-// --- Dashboard Component ---
-const Dashboard = ({ cryptoData }) => {
-  const { user, refreshUser, API_URL, token } = useContext(UserContext);
-  const navigate = useNavigate();
-  const [transactions, setTransactions] = useState([]);
-
-  useEffect(() => {
-    if (refreshUser) refreshUser(); 
-    const fetchTransactions = async () => {  
-      if (!token) return;
-      try {
-        const res = await axios.get(`${API_URL}/api/transactions`, { headers: { Authorization: `Bearer ${token}` } });
-        setTransactions(Array.isArray(res.data) ? res.data : (res.data.transactions || []));
-      } catch (err) { console.warn("Activity fetch error"); }
-    };
-    fetchTransactions();
-  }, [token, API_URL, refreshUser]);
-
-  return (
-    <div className="p-4 md:p-8 text-left space-y-6 bg-[#0b0e11] min-h-screen">
-      <div className="bg-gradient-to-br from-[#161a1e] to-[#0b0e11] p-6 rounded-[2.5rem] border border-[#1e2329] flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl relative overflow-hidden">
-        <div className="w-full md:w-auto text-center md:text-left z-10">
-          <p className="text-gray-500 text-[10px] uppercase tracking-[0.3em] font-black mb-2">Estimated Balance</p>
-          <h1 className="text-3xl md:text-5xl font-mono font-black text-white tracking-tighter">${user?.balance?.toLocaleString() || '0.00'}</h1>
-        </div>
-        <div className="flex gap-3 w-full md:w-auto z-10">
-          <button onClick={() => navigate('/deposit')} className="flex-1 bg-[#f0b90b] text-black px-8 py-3.5 rounded-2xl font-black uppercase text-xs">Deposit</button>
-          <button onClick={() => navigate('/withdraw')} className="flex-1 bg-white/5 text-white px-8 py-3.5 rounded-2xl font-black border border-[#1e2329] uppercase text-xs">Withdraw</button>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 grid grid-cols-2 gap-4">
-          {cryptoData.slice(0,4).map((coin) => (
-            <div key={coin.id} onClick={() => navigate(`/trade/${coin.symbol}`)} className="bg-[#161a1e] p-5 rounded-[2rem] border border-[#1e2329] cursor-pointer hover:border-[#f0b90b]/50 shadow-lg">
-              <div className="flex justify-between mb-4 text-[10px] font-black uppercase">
-                <span className="text-[#f0b90b]">{coin.symbol.toUpperCase()}</span>
-                <span className={coin.up ? 'text-[#00c076]' : 'text-[#f6465d]'}>{coin.change}%</span>
-              </div>
-              <p className="text-xl md:text-2xl font-black text-white font-mono">${coin.price}</p>
-            </div>
-          ))}
-        </div>
-        <div className="bg-[#161a1e] border border-[#1e2329] rounded-[2.5rem] p-6 shadow-xl relative">
-           <div className="flex justify-between items-center mb-6">
-              <h3 className="text-white font-black uppercase text-[10px] flex items-center gap-2 tracking-[0.2em]">
-                 <Activity size={14} className="text-[#f0b90b]" /> Recent Activity
-              </h3>
-              <Link to="/wallet" className="text-[#f0b90b] text-[10px] font-black uppercase hover:underline">View All</Link>
-           </div>
-           <div className="space-y-4">
-            {transactions.slice(0, 5).map((trx) => (
-              <div key={trx._id} className="flex justify-between items-center p-3 hover:bg-white/[0.03] rounded-2xl border border-transparent hover:border-[#1e2329]">
-                <div className="flex items-center gap-2">
-                  <div className={trx.type === 'deposit' ? 'text-[#00c076]' : 'text-[#f6465d]'}>{trx.type === 'deposit' ? <ArrowDownLeft size={14}/> : <ArrowUpRight size={14}/>}</div>
-                  <div>
-                    <p className="font-black text-[9px] text-white uppercase">{trx.type}</p>
-                    <p className="text-[8px] text-gray-500 font-bold">{new Date(trx.createdAt).toLocaleDateString()}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-mono font-bold text-xs text-white">${trx.amount}</p>
-                  <p className={`text-[8px] font-black uppercase ${trx.status === 'approved' ? 'text-[#00c076]' : 'text-[#f0b90b]'}`}>{trx.status}</p>
-                </div>
-              </div>
-            ))}
-            {transactions.length === 0 && <p className="text-center text-gray-500 text-[10px] py-4 uppercase font-bold">No activity found</p>}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// --- Market Component ---
-const Market = ({ cryptoData }) => {
-  const navigate = useNavigate();
-  return (
-    <div className="p-4 md:p-10 text-left pb-32 bg-[#0b0e11] min-h-screen">
-      <div className="mb-10"><h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter flex items-center gap-3">Market <Activity className="text-[#f0b90b]" size={32} /></h2></div>
-      <div className="bg-[#161a1e] rounded-[2.5rem] border border-[#1e2329] overflow-hidden shadow-2xl">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[600px]">
-            <thead className="bg-[#0b0e11]/50 text-[10px] font-black text-gray-500 uppercase tracking-widest">
-              <tr><th className="p-6 text-left">Asset</th><th className="p-6 text-left">Price</th><th className="p-6 text-left">24h Change</th><th className="p-6 text-right">Action</th></tr>
-            </thead>
-            <tbody className="divide-y divide-[#1e2329]">
-              {cryptoData.map((coin) => (
-                <tr key={coin.id} className="hover:bg-white/[0.03]">
-                  <td className="p-6 font-black text-white text-md uppercase">{coin.name} <span className="text-[10px] text-gray-500 ml-2">{coin.symbol.toUpperCase()}</span></td>
-                  <td className="p-6 font-mono font-black text-white">${coin.price}</td>
-                  <td className={`p-6 font-mono font-black ${coin.up ? 'text-[#00c076]' : 'text-[#f6465d]'}`}>{coin.up ? '+' : ''}{coin.change}%</td>
-                  <td className="p-6 text-right"><button onClick={() => navigate(`/trade/${coin.symbol}`)} className="bg-[#f0b90b] text-black px-6 py-3 rounded-xl font-black text-[10px] uppercase">Trade</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// --- Layout & Content Wrapper ---
+// --- AppContent Wrapper (Handles Layout and Menus) ---
 const AppContent = ({ cryptoData }) => {
   const { user, token, logout, loading: authLoading } = useContext(UserContext);
   const location = useLocation();
   const [showMoreMenu, setShowMoreMenu] = useState(false); 
 
-  if (authLoading) return <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center text-[#f0b90b] font-black text-3xl animate-pulse italic">VINANCE</div>;
+  if (authLoading) return (
+    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center">
+      <div className="text-[#f0b90b] font-black text-4xl animate-pulse italic tracking-tighter">VINANCE</div>
+    </div>
+  );
 
   const isAuthPage = ['/login', '/register'].includes(location.pathname);
   const isHomePage = location.pathname === '/';
+  
   if (!token && !isAuthPage && !isHomePage) return <Navigate to="/login" replace />;
 
   const userPages = [
     { to: "/dashboard", icon: <LayoutDashboard size={22}/>, label: "Home" },
     { to: "/market", icon: <BarChart3 size={22}/>, label: "Market" },
     { to: "/invest", icon: <PieChart size={22}/>, label: "Invest" },
-    { to: "/copy-trade", icon: <Zap size={22}/>, label: "Portfolio" }, 
+    { to: "/copy-trade", icon: <Zap size={22}/>, label: "CopyTrade" }, 
     { to: `/futures/${cryptoData[0]?.symbol || 'btc'}`, icon: <Activity size={22}/>, label: "Futures" },
     { to: `/trade/${cryptoData[0]?.symbol || 'btc'}`, icon: <TrendingUp size={22}/>, label: "Spot" },
-    { to: "/my-investments", icon: <History size={22}/>, label: "Logs" },
     { to: "/wallet", icon: <Wallet size={22}/>, label: "Wallet" },
-    { to: "/deposit", icon: <ArrowDownLeft size={22}/>, label: "Deposit" },
-    { to: "/withdraw", icon: <ArrowUpRight size={22}/>, label: "Withdraw" },
-  ];
-
-  const adminPages = [
-    { to: "/admin", icon: <ShieldCheck size={22}/>, label: "Users" },
-    { to: "/admin/manage-plans", icon: <LayoutGrid size={22}/>, label: "Plans" },
   ];
 
   return (
     <div className="min-h-screen bg-[#0b0e11] text-white flex flex-col md:flex-row overflow-hidden text-left font-sans">
-      {token && !isHomePage && (
+      {/* Sidebar - Desktop */}
+      {token && !isHomePage && !isAuthPage && (
         <aside className="w-20 lg:w-64 bg-[#161a1e] border-r border-[#1e2329] hidden md:flex flex-col p-4 h-screen sticky top-0 z-40">
-          <div className="mb-12 px-4 py-2 text-2xl font-black text-[#f0b90b] italic uppercase tracking-tighter">VINANCE</div>
-          <nav className="space-y-2 flex-1 overflow-y-auto">
+          <div className="mb-10 px-4 py-2 text-2xl font-black text-[#f0b90b] italic uppercase tracking-tighter">VINANCE</div>
+          <nav className="space-y-2 flex-1 overflow-y-auto no-scrollbar">
             {userPages.map(page => (
               <NavItem key={page.to} to={page.to} icon={page.icon} label={page.label} />
             ))}
           </nav>
-          {user?.role === 'admin' && (
-            <div className="mt-auto pt-4 border-t border-gray-800 space-y-2 mb-4">
-              <div className="px-4 py-2 text-[9px] font-black text-[#f0b90b] uppercase tracking-widest opacity-50 italic">Admin Control</div>
-              {adminPages.map(page => (
-                <NavItem key={page.to} to={page.to} icon={page.icon} label={page.label} />
-              ))}
-            </div>
-          )}
           <button onClick={logout} className="p-4 text-gray-500 hover:text-red-500 flex items-center gap-4 font-bold border-t border-gray-800">
             <LogOut size={20}/> <span className="hidden lg:inline text-[10px] font-black uppercase">Sign Out</span>
           </button>
@@ -357,18 +186,18 @@ const AppContent = ({ cryptoData }) => {
       )}
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
-        {token && !isHomePage && (
-          <header className="h-14 border-b border-[#1e2329] bg-[#161a1e] flex items-center justify-between px-6 sticky top-0 z-30">
-            <div className="font-black text-[9px] uppercase tracking-widest text-[#f0b90b]">Hi, {user?.name}</div>
-            <NotificationSystem />
+        {token && !isHomePage && !isAuthPage && (
+          <header className="h-14 border-b border-[#1e2329] bg-[#161a1e] flex items-center justify-between px-6 sticky top-0 z-[60]">
+            <div className="font-black text-[10px] uppercase tracking-widest text-[#f0b90b] italic">Account: {user?.name?.split(' ')[0]}</div>
+            <div className="flex items-center gap-4">
+               <NotificationSystem />
+               <Link to="/profile" className="w-7 h-7 bg-[#2b3139] rounded-full border border-gray-700 flex items-center justify-center text-[#f0b90b] text-[10px] font-black">T</Link>
+            </div>
           </header>
         )}
         
-        {/* Main Content Area: padding bottom adjusted (pb-56) for mobile to ensure content isn't hidden behind the floating button and nav */}
-        <div className={`flex-1 overflow-y-auto ${token && !isHomePage ? 'pb-56 md:pb-8' : ''}`}>
+        <div className={`flex-1 overflow-y-auto no-scrollbar ${token && !isHomePage && !isAuthPage ? 'pb-20 md:pb-0' : ''}`}>
           <Routes>
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/become-trader" element={<BecomeTrader />} />
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -382,56 +211,45 @@ const AppContent = ({ cryptoData }) => {
             <Route path="/invest" element={<Investment />} />
             <Route path="/my-investments" element={<MyInvestments />} />
             <Route path="/copy-trade" element={<TraderProfile />} /> 
-            <Route path="/admin" element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/dashboard" />} />
-            <Route path="/admin/manage-plans" element={user?.role === 'admin' ? <ManagePlans /> : <Navigate to="/dashboard" />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/become-trader" element={<BecomeTrader />} />
+            {/* Admin Routes */}
+            <Route path="/admin/*" element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/dashboard" />} />
           </Routes>
         </div>
       </main>
 
-      {token && !isHomePage && (
+      {/* Mobile Nav & More Menu */}
+      {token && !isHomePage && !isAuthPage && (
         <>
           {showMoreMenu && (
-            <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[100] p-8 flex flex-col overflow-y-auto text-left">
+            <div className="fixed inset-0 bg-black/95 backdrop-blur-2xl z-[100] p-8 flex flex-col text-left animate-in fade-in zoom-in duration-300">
               <div className="flex justify-between items-center mb-10">
-                <h2 className="text-[#f0b90b] font-black text-xl uppercase italic">Services</h2>
-                <button onClick={() => setShowMoreMenu(false)} className="bg-white/10 p-2 rounded-full text-gray-400">Close</button>
+                <h2 className="text-[#f0b90b] font-black text-2xl uppercase italic tracking-tighter">Hub</h2>
+                <button onClick={() => setShowMoreMenu(false)} className="bg-white/10 w-10 h-10 rounded-full text-white flex items-center justify-center font-bold">✕</button>
               </div>
-              <div className="grid grid-cols-3 gap-y-8 gap-x-4 mb-10 text-center">
+              <div className="grid grid-cols-3 gap-6">
                 {userPages.map((page) => (
-                  <Link key={page.to} to={page.to} onClick={() => setShowMoreMenu(false)} className="flex flex-col items-center gap-2 text-gray-400">
-                    <div className="p-4 bg-white/5 rounded-2xl border border-white/5">{page.icon}</div>
-                    <span className="text-[9px] font-black uppercase leading-tight">{page.label}</span>
+                  <Link key={page.to} to={page.to} onClick={() => setShowMoreMenu(false)} className="flex flex-col items-center gap-3">
+                    <div className="w-16 h-16 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-center text-[#f0b90b]">{page.icon}</div>
+                    <span className="text-[10px] font-black uppercase text-gray-400">{page.label}</span>
                   </Link>
                 ))}
               </div>
-              {user?.role === 'admin' && (
-                <div className="mt-auto border-t border-white/10 pt-6 text-left">
-                    <h3 className="text-[#f0b90b] text-[10px] font-black uppercase mb-6 tracking-widest text-center italic">Admin Control Panel</h3>
-                    <div className="grid grid-cols-3 gap-y-8 gap-x-4 mb-8 text-center">
-                       {adminPages.map((page) => (
-                         <Link key={page.to} to={page.to} onClick={() => setShowMoreMenu(false)} className="flex flex-col items-center gap-2 text-gray-300">
-                           <div className="p-4 bg-[#f0b90b]/10 rounded-2xl border border-[#f0b90b]/20">{page.icon}</div>
-                           <span className="text-[9px] font-black uppercase">{page.label}</span>
-                         </Link>
-                       ))}
-                    </div>
-                </div>
-              )}
-              <button onClick={logout} className="flex items-center justify-center gap-2 text-red-500 font-black uppercase text-[10px] py-4 bg-red-500/5 rounded-2xl border border-red-500/10 mt-4">
-                  <LogOut size={18}/> Logout Account
+              <button onClick={logout} className="mt-auto flex items-center justify-center gap-3 text-red-500 font-black uppercase text-xs py-5 bg-red-500/10 rounded-2xl border border-red-500/20">
+                  <LogOut size={20}/> Logout account
               </button>
             </div>
           )}
           
-          {/* Mobile Bottom Navigation: Z-index set to [80] to stay above the floating button (z-50) */}
-          <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/95 backdrop-blur-md border-t border-gray-800 flex justify-around items-center py-4 md:hidden z-[80] shadow-[0_-10px_20px_rgba(0,0,0,0.4)]">
-            <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
-            <NavLink to="/invest" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><PieChart size={22}/></NavLink>
-            <NavLink to="/copy-trade" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Zap size={22}/></NavLink>
-            <NavLink to="/wallet" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Wallet size={22}/></NavLink>
+          <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/90 backdrop-blur-xl border-t border-gray-800 flex justify-around items-center py-4 md:hidden z-[80] shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+            <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><LayoutDashboard size={24}/></NavLink>
+            <NavLink to="/market" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><BarChart3 size={24}/></NavLink>
+            <NavLink to="/copy-trade" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Zap size={24}/></NavLink>
+            <NavLink to="/wallet" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Wallet size={24}/></NavLink>
             <button onClick={() => setShowMoreMenu(true)} className="text-gray-400 relative">
-                <LayoutGrid size={22}/>
-                {user?.role === 'admin' && <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#f0b90b] rounded-full animate-pulse"></span>}
+                <LayoutGrid size={24}/>
+                {user?.role === 'admin' && <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#f0b90b] rounded-full"></span>}
             </button>
           </nav>
         </>

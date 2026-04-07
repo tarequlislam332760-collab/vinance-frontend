@@ -1,60 +1,49 @@
 import React, { useState } from 'react';
 
 const LeverageSlider = ({ onChange }) => {
-  const [val, setVal] = useState(20); // ডিফল্ট ২০ সেট করা
-
-  const handleChange = (e) => {
-    const value = e.target.value;
-    setVal(value);
-    if (onChange) onChange(value);
-  };
-
-  // স্লাইডারের নিচে ১০০ পর্যন্ত মার্কিং দেখানোর জন্য
+  const [val, setVal] = useState(20);
   const marks = [1, 25, 50, 75, 100];
 
+  const updateVal = (newVal) => {
+    setVal(newVal);
+    if (onChange) onChange(newVal);
+  };
+
   return (
-    <div className="mt-4 mb-6 px-1">
-      <div className="flex justify-between items-center mb-3">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Leverage</span>
-          <span className="bg-[#f0b90b]/10 text-[#f0b90b] text-[10px] px-2 py-0.5 rounded font-bold">Cross</span>
-        </div>
-        <span className="text-[#f0b90b] font-black italic text-sm">{val}x</span>
+    <div className="mt-2 mb-4">
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Leverage</span>
+        <span className="text-[#f0b90b] font-black italic text-xs bg-[#f0b90b]/10 px-2 py-0.5 rounded">{val}x</span>
       </div>
       
-      <div className="relative pt-1">
+      <div className="relative px-1">
         <input 
-          type="range" 
-          min="1" 
-          max="100"  // এখানে ১০০ পর্যন্ত লিমিট করে দেওয়া হয়েছে
-          step="1"
+          type="range" min="1" max="100" step="1"
           value={val} 
-          onChange={handleChange}
-          className="w-full h-1.5 bg-[#2b3139] rounded-lg appearance-none cursor-pointer accent-[#f0b90b] hover:accent-[#f0b90b]"
+          onChange={(e) => updateVal(e.target.value)}
+          className="w-full h-1 bg-[#2b3139] rounded-lg appearance-none cursor-pointer accent-[#f0b90b]"
         />
         
-        {/* স্লাইডারের নিচের ডট এবং নাম্বারসমূহ */}
-        <div className="flex justify-between mt-2 px-0.5">
+        <div className="flex justify-between mt-1.5 px-0.5">
           {marks.map(mark => (
             <div key={mark} className="flex flex-col items-center">
-              <div className={`h-1 w-0.5 ${val >= mark ? 'bg-[#f0b90b]' : 'bg-gray-700'}`}></div>
+              <div className={`h-1 w-[1px] ${val >= mark ? 'bg-[#f0b90b]' : 'bg-gray-700'}`}></div>
               <span className={`text-[8px] mt-1 font-bold ${val >= mark ? 'text-gray-300' : 'text-gray-600'}`}>
-                {mark}x
+                {mark}%
               </span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* বাইনান্স স্টাইল কুইক সিলেক্ট বাটন (ঐচ্ছিক) */}
-      <div className="flex justify-between mt-4 gap-1">
+      <div className="flex justify-between mt-4 gap-1.5">
         {[25, 50, 75, 100].map(m => (
           <button 
             key={m}
-            onClick={() => { setVal(m); if(onChange) onChange(m); }}
-            className={`flex-1 py-1 rounded text-[9px] font-black transition-all ${val == m ? 'bg-[#f0b90b] text-black' : 'bg-[#2b3139] text-gray-400'}`}
+            onClick={() => updateVal(m)}
+            className={`flex-1 py-1 rounded-md text-[9px] font-black transition-all border ${val == m ? 'bg-[#f0b90b] text-black border-[#f0b90b]' : 'bg-transparent text-gray-500 border-gray-800 hover:border-gray-600'}`}
           >
-            {m}x
+            {m}%
           </button>
         ))}
       </div>

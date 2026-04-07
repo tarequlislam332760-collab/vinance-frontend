@@ -1,21 +1,42 @@
 @import "tailwindcss";
 
 @theme {
-  /* কালার ভেরিয়েবল */
+  /* v4 এ সরাসরি কালার ডিফাইন করলে Tailwind অটোমেটিক ক্লাস জেনারেট করে */
   --color-main-bg: #03101a;
   --color-card-bg: #032a3b;
   --color-primary: #1aa07b;
   --color-primary-hover: #158566;
   --color-success: #01585c;
   --color-danger: #ff3366;
-  --color-border: #143e52;
+  --color-border-custom: #143e52; /* 'border' নাম দিলে ডিফল্ট বর্ডারের সাথে কনফ্লিক্ট হতে পারে */
 }
 
 @layer base {
   body {
-    /* সরাসরি ভেরিয়েবল ব্যবহার */
+    /* Tailwind v4 এর ভেরিয়েবল ব্যবহারের সঠিক নিয়ম */
     background-color: var(--color-main-bg);
     color: #f3f7e9;
     font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  /* আপনার ক্লিপ-পাথ কোড একদম নিখুঁত আছে */
+  .clip-path-buy {
+    clip-path: polygon(0 0, 85% 0, 100% 100%, 0% 100%);
+  }
+  .clip-path-sell {
+    clip-path: polygon(15% 0, 100% 0, 100% 100%, 0% 100%);
+  }
+  
+  /* অতিরিক্ত টিপস: স্ক্রলবার হাইড করার ইউটিলিটি */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
