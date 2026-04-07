@@ -53,12 +53,8 @@ const Futures = () => {
       }, {
         headers: { Authorization: `Bearer ${token}` } 
       });
-      
       toast.success(res.data.message);
-      
-      // ✅ ট্রেড সফল হওয়ার পর ইনপুট বক্স খালি করার জন্য:
-      setAmount(''); 
-      
+      setAmount('');
       if (refreshUser) await refreshUser();
     } catch (err) { 
       toast.error(err.response?.data?.message || "Trade failed"); 
@@ -117,16 +113,10 @@ const Futures = () => {
             </div>
 
             <div className="flex items-center bg-[#2b3139] rounded h-10 border border-transparent focus-within:border-[#f0b90b]">
-              <button className="px-3 text-gray-400" onClick={() => setAmount(prev => Math.max(0, Number(prev) - 1))}><Minus size={16}/></button>
-              <input 
-                type="number" 
-                placeholder="Amount" 
-                value={amount} 
-                onChange={(e) => setAmount(e.target.value)} 
-                className="w-full bg-transparent text-center text-white text-[13px] font-bold outline-none" 
-              />
+              <button className="px-3 text-gray-400"><Minus size={16}/></button>
+              <input type="number" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-transparent text-center text-white text-[13px] font-bold outline-none" />
               <div className="flex items-center gap-1 pr-2 text-[11px] text-gray-400 border-l border-gray-700 pl-2">USDT <ChevronDown size={10}/></div>
-              <button className="px-3 text-gray-400" onClick={() => setAmount(prev => Number(prev) + 1)}><Plus size={16}/></button>
+              <button className="px-3 text-gray-400"><Plus size={16}/></button>
             </div>
 
             {/* Dot Slider */}
@@ -134,7 +124,7 @@ const Futures = () => {
               <div className="h-[2px] bg-[#2b3139] w-full rounded relative">
                 <div className="absolute h-full bg-[#f0b90b] w-0"></div>
                 {[0, 25, 50, 75, 100].map(p => (
-                  <div key={p} className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-[#2b3139] border-2 border-[#12161c] rounded-sm cursor-pointer hover:bg-[#f0b90b]" style={{left: `${p}%`}} onClick={() => setAmount(((user?.balance || 0) * (p / 100)).toFixed(2))}></div>
+                  <div key={p} className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-[#2b3139] border-2 border-[#12161c] rounded-sm cursor-pointer hover:bg-[#f0b90b]" style={{left: `${p}%`}}></div>
                 ))}
               </div>
             </div>
@@ -146,11 +136,11 @@ const Futures = () => {
 
             <div className="flex justify-between text-[11px] pt-1">
               <span>Max</span>
-              <span className="text-white">{(user?.balance * leverage || 0).toFixed(2)} USDT</span>
+              <span className="text-white">3,033.12 USDT</span>
             </div>
             <div className="flex justify-between text-[11px]">
               <span>Cost</span>
-              <span className="text-white">{amount ? (parseFloat(amount) / leverage).toFixed(2) : '0.00'} USDT</span>
+              <span className="text-white">0.00 USDT</span>
             </div>
 
             <button onClick={handleTrade} disabled={loading} className={`w-full py-3.5 rounded-lg font-bold text-sm transition-all active:scale-[0.98] ${side === 'buy' ? 'bg-[#02c076] text-[#12161c]' : 'bg-[#f6465d] text-white'}`}>
