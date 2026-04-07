@@ -8,7 +8,10 @@ import {
 } from 'lucide-react';
 
 import { UserProvider, UserContext } from './context/UserContext'; 
-// আপনার অন্যান্য ইম্পোর্টগুলো ঠিক আছে...
+
+// --- ইম্পোর্ট সেকশন (নিশ্চিত করুন এই ফাইলগুলো আপনার pages ফোল্ডারে আছে) ---
+import Login from './pages/Login'; 
+import Register from './pages/Register';
 import BecomeTrader from './pages/BecomeTrader';
 import Profile from './pages/Profile';
 import Home from './pages/Home'; 
@@ -21,6 +24,8 @@ import Investment from './pages/Investment';
 import MyInvestments from './pages/MyInvestments';
 import ManagePlans from './admin/ManagePlans';
 import TraderProfile from './pages/TraderProfile';
+import Dashboard from './pages/Dashboard'; // Dashboard ইম্পোর্ট করা নিশ্চিত করুন
+import Market from './pages/Market';       // Market ইম্পোর্ট করা নিশ্চিত করুন
 
 // --- NavItem Component ---
 const NavItem = ({ to, icon, label }) => (
@@ -29,7 +34,7 @@ const NavItem = ({ to, icon, label }) => (
   </NavLink>
 );
 
-// --- Futures Component (Updated for better Layout) ---
+// --- Futures Component ---
 const Futures = () => {
   const { coinSymbol } = useParams();
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
@@ -50,7 +55,7 @@ const Futures = () => {
       alert(res.data.message);
       if (refreshUser) await refreshUser();
     } catch (err) { 
-      alert(err.response?.data?.message || "ট্রেড ব্যর্থ হয়েছে"); 
+      alert(err.response?.data?.message || "ট্রেড ব্যর্থ হয়েছে"); 
     } finally { setLoading(false); }
   };
 
@@ -68,17 +73,14 @@ const Futures = () => {
           <MoreHorizontal size={20} />
         </div>
       </div>
-
       <div className="flex-1 relative bg-black">
          <iframe title="Futures Chart" src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${currentCoin}USDT&interval=15&theme=dark&style=1`} className="absolute inset-0 w-full h-full border-none"></iframe>
       </div>
-
-      <div className="w-full bg-[#161a1e] p-4 pb-24 md:pb-6 border-t border-gray-900 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+      <div className="w-full bg-[#161a1e] p-4 pb-24 md:pb-6 border-t border-gray-900">
           <div className="flex gap-2 mb-4">
              <button onClick={() => setSide('buy')} className={`flex-1 py-2.5 rounded-lg font-black text-[11px] uppercase italic transition-all ${side === 'buy' ? 'bg-[#02c076] text-black' : 'bg-[#2b3139] text-gray-500'}`}>Buy</button>
              <button onClick={() => setSide('sell')} className={`flex-1 py-2.5 rounded-lg font-black text-[11px] uppercase italic transition-all ${side === 'sell' ? 'bg-[#f6465d] text-white' : 'bg-[#2b3139] text-gray-500'}`}>Sell</button>
           </div>
-          
           <div className="flex gap-3 items-end">
             <div className="flex-1 space-y-3">
               <div className="flex justify-between items-center bg-[#2b3139] rounded p-2 border border-gray-800">
@@ -87,7 +89,7 @@ const Futures = () => {
               </div>
               <input type="number" placeholder="Amount (USDT)" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-[#2b3139] rounded p-2.5 text-xs outline-none text-white border border-gray-800 focus:border-[#f0b90b]" />
             </div>
-            <button onClick={handleTrade} className={`h-20 px-6 rounded-xl font-black text-xs uppercase italic tracking-tighter transition-all active:scale-95 ${side === 'buy' ? 'bg-[#02c076] text-black shadow-[0_0_15px_rgba(2,192,118,0.3)]' : 'bg-[#f6465d] text-white shadow-[0_0_15px_rgba(246,70,93,0.3)]'}`}>
+            <button onClick={handleTrade} className={`h-20 px-6 rounded-xl font-black text-xs uppercase italic transition-all ${side === 'buy' ? 'bg-[#02c076] text-black' : 'bg-[#f6465d] text-white'}`}>
               {loading ? '...' : side === 'buy' ? 'Long' : 'Short'}
             </button>
           </div>
@@ -127,13 +129,10 @@ const Trade = () => {
       </div>
       <div className="p-4 pb-24 bg-[#161a1e] border-t border-gray-800">
         <div className="flex flex-col gap-3 max-w-md mx-auto">
-          <div className="relative">
-            <input type="number" value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="0.00" className="w-full bg-[#2b3139] rounded-xl py-4 px-4 text-sm font-bold outline-none text-white border border-gray-800 focus:border-[#f0b90b]" />
-            <span className="absolute right-4 top-4 text-[10px] text-gray-500 font-black italic">USDT</span>
-          </div>
+          <input type="number" value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="0.00 USDT" className="w-full bg-[#2b3139] rounded-xl py-4 px-4 text-sm font-bold outline-none text-white border border-gray-800 focus:border-[#f0b90b]" />
           <div className="flex gap-3">
-            <button onClick={() => handleTrade('buy')} className="flex-1 bg-[#02c076] text-black py-3.5 rounded-xl font-black uppercase italic tracking-tighter">{loading ? '...' : 'Buy'}</button>
-            <button onClick={() => handleTrade('sell')} className="flex-1 bg-[#f6465d] text-white py-3.5 rounded-xl font-black uppercase italic tracking-tighter">{loading ? '...' : 'Sell'}</button>
+            <button onClick={() => handleTrade('buy')} className="flex-1 bg-[#02c076] text-black py-3.5 rounded-xl font-black uppercase italic">{loading ? '...' : 'Buy'}</button>
+            <button onClick={() => handleTrade('sell')} className="flex-1 bg-[#f6465d] text-white py-3.5 rounded-xl font-black uppercase italic">{loading ? '...' : 'Sell'}</button>
           </div>
         </div>
       </div>
@@ -141,22 +140,25 @@ const Trade = () => {
   );
 };
 
-// --- AppContent Wrapper (Handles Layout and Menus) ---
+// --- AppContent Wrapper ---
 const AppContent = ({ cryptoData }) => {
   const { user, token, logout, loading: authLoading } = useContext(UserContext);
   const location = useLocation();
   const [showMoreMenu, setShowMoreMenu] = useState(false); 
 
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+  const isHomePage = location.pathname === '/';
+
   if (authLoading) return (
     <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center">
-      <div className="text-[#f0b90b] font-black text-4xl animate-pulse italic tracking-tighter">VINANCE</div>
+      <div className="text-[#f0b90b] font-black text-4xl animate-pulse italic tracking-tighter text-center uppercase">SearchSocial<br/><span className="text-white text-xs tracking-[10px]">Marketing</span></div>
     </div>
   );
 
-  const isAuthPage = ['/login', '/register'].includes(location.pathname);
-  const isHomePage = location.pathname === '/';
-  
-  if (!token && !isAuthPage && !isHomePage) return <Navigate to="/login" replace />;
+  // টোকেন না থাকলে এবং লগইন/রেজিস্টার/হোম পেজ না হলে রিডাইরেক্ট
+  if (!token && !isAuthPage && !isHomePage) {
+    return <Navigate to="/login" replace />;
+  }
 
   const userPages = [
     { to: "/dashboard", icon: <LayoutDashboard size={22}/>, label: "Home" },
@@ -173,14 +175,14 @@ const AppContent = ({ cryptoData }) => {
       {/* Sidebar - Desktop */}
       {token && !isHomePage && !isAuthPage && (
         <aside className="w-20 lg:w-64 bg-[#161a1e] border-r border-[#1e2329] hidden md:flex flex-col p-4 h-screen sticky top-0 z-40">
-          <div className="mb-10 px-4 py-2 text-2xl font-black text-[#f0b90b] italic uppercase tracking-tighter">VINANCE</div>
+          <div className="mb-10 px-4 py-2 text-xl font-black text-[#f0b90b] italic uppercase tracking-tighter">VINANCE</div>
           <nav className="space-y-2 flex-1 overflow-y-auto no-scrollbar">
             {userPages.map(page => (
               <NavItem key={page.to} to={page.to} icon={page.icon} label={page.label} />
             ))}
           </nav>
           <button onClick={logout} className="p-4 text-gray-500 hover:text-red-500 flex items-center gap-4 font-bold border-t border-gray-800">
-            <LogOut size={20}/> <span className="hidden lg:inline text-[10px] font-black uppercase">Sign Out</span>
+            <LogOut size={20}/> <span className="hidden lg:inline text-[10px] font-black uppercase tracking-widest">Logout</span>
           </button>
         </aside>
       )}
@@ -188,10 +190,10 @@ const AppContent = ({ cryptoData }) => {
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
         {token && !isHomePage && !isAuthPage && (
           <header className="h-14 border-b border-[#1e2329] bg-[#161a1e] flex items-center justify-between px-6 sticky top-0 z-[60]">
-            <div className="font-black text-[10px] uppercase tracking-widest text-[#f0b90b] italic">Account: {user?.name?.split(' ')[0]}</div>
+            <div className="font-black text-[10px] uppercase tracking-widest text-[#f0b90b] italic">UID: {user?._id?.slice(-6) || 'Guest'}</div>
             <div className="flex items-center gap-4">
                <NotificationSystem />
-               <Link to="/profile" className="w-7 h-7 bg-[#2b3139] rounded-full border border-gray-700 flex items-center justify-center text-[#f0b90b] text-[10px] font-black">T</Link>
+               <Link to="/profile" className="w-8 h-8 bg-[#f0b90b] rounded-full flex items-center justify-center text-black text-[10px] font-black uppercase">{user?.name?.charAt(0) || 'U'}</Link>
             </div>
           </header>
         )}
@@ -213,7 +215,6 @@ const AppContent = ({ cryptoData }) => {
             <Route path="/copy-trade" element={<TraderProfile />} /> 
             <Route path="/profile" element={<Profile />} />
             <Route path="/become-trader" element={<BecomeTrader />} />
-            {/* Admin Routes */}
             <Route path="/admin/*" element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/dashboard" />} />
           </Routes>
         </div>
@@ -225,7 +226,7 @@ const AppContent = ({ cryptoData }) => {
           {showMoreMenu && (
             <div className="fixed inset-0 bg-black/95 backdrop-blur-2xl z-[100] p-8 flex flex-col text-left animate-in fade-in zoom-in duration-300">
               <div className="flex justify-between items-center mb-10">
-                <h2 className="text-[#f0b90b] font-black text-2xl uppercase italic tracking-tighter">Hub</h2>
+                <h2 className="text-[#f0b90b] font-black text-2xl uppercase italic tracking-tighter">Services</h2>
                 <button onClick={() => setShowMoreMenu(false)} className="bg-white/10 w-10 h-10 rounded-full text-white flex items-center justify-center font-bold">✕</button>
               </div>
               <div className="grid grid-cols-3 gap-6">
@@ -236,21 +237,15 @@ const AppContent = ({ cryptoData }) => {
                   </Link>
                 ))}
               </div>
-              <button onClick={logout} className="mt-auto flex items-center justify-center gap-3 text-red-500 font-black uppercase text-xs py-5 bg-red-500/10 rounded-2xl border border-red-500/20">
-                  <LogOut size={20}/> Logout account
-              </button>
             </div>
           )}
           
-          <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/90 backdrop-blur-xl border-t border-gray-800 flex justify-around items-center py-4 md:hidden z-[80] shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+          <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/90 backdrop-blur-xl border-t border-gray-800 flex justify-around items-center py-4 md:hidden z-[80]">
             <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><LayoutDashboard size={24}/></NavLink>
             <NavLink to="/market" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><BarChart3 size={24}/></NavLink>
             <NavLink to="/copy-trade" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Zap size={24}/></NavLink>
             <NavLink to="/wallet" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Wallet size={24}/></NavLink>
-            <button onClick={() => setShowMoreMenu(true)} className="text-gray-400 relative">
-                <LayoutGrid size={24}/>
-                {user?.role === 'admin' && <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#f0b90b] rounded-full"></span>}
-            </button>
+            <button onClick={() => setShowMoreMenu(true)} className="text-gray-400"><LayoutGrid size={24}/></button>
           </nav>
         </>
       )}
@@ -261,9 +256,9 @@ const AppContent = ({ cryptoData }) => {
 // --- App Root ---
 export default function App() {
   const [cryptoData, setCryptoData] = useState([
-    { id: '1', name: 'Bitcoin', symbol: 'btc', price: '0', change: '0', up: true },
-    { id: '2', name: 'Ethereum', symbol: 'eth', price: '0', change: '0', up: true },
-    { id: '3', name: 'Solana', symbol: 'sol', price: '0', change: '0', up: true },
+    { id: '1', name: 'BTC', symbol: 'btc', price: '0', change: '0', up: true },
+    { id: '2', name: 'ETH', symbol: 'eth', price: '0', change: '0', up: true },
+    { id: '3', name: 'SOL', symbol: 'sol', price: '0', change: '0', up: true },
     { id: '4', name: 'BNB', symbol: 'bnb', price: '0', change: '0', up: true }
   ]);
 
@@ -281,7 +276,7 @@ export default function App() {
         up: parseFloat(res.data.priceChangePercent) > 0
       }));
       setCryptoData(newData);
-    } catch (err) { console.warn("API Connectivity Issue"); }
+    } catch (err) { console.warn("Binance API Error"); }
   };
 
   useEffect(() => {
@@ -292,7 +287,9 @@ export default function App() {
 
   return (
     <UserProvider>
-      <BrowserRouter><AppContent cryptoData={cryptoData} /></BrowserRouter>
+      <BrowserRouter>
+        <AppContent cryptoData={cryptoData} />
+      </BrowserRouter>
     </UserProvider>
   );
 }
