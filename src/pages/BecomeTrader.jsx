@@ -1,22 +1,21 @@
 import React, { useState, useContext } from 'react';
-import { ShieldCheck, Zap, ChevronLeft, Loader2 } from 'lucide-react';
+import { ShieldCheck, Zap, ChevronLeft, Loader2, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { UserContext } from '../context/UserContext';
 
 const BecomeTrader = () => {
   const navigate = useNavigate();
-  const { API_URL } = useContext(UserContext);
+  const { API_URL, token } = useContext(UserContext); // Context থেকে token ও নিলাম
 
-  // স্টেট ম্যানেজমেন্ট
   const [experience, setExperience] = useState("");
   const [capital, setCapital] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false); // সাকসেস মেসেজের জন্য
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // ১. ফ্রন্টএন্ড ভ্যালিডেশন
     if (!experience || !capital) {
       alert("Please fill in all the required fields!");
       return;
@@ -29,20 +28,28 @@ const BecomeTrader = () => {
 
     try {
       setIsSubmitting(true);
+      
+      // ১. টোকেন সংগ্রহ (কনটেক্সট না থাকলে লোকাল স্টোরেজ থেকে)
+      const authToken = token || localStorage.getItem('token');
+      
+      // ২. ব্যাকএন্ডে ডাটা পাঠানো (সঠিক হেডার সহ)
+      const response = await axios.post(`${API_URL || 'https://vinance-backend.vercel.app'}/api/traders/apply`, 
+        { experience, capital },
+        { 
+          headers: { 
+            Authorization: `Bearer ${authToken}` 
+          } 
+        }
+      );
 
-      // ২. ব্যাকএন্ডে ডাটা পাঠানো
-      const response = await axios.post(`${API_URL}/api/traders/apply`, {
-        experience: experience,
-        capital: capital
-      });
-
-      // ৩. সাকসেস হলে মেসেজ দেখানো
-      alert(response.data.message || "Application Submitted! Review will take 24 hours.");
-      navigate('/trader-profile'); // সাবমিট শেষে প্রোফাইল পেজে ব্যাক করবে
+      // ৩. সাকসেস হ্যান্ডলিং
+      setShowSuccess(true);
+      setTimeout(() => {
+        navigate('/trader-profile'); 
+      }, 2500);
 
     } catch (err) {
-      // ৪. ব্যাকএন্ড থেকে আসা এরর মেসেজ দেখানো (যেমন: ৪00 বা ৫০০ এরর)
-      const errorMsg = err.response?.data?.message || "Something went wrong! Please try again.";
+      const errorMsg = err.response?.data?.message || "Connection Error! Check your backend.";
       alert(errorMsg);
     } finally {
       setIsSubmitting(false);
@@ -58,8 +65,18 @@ const BecomeTrader = () => {
       </div>
 
       <div className="max-w-xl mx-auto bg-[#161a1e] p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] border border-[#1e2329] shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-[#f0b90b]/5 blur-[60px] rounded-full -mr-10 -mt-10"></div>
         
+        {/* সাকসেস ওভারলে (সফল হলে এটি আসবে) */}
+        {showSuccess && (
+          <div className="absolute inset-0 bg-[#161a1e] z-50 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
+            <div className="p-5 bg-green-500/20 rounded-full text-green-500 mb-4">
+              <CheckCircle size={60} />
+            </div>
+            <h2 className="text-2xl font-black uppercase italic italic">Application Submitted!</h2>
+            <p className="text-gray-400 text-xs mt-2 uppercase tracking-widest">Review will take 24 hours. Redirecting...</p>
+          </div>
+        )}
+
         <div className="relative z-10">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-4 mb-10 text-center md:text-left">
             <div className="p-5 bg-[#f0b90b] rounded-[1.5rem] text-black shadow-[0_0_20px_rgba(240,185,11,0.2)]">
@@ -83,7 +100,7 @@ const BecomeTrader = () => {
                 value={experience}
                 onChange={(e) => setExperience(e.target.value)}
                 placeholder="e.g. 3" 
-                className="w-full bg-[#0b0e11] border border-[#1e2329] p-4 md:p-5 rounded-2xl text-sm md:text-base text-white focus:border-[#f0b90b] outline-none transition-all focus:ring-1 focus:ring-[#f0b90b]/30" 
+                className="w-full bg-[#0b0e11] border border-[#1e2329] p-4 md:p-5 rounded-2xl text-sm md:text-base text-white focus:border-[#f0b90b] outline-none transition-all" 
               />
             </div>
 
@@ -96,7 +113,7 @@ const BecomeTrader = () => {
                 value={capital}
                 onChange={(e) => setCapital(e.target.value)}
                 placeholder="Minimum $500" 
-                className="w-full bg-[#0b0e11] border border-[#1e2329] p-4 md:p-5 rounded-2xl text-sm md:text-base text-white focus:border-[#f0b90b] outline-none transition-all focus:ring-1 focus:ring-[#f0b90b]/30" 
+                className="w-full bg-[#0b0e11] border border-[#1e2329] p-4 md:p-5 rounded-2xl text-sm md:text-base text-white focus:border-[#f0b90b] outline-none transition-all" 
               />
             </div>
 
@@ -114,7 +131,7 @@ const BecomeTrader = () => {
                   <><Zap size={16} fill="black" /> Submit Application</>
                 )}
               </button>
-              <p className="text-center text-[9px] text-gray-600 mt-4 uppercase font-bold tracking-tighter">
+              <p className="text-center text-[9px] text-gray-600 mt-4 uppercase font-bold tracking-tighter italic">
                 * By submitting you agree to our trader terms and conditions
               </p>
             </div>
