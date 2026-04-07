@@ -40,7 +40,6 @@ const Futures = () => {
     return () => { priceWs.close(); depthWs.close(); };
   }, [currentCoin]);
 
-  // ট্রেড লজিক আপডেট করা হয়েছে
   const handleTrade = async () => {
     if (!amount || parseFloat(amount) <= 0) return toast.error("Enter valid amount");
     if (parseFloat(amount) > (user?.balance || 0)) return toast.error("Insufficient balance");
@@ -59,8 +58,8 @@ const Futures = () => {
 
       if (res.data.success) {
         toast.success(res.data.message);
-        setAmount(''); // ✅ এখানে ইনপুট বক্স খালি করা হচ্ছে
-        if (refreshUser) await refreshUser(); // ব্যালেন্স রিফ্রেশ
+        setAmount(""); // 🚀 এটি এখন নিশ্চিতভাবে ইনপুট বক্স খালি করবে
+        if (refreshUser) await refreshUser(); 
       }
     } catch (err) { 
       toast.error(err.response?.data?.message || "Trade failed"); 
@@ -69,22 +68,23 @@ const Futures = () => {
     }
   };
 
-  // প্লাস-মাইনাস এবং স্লাইডার লজিক
   const adjustAmount = (val) => {
-    const currentVal = parseFloat(amount) || 0;
-    const newVal = Math.max(0, currentVal + val);
-    setAmount(newVal.toString());
+    setAmount(prev => {
+      const currentVal = parseFloat(prev) || 0;
+      const newVal = Math.max(0, currentVal + val);
+      return newVal === 0 ? "" : newVal.toString();
+    });
   };
 
   const handleSlider = (percent) => {
     if (!user?.balance) return;
     const calculated = (user.balance * (percent / 100)).toFixed(2);
-    setAmount(calculated);
+    setAmount(calculated === "0.00" ? "" : calculated);
   };
 
   return (
     <div className="flex flex-col h-screen bg-[#12161c] text-[#848e9c] overflow-hidden font-sans select-none">
-      {/* Top Header */}
+      {/* Header */}
       <div className="flex justify-between items-center px-4 py-3 bg-[#12161c]">
         <div className="flex items-center gap-3">
           <h2 className="text-white font-bold text-xl flex items-center gap-1">
@@ -119,12 +119,12 @@ const Futures = () => {
               <span className="text-white font-medium">{user?.balance?.toFixed(2) || '0.00'} USDT <Plus size={10} className="inline text-[#f0b90b] ml-1" /></span>
             </div>
 
-            <div className="bg-[#2b3139] py-2.5 px-3 rounded text-[13px] text-white flex justify-between items-center cursor-pointer">
+            <div className="bg-[#2b3139] py-2.5 px-3 rounded text-[13px] text-white flex justify-between items-center">
               <span>Market</span>
               <ChevronDown size={14} className="text-gray-500" />
             </div>
 
-            <div className="bg-[#2b3139] py-2.5 rounded text-center text-[13px] text-gray-500 font-bold border border-transparent">
+            <div className="bg-[#2b3139] py-2.5 rounded text-center text-[13px] text-gray-500 font-bold">
               {currentPrice}
             </div>
 
@@ -141,7 +141,7 @@ const Futures = () => {
               <button onClick={() => adjustAmount(1)} className="px-3 text-gray-400 hover:text-white"><Plus size={16}/></button>
             </div>
 
-            {/* স্লাইডার লজিক এখানে যুক্ত করা হয়েছে */}
+            {/* Slider */}
             <div className="py-4 px-1 relative">
               <div className="h-[2px] bg-[#2b3139] w-full rounded relative">
                 <div className="absolute h-full bg-[#f0b90b]" style={{ width: `${(parseFloat(amount) / user?.balance * 100) || 0}%` }}></div>
@@ -154,11 +154,6 @@ const Futures = () => {
                   ></div>
                 ))}
               </div>
-            </div>
-
-            <div className="space-y-3 pt-1">
-              <div className="flex items-center gap-2 text-[11px] text-gray-400"><div className="w-3.5 h-3.5 border border-gray-600 rounded-sm"></div> TP/SL</div>
-              <div className="flex items-center gap-2 text-[11px] text-gray-500"><div className="w-3.5 h-3.5 border border-gray-700 rounded-sm bg-gray-800"></div> Reduce Only</div>
             </div>
 
             <button 
@@ -200,20 +195,7 @@ const Futures = () => {
               </div>
             ))}
           </div>
-
-          <div className="p-3 border-t border-gray-800 flex justify-between items-center">
-             <div className="bg-[#2b3139] px-2 py-0.5 rounded text-[11px] text-white flex items-center gap-1">0.1 <ChevronDown size={10}/></div>
-             <div className="flex gap-1">
-                <div className="w-3 h-3 bg-[#02c076] rounded-sm opacity-50"></div>
-                <div className="w-3 h-3 bg-[#f6465d] rounded-sm"></div>
-             </div>
-          </div>
         </div>
-      </div>
-
-      <div className="bg-[#12161c] border-t border-gray-800 h-12 flex items-center px-4 gap-6 text-sm font-medium">
-         <div className="text-white border-b-2 border-[#f0b90b] h-full flex items-center">Positions (1)</div>
-         <div className="text-gray-500">Open Orders (3)</div>
       </div>
     </div>
   );
