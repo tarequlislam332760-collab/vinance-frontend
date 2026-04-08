@@ -1,8 +1,9 @@
 import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import API from '../api'; // ✅ axios এর বদলে আমাদের তৈরি API ফাইলটি ইমপোর্ট করুন
+import API from '../api'; 
 import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { UserContext } from '../context/UserContext';
+import { motion, AnimatePresence } from 'framer-motion'; // এনিমেশনের জন্য যোগ করা হয়েছে
 
 const Login = () => {
   const navigate = useNavigate();
@@ -22,14 +23,10 @@ const Login = () => {
     setIsSubmitting(true);
 
     try {
-      // ✅ API.post ব্যবহার করছি যাতে অটোমেটিক Localhost:10000 এ হিট করে
       const res = await API.post('/api/login', { email, password });
-      
-      // আপনার লজিক অনুযায়ী ইউজার ডাটা এবং টোকেন সেভ করা
       login(res.data.user, res.data.token); 
       navigate('/'); 
     } catch (err) {
-      // সার্ভার থেকে আসা সঠিক এরর মেসেজটি দেখাবে
       setError(err.response?.data?.message || "Invalid Email or Password");
     } finally {
       setIsSubmitting(false);
@@ -37,40 +34,86 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6 relative text-left">
-      {/* আপনার করা সুন্দর ডিজাইন এবং ব্যাকগ্রাউন্ড ইফেক্ট */}
-      <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-yellow-500/10 rounded-full blur-[120px]"></div>
+    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6 relative overflow-hidden text-left">
+      {/* ব্যাকগ্রাউন্ড গ্লো ইফেক্ট */}
+      <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-yellow-500/5 rounded-full blur-[120px]"></div>
+      <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-yellow-500/5 rounded-full blur-[120px]"></div>
       
-      <div className="w-full max-w-md bg-[#1e2329] border border-gray-800 rounded-3xl p-10 shadow-2xl relative z-10">
-        <h1 className="text-3xl font-bold text-yellow-500 mb-2 italic">VINANCE</h1>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md bg-[#1e2329] border border-gray-800 rounded-3xl p-10 shadow-2xl relative z-10"
+      >
+        <h1 className="text-3xl font-black text-yellow-500 mb-2 tracking-tighter italic">VINANCE</h1>
         <p className="text-gray-400 mb-8 font-medium">Log In to your account</p>
         
-        {error && <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-xl text-sm mb-6">{error}</div>}
+        {/* এরর মেসেজ এনিমেশন */}
+        <AnimatePresence>
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-xl text-xs mb-6 font-semibold"
+            >
+              {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
         
         <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <label className="text-sm text-gray-400 mb-2 block font-semibold">Email Address</label>
+          <div className="space-y-2">
+            <label className="text-xs text-gray-500 ml-1 font-bold uppercase tracking-wider">Email Address</label>
             <div className="relative group">
-              <Mail className="absolute left-3 top-3 text-gray-600 group-focus-within:text-yellow-500 transition" size={18} />
-              <input type="email" name="email" value={email} onChange={onChange} required placeholder="Enter your email" className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl py-3 pl-10 pr-4 text-sm outline-none focus:border-yellow-500 transition-all text-white" />
+              <Mail className="absolute left-4 top-3.5 text-gray-600 group-focus-within:text-yellow-500 transition-colors" size={18} />
+              <input 
+                type="email" name="email" value={email} onChange={onChange} required 
+                placeholder="Enter your email" 
+                className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl py-3.5 pl-12 pr-4 text-sm outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/20 transition-all text-white placeholder:text-gray-700" 
+              />
             </div>
           </div>
           
-          <div>
-            <label className="text-sm text-gray-400 mb-2 block font-semibold">Password</label>
+          <div className="space-y-2">
+            <label className="text-xs text-gray-500 ml-1 font-bold uppercase tracking-wider">Password</label>
             <div className="relative group">
-              <Lock className="absolute left-3 top-3 text-gray-600 group-focus-within:text-yellow-500 transition" size={18} />
-              <input type="password" name="password" value={password} onChange={onChange} required placeholder="Enter your password" className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl py-3 pl-10 pr-4 text-sm outline-none focus:border-yellow-500 transition-all text-white" />
+              <Lock className="absolute left-4 top-3.5 text-gray-600 group-focus-within:text-yellow-500 transition-colors" size={18} />
+              <input 
+                type="password" name="password" value={password} onChange={onChange} required 
+                placeholder="Enter your password" 
+                className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl py-3.5 pl-12 pr-4 text-sm outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/20 transition-all text-white placeholder:text-gray-700" 
+              />
             </div>
           </div>
           
-          <button type="submit" disabled={isSubmitting} className="w-full bg-yellow-500 text-black py-3.5 rounded-xl font-bold hover:bg-yellow-400 transition-all active:scale-95 flex items-center justify-center gap-2 shadow-xl shadow-yellow-500/10 mt-4 disabled:opacity-70">
-            {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <>Log In <ArrowRight size={18} /></>}
-          </button>
+          {/* --- প্রফেশনাল এনিমেটেড বাটন --- */}
+          <motion.button 
+            type="submit" 
+            disabled={isSubmitting}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-xl transition-all duration-300
+              ${isSubmitting 
+                ? "bg-gray-700 text-gray-400 cursor-not-allowed" 
+                : "bg-yellow-500 text-black hover:bg-yellow-400 shadow-yellow-500/10"
+              }`}
+          >
+            {isSubmitting ? (
+              <Loader2 className="animate-spin" size={20} />
+            ) : (
+              <>
+                <span>Log In</span>
+                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              </>
+            )}
+          </motion.button>
         </form>
         
-        <p className="text-gray-500 text-sm mt-8 text-center font-medium">Don't have an account? <Link to="/register" className="text-yellow-500 font-bold ml-1 hover:underline">Register Now</Link></p>
-      </div>
+        <p className="text-gray-500 text-sm mt-8 text-center font-medium">
+          Don't have an account? 
+          <Link to="/register" className="text-yellow-500 font-bold ml-2 hover:text-yellow-400 transition-colors">Register Now</Link>
+        </p>
+      </motion.div>
     </div>
   );
 };
