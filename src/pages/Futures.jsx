@@ -6,10 +6,9 @@ import { ChevronDown, MoreHorizontal, Settings, Plus, Minus, Info, LayoutGrid } 
 import { toast } from 'react-hot-toast';
 
 // সাব-কম্পোনেন্ট ইমপোর্ট
-import OrderBook from './OrderBook';
-import PositionTable from './PositionTable';
-import LeverageSlider from './LeverageSlider';
-
+import OrderBook from "../components/OrderBook";
+import PositionTable from "../components/PositionTable";
+import LeverageSlider from "../components/LeverageSlider";
 const api = axios.create({
   baseURL: "https://vinance-backend.vercel.app",
   withCredentials: true 

@@ -22,8 +22,8 @@ import ManagePlans from './admin/ManagePlans';
 import InvestmentLogs from './admin/InvestmentLogs';
 import TraderProfile from './pages/TraderProfile';
 
-// --- New Futures Component Import ---
-import Futures from './components/Futures/Futures';
+// --- Fixed Futures Import (As per your VS Code Screenshot) ---
+import Futures from "./pages/Futures.jsx"; 
 
 // --- NavItem Component ---
 const NavItem = ({ to, icon, label }) => (
@@ -70,10 +70,9 @@ const Trade = () => {
   );
 };
 
-// --- Auth Components (Login/Register) ---
-// (আপনার অরিজিনাল কোড এখানে অপরিবর্তিত আছে...)
-const Register = () => { /* ... */ };
-const Login = () => { /* ... */ };
+// --- Auth Components ---
+const Register = () => { return <div className="p-10 text-white">Register Page</div>; };
+const Login = () => { return <div className="p-10 text-white">Login Page</div>; };
 
 // --- Dashboard Component ---
 const Dashboard = ({ cryptoData }) => {
@@ -105,7 +104,6 @@ const Dashboard = ({ cryptoData }) => {
           <button onClick={() => navigate('/withdraw')} className="flex-1 bg-white/5 text-white px-8 py-3.5 rounded-2xl font-black border border-[#1e2329] uppercase text-xs">Withdraw</button>
         </div>
       </div>
-      {/* (Crypto List Grid...) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 grid grid-cols-2 gap-4">
           {cryptoData.slice(0,4).map((coin) => (
@@ -118,7 +116,6 @@ const Dashboard = ({ cryptoData }) => {
             </div>
           ))}
         </div>
-        {/* (Recent Activity...) */}
         <div className="bg-[#161a1e] border border-[#1e2329] rounded-[2.5rem] p-6 shadow-xl relative">
            <div className="flex justify-between items-center mb-6">
               <h3 className="text-white font-black uppercase text-[10px] flex items-center gap-2 tracking-[0.2em]">
@@ -193,7 +190,7 @@ const AppContent = ({ cryptoData }) => {
   const userPages = [
     { to: "/dashboard", icon: <LayoutDashboard size={22}/>, label: "Home" },
     { to: "/market", icon: <BarChart3 size={22}/>, label: "Market" },
-    { to: "/futures/btc", icon: <Gavel size={22}/>, label: "Futures" }, // added Futures
+    { to: "/futures/btc", icon: <Gavel size={22}/>, label: "Futures" },
     { to: "/invest", icon: <PieChart size={22}/>, label: "Invest" },
     { to: "/copy-trade", icon: <Zap size={22}/>, label: "Portfolio" }, 
     { to: `/trade/${cryptoData[0]?.symbol || 'btc'}`, icon: <TrendingUp size={22}/>, label: "Spot" },
@@ -216,7 +213,6 @@ const AppContent = ({ cryptoData }) => {
               <NavItem key={page.to} to={page.to} icon={page.icon} label={page.label} />
             ))}
           </nav>
-          {/* (Admin Panel Side...) */}
           {user?.role === 'admin' && (
             <div className="mt-auto pt-4 border-t border-gray-800 space-y-2 mb-4">
               <div className="px-4 py-2 text-[9px] font-black text-[#f0b90b] uppercase tracking-widest opacity-50 italic">Admin Control</div>
@@ -247,7 +243,7 @@ const AppContent = ({ cryptoData }) => {
             <Route path="/dashboard" element={<Dashboard cryptoData={cryptoData} />} />
             <Route path="/market" element={<Market cryptoData={cryptoData} />} />
             
-            {/* --- Updated Futures Routes --- */}
+            {/* --- Corrected Futures Routes --- */}
             <Route path="/futures" element={<Navigate to="/futures/btc" replace />} />
             <Route path="/futures/:coinSymbol" element={<Futures />} />
             
@@ -289,7 +285,7 @@ const AppContent = ({ cryptoData }) => {
             </div>
           )}
           
-          <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/95 backdrop-blur-md border-t border-gray-800 flex justify-around items-center py-4 md:hidden z-[80] shadow-[0_-10px_20px_rgba(0,0,0,0.4)]">
+          <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/95 backdrop-blur-md border-t border-gray-800 flex justify-around items-center py-4 md:hidden z-[80]">
             <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
             <NavLink to="/futures/btc" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Gavel size={22}/></NavLink>
             <NavLink to="/invest" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><PieChart size={22}/></NavLink>
