@@ -8,8 +8,14 @@ export const UserProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
-  // --- API URL কনফিগারেশন ---
   const API_URL = "https://vinance-backend.vercel.app"; 
+
+  // লগইন ফাংশন যা Login.jsx থেকে কল হবে
+  const login = (userData, userToken) => {
+    localStorage.setItem('token', userToken);
+    setToken(userToken);
+    setUser(userData);
+  };
 
   const logout = useCallback(() => {
     localStorage.removeItem('token');
@@ -32,10 +38,7 @@ export const UserProvider = ({ children }) => {
       });
       setUser(res.data);
     } catch (err) {
-      console.error("Profile fetch error:", err);
-      if (err.response?.status === 401) {
-        logout();
-      }
+      if (err.response?.status === 401) logout();
     } finally {
       setLoading(false);
     }
@@ -46,16 +49,7 @@ export const UserProvider = ({ children }) => {
   }, [token, refreshUser]);
 
   return (
-    <UserContext.Provider value={{ 
-      user, 
-      token, 
-      setUser, 
-      setToken, 
-      logout, 
-      refreshUser, 
-      API_URL, 
-      loading 
-    }}>
+    <UserContext.Provider value={{ user, token, setUser, setToken, login, logout, refreshUser, API_URL, loading }}>
       {children}
     </UserContext.Provider>
   );
