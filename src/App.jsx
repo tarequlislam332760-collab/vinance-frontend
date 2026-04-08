@@ -29,73 +29,6 @@ const NavItem = ({ to, icon, label }) => (
   </NavLink>
 );
 
-// --- Futures Component ---
-const Futures = () => {
-  const { coinSymbol } = useParams();
-  const { user, refreshUser, API_URL, token } = useContext(UserContext);
-  const [leverage, setLeverage] = useState(20);
-  const [amount, setAmount] = useState('');
-  const [side, setSide] = useState('buy'); 
-  const [loading, setLoading] = useState(false);
-  const [timeframe, setTimeframe] = useState('15');
-
-  const currentCoin = (coinSymbol || 'BTC').toUpperCase();
-
-  const handleTrade = async () => {
-    if (!amount || parseFloat(amount) <= 0) return alert("Enter amount");
-    setLoading(true);
-    try {
-      const res = await axios.post(`${API_URL}/api/futures/trade`, 
-        { 
-          type: side, 
-          amount: parseFloat(amount), 
-          leverage: leverage, 
-          symbol: currentCoin 
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      alert(res.data.message);
-      if (refreshUser) await refreshUser();
-    } catch (err) { 
-      alert(err.response?.data?.message || "Futures trade failed"); 
-    } finally { setLoading(false); }
-  };
-
-  return (
-    <div className="flex flex-col h-screen bg-[#0b0e11] text-[#eaecef] overflow-hidden font-sans text-left">
-      <div className="flex justify-between items-center px-4 py-3 border-b border-gray-800 bg-[#0b0e11] sticky top-0 z-50">
-        <div className="flex items-center gap-2">
-          <ChevronLeft size={22} className="text-gray-400 cursor-pointer" onClick={() => window.history.back()} />
-          <h2 className="text-sm md:text-lg font-bold flex items-center gap-1">
-            {currentCoin}/USDT <span className="text-[10px] bg-[#2b3139] px-1 rounded text-gray-400">Perp</span>
-            <ChevronDown size={14} className="text-gray-500" />
-          </h2>
-        </div>
-        <div className="flex gap-4 text-gray-400 items-center">
-          <Star size={18} /><Bell size={18} /><MoreHorizontal size={18} />
-        </div>
-      </div>
-      <div className="flex-1 relative bg-black">
-         <iframe title="Futures Chart" src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${currentCoin}USDT&interval=${timeframe}&theme=dark&style=1`} className="absolute inset-0 w-full h-full border-none"></iframe>
-      </div>
-      <div className="w-full bg-[#161a1e] p-4 pb-20 md:pb-6 border-t border-gray-900">
-          <div className="flex gap-2 mb-3">
-             <button onClick={() => setSide('buy')} className={`flex-1 py-2 rounded font-bold text-xs ${side === 'buy' ? 'bg-[#02c076] text-black' : 'bg-gray-800 text-gray-400'}`}>Buy</button>
-             <button onClick={() => setSide('sell')} className={`flex-1 py-2 rounded font-bold text-xs ${side === 'sell' ? 'bg-[#f6465d] text-white' : 'bg-gray-800 text-gray-400'}`}>Sell</button>
-          </div>
-          <div className="mb-3 px-1 flex justify-between items-center">
-            <span className="text-[10px] text-gray-500 font-bold uppercase">Leverage: {leverage}x</span>
-            <input type="range" min="1" max="100" value={leverage} onChange={(e)=>setLeverage(e.target.value)} className="w-2/3 h-1 bg-gray-700 accent-[#f0b90b] rounded-lg" />
-          </div>
-          <div className="flex gap-2">
-             <input type="number" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} className="flex-1 bg-[#2b3139] rounded p-2 text-xs outline-none text-white" />
-             <button onClick={handleTrade} className={`px-6 py-2 rounded font-bold text-xs ${side === 'buy' ? 'bg-[#02c076] text-black' : 'bg-[#f6465d] text-white'}`}>{loading ? '...' : 'Trade'}</button>
-          </div>
-      </div>
-    </div>
-  );
-};
-
 // --- Trade Component ---
 const Trade = () => {
   const { coinSymbol } = useParams();
@@ -319,7 +252,6 @@ const AppContent = ({ cryptoData }) => {
     { to: "/market", icon: <BarChart3 size={22}/>, label: "Market" },
     { to: "/invest", icon: <PieChart size={22}/>, label: "Invest" },
     { to: "/copy-trade", icon: <Zap size={22}/>, label: "Portfolio" }, 
-    { to: `/futures/${cryptoData[0]?.symbol || 'btc'}`, icon: <Activity size={22}/>, label: "Futures" },
     { to: `/trade/${cryptoData[0]?.symbol || 'btc'}`, icon: <TrendingUp size={22}/>, label: "Spot" },
     { to: "/my-investments", icon: <History size={22}/>, label: "Logs" },
     { to: "/wallet", icon: <Wallet size={22}/>, label: "Wallet" },
@@ -364,7 +296,6 @@ const AppContent = ({ cryptoData }) => {
           </header>
         )}
         
-        {/* Main Content Area: padding bottom adjusted (pb-56) for mobile to ensure content isn't hidden behind the floating button and nav */}
         <div className={`flex-1 overflow-y-auto ${token && !isHomePage ? 'pb-56 md:pb-8' : ''}`}>
           <Routes>
             <Route path="/profile" element={<Profile />} />
@@ -375,7 +306,6 @@ const AppContent = ({ cryptoData }) => {
             <Route path="/dashboard" element={<Dashboard cryptoData={cryptoData} />} />
             <Route path="/market" element={<Market cryptoData={cryptoData} />} />
             <Route path="/trade/:coinSymbol" element={<Trade />} /> 
-            <Route path="/futures/:coinSymbol" element={<Futures />} /> 
             <Route path="/deposit" element={<Deposit />} />
             <Route path="/withdraw" element={<Withdraw />} />
             <Route path="/wallet" element={<WalletPage />} /> 
@@ -423,7 +353,6 @@ const AppContent = ({ cryptoData }) => {
             </div>
           )}
           
-          {/* Mobile Bottom Navigation: Z-index set to [80] to stay above the floating button (z-50) */}
           <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/95 backdrop-blur-md border-t border-gray-800 flex justify-around items-center py-4 md:hidden z-[80] shadow-[0_-10px_20px_rgba(0,0,0,0.4)]">
             <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
             <NavLink to="/invest" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><PieChart size={22}/></NavLink>

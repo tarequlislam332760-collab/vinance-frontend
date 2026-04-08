@@ -5,6 +5,11 @@ import axios from 'axios';
 import { ChevronDown, MoreHorizontal, Settings, Plus, Minus, Info, LayoutGrid } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
+// সাব-কম্পোনেন্ট ইমপোর্ট
+import OrderBook from './OrderBook';
+import PositionTable from './PositionTable';
+import LeverageSlider from './LeverageSlider';
+
 const api = axios.create({
   baseURL: "https://vinance-backend.vercel.app",
   withCredentials: true 
@@ -18,7 +23,6 @@ const Futures = () => {
   const [side, setSide] = useState('buy'); 
   const [loading, setLoading] = useState(false);
   const [currentPrice, setCurrentPrice] = useState('0.0');
-  const [orderData, setOrderData] = useState({ sell: [], buy: [] });
   
   const currentCoin = (coinSymbol || 'BTC').toUpperCase();
 
@@ -28,16 +32,7 @@ const Futures = () => {
       const data = JSON.parse(event.data);
       setCurrentPrice(parseFloat(data.c).toFixed(1)); 
     };
-
-    const depthWs = new WebSocket(`wss://stream.binance.com:9443/ws/${currentCoin.toLowerCase()}usdt@depth10@100ms`);
-    depthWs.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      const asks = data.a.slice(0, 6).map(item => ({ price: parseFloat(item[0]).toFixed(1), amount: parseFloat(item[1]).toFixed(3) })).reverse();
-      const bids = data.b.slice(0, 6).map(item => ({ price: parseFloat(item[0]).toFixed(1), amount: parseFloat(item[1]).toFixed(3) }));
-      setOrderData({ sell: asks, buy: bids });
-    };
-
-    return () => { priceWs.close(); depthWs.close(); };
+    return () => priceWs.close();
   }, [currentCoin]);
 
   const handleTrade = async () => {
@@ -58,7 +53,7 @@ const Futures = () => {
 
       if (res.data.success) {
         toast.success(res.data.message);
-        setAmount(""); // 🚀 এটি এখন নিশ্চিতভাবে ইনপুট বক্স খালি করবে
+        setAmount("");
         if (refreshUser) await refreshUser(); 
       }
     } catch (err) { 
@@ -76,16 +71,10 @@ const Futures = () => {
     });
   };
 
-  const handleSlider = (percent) => {
-    if (!user?.balance) return;
-    const calculated = (user.balance * (percent / 100)).toFixed(2);
-    setAmount(calculated === "0.00" ? "" : calculated);
-  };
-
   return (
-    <div className="flex flex-col h-screen bg-[#12161c] text-[#848e9c] overflow-hidden font-sans select-none">
+    <div className="flex flex-col min-h-screen bg-[#12161c] text-[#848e9c] font-sans select-none overflow-x-hidden">
       {/* Header */}
-      <div className="flex justify-between items-center px-4 py-3 bg-[#12161c]">
+      <div className="flex justify-between items-center px-4 py-3 bg-[#12161c] border-b border-gray-800">
         <div className="flex items-center gap-3">
           <h2 className="text-white font-bold text-xl flex items-center gap-1">
             {currentCoin}USDT <span className="text-[#02c076] text-xs font-medium">+2.44%</span> <ChevronDown size={16} />
@@ -100,9 +89,9 @@ const Futures = () => {
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden border-t border-gray-800">
-        {/* Left Side: Order Form */}
-        <div className="w-[58%] p-3 space-y-4 overflow-y-auto border-r border-gray-800">
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+        {/* Left Side: Trading Form */}
+        <div className="w-full md:w-[350px] p-3 space-y-4 border-r border-gray-800 bg-[#12161c]">
           <div className="flex gap-1.5">
             <button className="bg-[#2b3139] px-3 py-1 rounded text-[11px] text-white font-medium flex items-center gap-1">Cross <ChevronDown size={10}/></button>
             <button className="bg-[#2b3139] px-3 py-1 rounded text-[11px] text-white font-medium flex items-center gap-1">{leverage}x <ChevronDown size={10}/></button>
@@ -124,10 +113,11 @@ const Futures = () => {
               <ChevronDown size={14} className="text-gray-500" />
             </div>
 
-            <div className="bg-[#2b3139] py-2.5 rounded text-center text-[13px] text-gray-500 font-bold">
-              {currentPrice}
+            <div className="bg-[#2b3139] py-2.5 rounded text-center text-[13px] text-gray-400 font-bold">
+              Price: <span className="text-white ml-1">{currentPrice}</span>
             </div>
 
+            {/* Amount Input */}
             <div className="flex items-center bg-[#2b3139] rounded h-10 border border-transparent focus-within:border-[#f0b90b]">
               <button onClick={() => adjustAmount(-1)} className="px-3 text-gray-400 hover:text-white"><Minus size={16}/></button>
               <input 
@@ -141,20 +131,8 @@ const Futures = () => {
               <button onClick={() => adjustAmount(1)} className="px-3 text-gray-400 hover:text-white"><Plus size={16}/></button>
             </div>
 
-            {/* Slider */}
-            <div className="py-4 px-1 relative">
-              <div className="h-[2px] bg-[#2b3139] w-full rounded relative">
-                <div className="absolute h-full bg-[#f0b90b]" style={{ width: `${(parseFloat(amount) / user?.balance * 100) || 0}%` }}></div>
-                {[0, 25, 50, 75, 100].map(p => (
-                  <div 
-                    key={p} 
-                    onClick={() => handleSlider(p)}
-                    className={`absolute top-1/2 -translate-y-1/2 w-3 h-3 border-2 border-[#12161c] rounded-sm cursor-pointer transition-colors ${ (parseFloat(amount) / user?.balance * 100) >= p ? 'bg-[#f0b90b]' : 'bg-[#2b3139]' }`} 
-                    style={{left: `${p}%`}}
-                  ></div>
-                ))}
-              </div>
-            </div>
+            {/* Custom Leverage Slider Component */}
+            <LeverageSlider onChange={(v) => setLeverage(v)} />
 
             <button 
               onClick={handleTrade} 
@@ -166,35 +144,22 @@ const Futures = () => {
           </div>
         </div>
 
-        {/* Right Side: Order Book */}
-        <div className="w-[42%] flex flex-col pt-3">
-          <div className="flex justify-between px-3 text-[10px] text-gray-500 font-medium mb-3">
-            <div className="flex flex-col"><span>Price</span><span>(USDT)</span></div>
-            <div className="flex flex-col text-right"><span>Amount</span><span>(USDT)</span></div>
-          </div>
-
-          <div className="flex-1 px-2 space-y-[1px]">
-            {orderData.sell.map((order, i) => (
-              <div key={i} className="flex justify-between text-[11px] relative h-5 items-center">
-                <div className="absolute right-0 top-0 bottom-0 bg-[#f6465d15]" style={{width: `${Math.random() * 80}%`}}></div>
-                <span className="text-[#f6465d] z-10">{order.price}</span>
-                <span className="text-gray-300 z-10">{order.amount}</span>
-              </div>
-            ))}
-
-            <div className="py-3 text-center border-y border-gray-800 my-2">
-              <div className="text-lg font-bold text-[#02c076] leading-none">{currentPrice}</div>
-              <div className="text-[11px] text-gray-500 mt-1">≈ ${currentPrice}</div>
+        {/* Center/Right: OrderBook & Positions */}
+        <div className="flex-1 flex flex-col bg-[#0b0e11] overflow-y-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
+            {/* Live Order Book */}
+            <div className="lg:col-span-4 border-r border-gray-800">
+               <OrderBook symbol={currentCoin} />
             </div>
-
-            {orderData.buy.map((order, i) => (
-              <div key={i} className="flex justify-between text-[11px] relative h-5 items-center">
-                <div className="absolute right-0 top-0 bottom-0 bg-[#02c07615]" style={{width: `${Math.random() * 80}%`}}></div>
-                <span className="text-[#02c076] z-10">{order.price}</span>
-                <span className="text-gray-300 z-10">{order.amount}</span>
-              </div>
-            ))}
+            
+            {/* Chart Area (Placeholder) */}
+            <div className="lg:col-span-8 bg-[#12161c] min-h-[300px] flex items-center justify-center text-gray-600 italic">
+               Trading View Chart Will Load Here
+            </div>
           </div>
+
+          {/* Bottom: Positions Table */}
+          <PositionTable positions={user?.positions || []} />
         </div>
       </div>
     </div>
