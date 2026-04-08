@@ -24,33 +24,19 @@ const Futures = () => {
   const [loading, setLoading] = useState(false);
   const [currentPrice, setCurrentPrice] = useState('0.0');
   
-  // ট্যাব নিয়ন্ত্রণের জন্য নতুন স্টেট
+  // --- নতুন যোগ করা স্টেট (ট্যাব পরিবর্তনের জন্য) ---
   const [activeTab, setActiveTab] = useState('positions');
-  const [myTrades, setMyTrades] = useState([]);
 
   const currentCoin = (coinSymbol || 'BTC').toUpperCase();
 
-  // ডাটাবেস থেকে ইউজারের ট্রেডগুলো নিয়ে আসার ফাংশন
-  const fetchMyTrades = async () => {
-    try {
-      const res = await api.get('/api/my-futures', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setMyTrades(res.data);
-    } catch (err) {
-      console.error("Error fetching trades:", err);
-    }
-  };
-
   useEffect(() => {
-    fetchMyTrades();
     const priceWs = new WebSocket(`wss://stream.binance.com:9443/ws/${currentCoin.toLowerCase()}usdt@ticker`);
     priceWs.onmessage = (event) => {
       const data = JSON.parse(event.data);
       setCurrentPrice(parseFloat(data.c).toFixed(1)); 
     };
     return () => priceWs.close();
-  }, [currentCoin, token]);
+  }, [currentCoin]);
 
   const handleTrade = async () => {
     if (!amount || parseFloat(amount) <= 0) return toast.error("Enter valid amount");
@@ -71,7 +57,6 @@ const Futures = () => {
       if (res.data.success) {
         toast.success(res.data.message);
         setAmount("");
-        fetchMyTrades(); // নতুন ট্রেড দেওয়ার পর লিস্ট আপডেট
         if (refreshUser) await refreshUser(); 
       }
     } catch (err) { 
@@ -91,7 +76,7 @@ const Futures = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#0b0e11] text-[#848e9c] font-sans select-none overflow-x-hidden">
-      {/* --- Header Section (আগের মতোই থাকবে) --- */}
+      {/* --- Header Section (No Change) --- */}
       <div className="flex justify-between items-center px-4 py-2 bg-[#161a1e] border-b border-gray-800">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1 cursor-pointer">
@@ -109,10 +94,10 @@ const Futures = () => {
       </div>
 
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-        {/* --- Left Column: Order Book (আগের মতোই থাকবে) --- */}
+        
+        {/* --- Left Column: Order Book (No Change) --- */}
         <div className="w-full md:w-64 bg-[#161a1e] border-r border-gray-800 flex flex-col p-2">
-           {/* ... OrderBook কোড ... */}
-           <div className="flex justify-between text-[10px] mb-2 px-1">
+          <div className="flex justify-between text-[10px] mb-2 px-1">
             <span>Price(USDT)</span>
             <span>Amount(USDT)</span>
           </div>
@@ -124,7 +109,7 @@ const Futures = () => {
               </div>
             ))}
           </div>
-          <div className="py-2 border-y border-gray-800 my-1 text-center font-bold text-[#02c076]">{currentPrice}</div>
+          <div className="py-2 border-y border-gray-800 my-1 text-center font-bold text-[#02c076] text-lg">{currentPrice}</div>
           <div className="space-y-[1px]">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="flex justify-between text-[12px] relative h-5 items-center px-1">
@@ -145,46 +130,46 @@ const Futures = () => {
             ></iframe>
           </div>
 
-          {/* --- আপডেট করা ট্যাব সেকশন --- */}
+          {/* --- আপডেট করা অপশন ট্যাব --- */}
           <div className="h-64 overflow-y-auto bg-[#161a1e]">
             <div className="flex gap-6 border-b border-gray-800 px-4 py-0 text-[12px] font-bold">
               <button 
                 onClick={() => setActiveTab('positions')}
-                className={`pb-2 pt-2 transition-all ${activeTab === 'positions' ? 'text-white border-b-2 border-[#f0b90b]' : 'text-gray-500 hover:text-gray-300'}`}
+                className={`pb-2 pt-2 transition-all cursor-pointer ${activeTab === 'positions' ? 'text-white border-b-2 border-[#f0b90b]' : 'text-gray-500 hover:text-gray-300'}`}
               >
-                Positions({myTrades.filter(t => t.status === 'open').length})
+                Positions({user?.positions?.length || 0})
               </button>
               <button 
                 onClick={() => setActiveTab('orders')}
-                className={`pb-2 pt-2 transition-all ${activeTab === 'orders' ? 'text-white border-b-2 border-[#f0b90b]' : 'text-gray-500 hover:text-gray-300'}`}
+                className={`pb-2 pt-2 transition-all cursor-pointer ${activeTab === 'orders' ? 'text-white border-b-2 border-[#f0b90b]' : 'text-gray-500 hover:text-gray-300'}`}
               >
                 Open Orders(0)
               </button>
               <button 
                 onClick={() => setActiveTab('assets')}
-                className={`pb-2 pt-2 transition-all ${activeTab === 'assets' ? 'text-white border-b-2 border-[#f0b90b]' : 'text-gray-500 hover:text-gray-300'}`}
+                className={`pb-2 pt-2 transition-all cursor-pointer ${activeTab === 'assets' ? 'text-white border-b-2 border-[#f0b90b]' : 'text-gray-500 hover:text-gray-300'}`}
               >
                 Assets
               </button>
             </div>
 
-            {/* ট্যাবের বিষয়বস্তু প্রদর্শন */}
+            {/* ট্যাব অনুযায়ী কন্টেন্ট প্রদর্শন */}
             <div className="p-2">
               {activeTab === 'positions' && (
-                <PositionTable positions={myTrades.filter(t => t.status === 'open')} />
+                <PositionTable positions={user?.positions || []} />
               )}
               {activeTab === 'orders' && (
-                <div className="text-center py-10 text-gray-600 text-sm">No open orders</div>
+                <div className="text-center py-10 text-gray-600 text-sm italic font-medium">No open orders</div>
               )}
               {activeTab === 'assets' && (
-                <div className="p-4">
-                  <div className="flex justify-between text-sm mb-2">
-                    <span>Wallet Balance</span>
-                    <span className="text-white">{user?.balance?.toFixed(4)} USDT</span>
-                  </div>
+                <div className="p-4 space-y-3">
                   <div className="flex justify-between text-sm">
+                    <span>Wallet Balance</span>
+                    <span className="text-white font-bold">{user?.balance?.toFixed(2) || '0.00'} USDT</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-[#02c076]">
                     <span>Unrealized PNL</span>
-                    <span className="text-green-500">0.0000 USDT</span>
+                    <span className="font-bold">0.00 USDT</span>
                   </div>
                 </div>
               )}
@@ -192,30 +177,57 @@ const Futures = () => {
           </div>
         </div>
 
-        {/* --- Right Column: Trade Form (আগের মতোই থাকবে) --- */}
+        {/* --- Right Column: Trade Form (No Change) --- */}
         <div className="w-full md:w-[320px] p-4 bg-[#161a1e] border-l border-gray-800 space-y-4">
-           {/* ... Trade Form কোড ... */}
-           <div className="flex gap-2">
-            <button className="flex-1 bg-gray-800 py-1.5 rounded text-[11px] text-white font-bold flex items-center justify-center gap-1">Cross <ChevronDown size={12}/></button>
-            <button className="flex-1 bg-gray-800 py-1.5 rounded text-[11px] text-white font-bold flex items-center justify-center gap-1">{leverage}x <ChevronDown size={12}/></button>
+          <div className="flex gap-2">
+            <button className="flex-1 bg-gray-800 py-1.5 rounded text-[11px] text-white font-bold flex items-center justify-center gap-1 uppercase tracking-wider">Cross <ChevronDown size={12}/></button>
+            <button className="flex-1 bg-gray-800 py-1.5 rounded text-[11px] text-white font-bold flex items-center justify-center gap-1 uppercase tracking-wider">{leverage}x <ChevronDown size={12}/></button>
           </div>
+
           <div className="flex bg-gray-800 rounded p-1 h-10">
             <button onClick={() => setSide('buy')} className={`flex-1 flex items-center justify-center text-[13px] font-bold rounded transition-all ${side === 'buy' ? 'bg-[#02c076] text-black' : 'text-gray-400'}`}>Buy</button>
             <button onClick={() => setSide('sell')} className={`flex-1 flex items-center justify-center text-[13px] font-bold rounded transition-all ${side === 'sell' ? 'bg-[#f6465d] text-white' : 'text-gray-400'}`}>Sell</button>
           </div>
+
           <div className="space-y-3">
-             <input 
+            <div className="flex justify-between text-[11px]">
+              <span className="flex items-center gap-1">Avbl</span>
+              <span className="text-white font-bold">{user?.balance?.toFixed(2) || '0.00'} USDT <Plus size={10} className="inline text-[#f0b90b] ml-1 cursor-pointer" /></span>
+            </div>
+
+            <div className="bg-[#2b3139] py-2.5 px-3 rounded text-[13px] text-white flex justify-between items-center cursor-pointer hover:bg-[#363c45]">
+              <span>Market</span>
+              <ChevronDown size={14} className="text-gray-500" />
+            </div>
+
+            <div className="bg-[#2b3139] py-2.5 rounded text-center text-[13px] text-gray-400 font-bold border border-transparent">
+              Price: <span className="text-white ml-1">Market Price</span>
+            </div>
+
+            <div className="flex items-center bg-[#2b3139] rounded h-11 border border-transparent focus-within:border-[#f0b90b] px-1">
+              <button onClick={() => adjustAmount(-1)} className="p-2 text-gray-400 hover:text-white"><Minus size={16}/></button>
+              <input 
                 type="number" 
                 placeholder="Amount" 
                 value={amount} 
                 onChange={(e) => setAmount(e.target.value)} 
-                className="w-full bg-[#2b3139] p-3 rounded text-white outline-none focus:ring-1 focus:ring-[#f0b90b]" 
+                className="w-full bg-transparent text-center text-white text-[14px] font-bold outline-none" 
               />
+              <div className="text-[11px] font-bold text-gray-400 px-2 border-l border-gray-700">USDT</div>
+              <button onClick={() => adjustAmount(1)} className="p-2 text-gray-400 hover:text-white"><Plus size={16}/></button>
+            </div>
+
             <LeverageSlider onChange={(v) => setLeverage(v)} />
+
+            <div className="flex flex-col gap-1 text-[11px] pt-2">
+              <div className="flex justify-between"><span>Max</span><span className="text-white font-medium">3,033.12 USDT</span></div>
+              <div className="flex justify-between"><span>Cost</span><span className="text-white font-medium">0.00 USDT</span></div>
+            </div>
+
             <button 
               onClick={handleTrade} 
               disabled={loading} 
-              className={`w-full py-3.5 rounded-lg font-bold text-sm ${loading ? 'opacity-50' : side === 'buy' ? 'bg-[#02c076] text-black' : 'bg-[#f6465d] text-white'}`}
+              className={`w-full py-3.5 rounded-lg font-bold text-sm transition-all active:scale-[0.98] shadow-lg ${loading ? 'opacity-50' : side === 'buy' ? 'bg-[#02c076] text-black' : 'bg-[#f6465d] text-white'}`}
             >
               {loading ? "Processing..." : side === 'buy' ? "Buy / Long" : "Sell / Short"}
             </button>
