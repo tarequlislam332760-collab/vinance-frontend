@@ -4,7 +4,7 @@ import axios from 'axios';
 import { 
   LayoutDashboard, BarChart3, TrendingUp, Wallet, LogOut, 
   ShieldCheck, Activity, ArrowUpRight, ArrowDownLeft,
-  PieChart, ChevronLeft, Star, Bell, MoreHorizontal, LayoutGrid, Zap, ChevronDown, History, Gavel
+  PieChart, ChevronLeft, Star, Bell, MoreHorizontal, LayoutGrid, Zap, ChevronDown, History, Gavel, User, Mail, Lock
 } from 'lucide-react';
 
 import { UserProvider, UserContext } from './context/UserContext'; 
@@ -21,18 +21,111 @@ import MyInvestments from './pages/MyInvestments';
 import ManagePlans from './admin/ManagePlans';
 import InvestmentLogs from './admin/InvestmentLogs';
 import TraderProfile from './pages/TraderProfile';
-
-// --- Fixed Futures Import (As per your VS Code Screenshot) ---
 import Futures from "./pages/Futures.jsx"; 
 
-// --- NavItem Component ---
+/* ================= AUTH COMPONENTS (UPDATED) ================= */
+
+const Register = () => {
+  const { API_URL } = useContext(UserContext);
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API_URL}/api/register`, formData);
+      if (res.data.success) {
+        alert("Registration Successful! Please Login.");
+        navigate('/login');
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || "Registration Failed");
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-6 bg-[#0b0e11]">
+      <div className="w-full max-w-md bg-[#161a1e] p-8 rounded-[2rem] border border-[#1e2329] shadow-2xl">
+        <h2 className="text-3xl font-black text-[#f0b90b] mb-6 italic uppercase tracking-tighter">Join Vinance</h2>
+        <form onSubmit={handleRegister} className="space-y-4">
+          <div className="relative">
+            <User className="absolute left-3 top-3.5 text-gray-500" size={18} />
+            <input type="text" placeholder="Full Name" required className="w-full bg-[#2b3139] py-3 pl-10 pr-4 rounded-xl outline-none border border-transparent focus:border-[#f0b90b]" 
+              onChange={(e) => setFormData({...formData, name: e.target.value})} />
+          </div>
+          <div className="relative">
+            <Mail className="absolute left-3 top-3.5 text-gray-500" size={18} />
+            <input type="email" placeholder="Email Address" required className="w-full bg-[#2b3139] py-3 pl-10 pr-4 rounded-xl outline-none border border-transparent focus:border-[#f0b90b]" 
+              onChange={(e) => setFormData({...formData, email: e.target.value})} />
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-3 top-3.5 text-gray-500" size={18} />
+            <input type="password" placeholder="Password" required className="w-full bg-[#2b3139] py-3 pl-10 pr-4 rounded-xl outline-none border border-transparent focus:border-[#f0b90b]" 
+              onChange={(e) => setFormData({...formData, password: e.target.value})} />
+          </div>
+          <button disabled={loading} className="w-full bg-[#f0b90b] text-black font-black py-4 rounded-xl uppercase text-xs tracking-widest hover:bg-[#d4a30a] transition-all">
+            {loading ? "Creating Account..." : "Create Account"}
+          </button>
+        </form>
+        <p className="mt-6 text-center text-gray-400 text-xs">Already have an account? <Link to="/login" className="text-[#f0b90b] font-bold">Login</Link></p>
+      </div>
+    </div>
+  );
+};
+
+const Login = () => {
+  const { API_URL, login } = useContext(UserContext);
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API_URL}/api/login`, formData);
+      login(res.data.user, res.data.token);
+      navigate('/dashboard');
+    } catch (err) {
+      alert(err.response?.data?.message || "Invalid Info");
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-6 bg-[#0b0e11]">
+      <div className="w-full max-w-md bg-[#161a1e] p-8 rounded-[2rem] border border-[#1e2329] shadow-2xl">
+        <h2 className="text-3xl font-black text-[#f0b90b] mb-6 italic uppercase tracking-tighter">Welcome Back</h2>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div className="relative">
+            <Mail className="absolute left-3 top-3.5 text-gray-500" size={18} />
+            <input type="email" placeholder="Email" required className="w-full bg-[#2b3139] py-3 pl-10 pr-4 rounded-xl outline-none border border-transparent focus:border-[#f0b90b]" 
+              onChange={(e) => setFormData({...formData, email: e.target.value})} />
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-3 top-3.5 text-gray-500" size={18} />
+            <input type="password" placeholder="Password" required className="w-full bg-[#2b3139] py-3 pl-10 pr-4 rounded-xl outline-none border border-transparent focus:border-[#f0b90b]" 
+              onChange={(e) => setFormData({...formData, password: e.target.value})} />
+          </div>
+          <button disabled={loading} className="w-full bg-[#f0b90b] text-black font-black py-4 rounded-xl uppercase text-xs tracking-widest">
+            {loading ? "Authenticating..." : "Login"}
+          </button>
+        </form>
+        <p className="mt-6 text-center text-gray-400 text-xs">Don't have an account? <Link to="/register" className="text-[#f0b90b] font-bold">Register</Link></p>
+      </div>
+    </div>
+  );
+};
+
+/* ================= UI COMPONENTS ================= */
+
 const NavItem = ({ to, icon, label }) => (
   <NavLink to={to} className={({ isActive }) => `flex items-center gap-4 p-3.5 rounded-xl transition-all ${isActive ? 'text-[#f0b90b] bg-[#f0b90b]/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
     {icon} <span className="hidden lg:inline font-black text-[10px] uppercase tracking-widest">{label}</span>
   </NavLink>
 );
 
-// --- Trade Component (Spot) ---
 const Trade = () => {
   const { coinSymbol } = useParams();
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
@@ -70,11 +163,6 @@ const Trade = () => {
   );
 };
 
-// --- Auth Components ---
-const Register = () => { return <div className="p-10 text-white">Register Page</div>; };
-const Login = () => { return <div className="p-10 text-white">Login Page</div>; };
-
-// --- Dashboard Component ---
 const Dashboard = ({ cryptoData }) => {
   const { user, refreshUser, API_URL, token } = useContext(UserContext);
   const navigate = useNavigate();
@@ -117,13 +205,13 @@ const Dashboard = ({ cryptoData }) => {
           ))}
         </div>
         <div className="bg-[#161a1e] border border-[#1e2329] rounded-[2.5rem] p-6 shadow-xl relative">
-           <div className="flex justify-between items-center mb-6">
-              <h3 className="text-white font-black uppercase text-[10px] flex items-center gap-2 tracking-[0.2em]">
+            <div className="flex justify-between items-center mb-6">
+               <h3 className="text-white font-black uppercase text-[10px] flex items-center gap-2 tracking-[0.2em]">
                  <Activity size={14} className="text-[#f0b90b]" /> Recent Activity
-              </h3>
-              <Link to="/wallet" className="text-[#f0b90b] text-[10px] font-black uppercase hover:underline">View All</Link>
-           </div>
-           <div className="space-y-4">
+               </h3>
+               <Link to="/wallet" className="text-[#f0b90b] text-[10px] font-black uppercase hover:underline">View All</Link>
+            </div>
+            <div className="space-y-4">
             {transactions.slice(0, 5).map((trx) => (
               <div key={trx._id} className="flex justify-between items-center p-3 hover:bg-white/[0.03] rounded-2xl border border-transparent hover:border-[#1e2329]">
                 <div className="flex items-center gap-2">
@@ -146,7 +234,6 @@ const Dashboard = ({ cryptoData }) => {
   );
 };
 
-// --- Market Component ---
 const Market = ({ cryptoData }) => {
   const navigate = useNavigate();
   return (
@@ -175,7 +262,8 @@ const Market = ({ cryptoData }) => {
   );
 };
 
-// --- Layout & Content Wrapper ---
+/* ================= MAIN CONTENT WRAPPER ================= */
+
 const AppContent = ({ cryptoData }) => {
   const { user, token, logout, loading: authLoading } = useContext(UserContext);
   const location = useLocation();
@@ -185,6 +273,8 @@ const AppContent = ({ cryptoData }) => {
 
   const isAuthPage = ['/login', '/register'].includes(location.pathname);
   const isHomePage = location.pathname === '/';
+  
+  // প্রোটেকটেড রাউট চেক
   if (!token && !isAuthPage && !isHomePage) return <Navigate to="/login" replace />;
 
   const userPages = [
@@ -242,11 +332,7 @@ const AppContent = ({ cryptoData }) => {
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={<Dashboard cryptoData={cryptoData} />} />
             <Route path="/market" element={<Market cryptoData={cryptoData} />} />
-            
-            {/* --- Corrected Futures Routes --- */}
-            <Route path="/futures" element={<Navigate to="/futures/btc" replace />} />
             <Route path="/futures/:coinSymbol" element={<Futures />} />
-            
             <Route path="/trade/:coinSymbol" element={<Trade />} /> 
             <Route path="/deposit" element={<Deposit />} />
             <Route path="/withdraw" element={<Withdraw />} />
@@ -301,7 +387,8 @@ const AppContent = ({ cryptoData }) => {
   );
 };
 
-// --- App Root ---
+/* ================= APP ROOT ================= */
+
 export default function App() {
   const [cryptoData, setCryptoData] = useState([
     { id: '1', name: 'Bitcoin', symbol: 'btc', price: '0', change: '0', up: true },
