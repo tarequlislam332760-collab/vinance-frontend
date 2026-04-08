@@ -71,8 +71,76 @@ const Trade = () => {
 };
 
 // --- Auth Components ---
-const Register = () => { return <div className="p-10 text-white">Register Page</div>; };
-const Login = () => { return <div className="p-10 text-white">Login Page</div>; };
+// --- Auth Components (Login) ---
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { login, API_URL } = useContext(UserContext);
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post(`${API_URL}/api/login`, { email, password });
+      login(res.data.token, res.data.user);
+      navigate('/dashboard');
+    } catch (err) {
+      alert(err.response?.data?.message || "Login Failed");
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#0b0e11] px-4">
+      <div className="max-w-md w-full bg-[#161a1e] p-8 rounded-[2rem] border border-[#1e2329] shadow-2xl">
+        <h2 className="text-3xl font-black text-[#f0b90b] italic mb-6 text-center">VINANCE LOGIN</h2>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <input type="email" placeholder="Email" className="w-full bg-[#2b3139] p-4 rounded-xl outline-none border border-transparent focus:border-[#f0b90b] text-white" 
+            onChange={(e) => setEmail(e.target.value)} required />
+          <input type="password" placeholder="Password" className="w-full bg-[#2b3139] p-4 rounded-xl outline-none border border-transparent focus:border-[#f0b90b] text-white" 
+            onChange={(e) => setPassword(e.target.value)} required />
+          <button type="submit" className="w-full bg-[#f0b90b] text-black font-black py-4 rounded-xl uppercase tracking-widest hover:bg-[#d4a30a] transition-all">Sign In</button>
+        </form>
+        <p className="mt-6 text-center text-gray-400 text-sm">Don't have an account? <Link to="/register" className="text-[#f0b90b] font-bold">Register</Link></p>
+      </div>
+    </div>
+  );
+};
+
+// --- Auth Components (Register) ---
+const Register = () => {
+  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
+  const { API_URL } = useContext(UserContext);
+  const navigate = useNavigate();
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API_URL}/api/register`, formData);
+      alert("Registration Successful! Please Login.");
+      navigate('/login');
+    } catch (err) {
+      alert(err.response?.data?.message || "Registration Failed");
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#0b0e11] px-4">
+      <div className="max-w-md w-full bg-[#161a1e] p-8 rounded-[2rem] border border-[#1e2329] shadow-2xl">
+        <h2 className="text-3xl font-black text-[#f0b90b] italic mb-6 text-center">CREATE ACCOUNT</h2>
+        <form onSubmit={handleRegister} className="space-y-4">
+          <input type="text" placeholder="Full Name" className="w-full bg-[#2b3139] p-4 rounded-xl outline-none border border-transparent focus:border-[#f0b90b] text-white" 
+            onChange={(e) => setFormData({...formData, name: e.target.value})} required />
+          <input type="email" placeholder="Email Address" className="w-full bg-[#2b3139] p-4 rounded-xl outline-none border border-transparent focus:border-[#f0b90b] text-white" 
+            onChange={(e) => setFormData({...formData, email: e.target.value})} required />
+          <input type="password" placeholder="Password" className="w-full bg-[#2b3139] p-4 rounded-xl outline-none border border-transparent focus:border-[#f0b90b] text-white" 
+            onChange={(e) => setFormData({...formData, password: e.target.value})} required />
+          <button type="submit" className="w-full bg-[#f0b90b] text-black font-black py-4 rounded-xl uppercase tracking-widest hover:bg-[#d4a30a] transition-all">Register Now</button>
+        </form>
+        <p className="mt-6 text-center text-gray-400 text-sm">Already have an account? <Link to="/login" className="text-[#f0b90b] font-bold">Login</Link></p>
+      </div>
+    </div>
+  );
+};
 
 // --- Dashboard Component ---
 const Dashboard = ({ cryptoData }) => {
