@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import API from '../api'; // ✅ আপনার তৈরি করা API ফাইল
+import API from '../api'; 
 import { Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 
 const Register = () => {
@@ -27,17 +27,13 @@ const Register = () => {
     
     try {
       const { name, email, password } = formData;
-      
-      // ✅ API কল
       const response = await API.post('/api/register', { name, email, password });
       
-      // ✅ লজিক ফিক্স: ব্যাকএন্ড 201 স্ট্যাটাস অথবা "Success" মেসেজ পাঠালে এটি কাজ করবে
       if (response.status === 201 || response.data.message === "Success") {
         alert("Registration Successful! Please login.");
         navigate('/login');
       }
     } catch (err) {
-      // ✅ এরর হ্যান্ডলিং
       console.error("Registration Error:", err);
       setError(err.response?.data?.message || "Registration failed. Server is not responding.");
     } finally {
@@ -47,7 +43,6 @@ const Register = () => {
 
   return (
     <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center p-6 relative overflow-hidden text-left font-sans">
-      {/* Background Orbs */}
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-emerald-500/10 rounded-full blur-[120px]"></div>
       <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-yellow-500/10 rounded-full blur-[120px]"></div>
       
@@ -55,7 +50,6 @@ const Register = () => {
         <h1 className="text-3xl font-bold text-yellow-500 mb-2 italic">VINANCE</h1>
         <p className="text-gray-400 mb-8 font-medium">Create your trading account</p>
         
-        {/* Error Message Box */}
         {error && (
           <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-xl text-sm mb-6 animate-pulse">
             {error}
@@ -63,7 +57,6 @@ const Register = () => {
         )}
         
         <form onSubmit={handleRegister} className="space-y-5">
-          {/* Full Name Field */}
           <div>
             <label className="text-sm text-gray-400 mb-2 block font-semibold">Full Name</label>
             <div className="relative group">
@@ -80,7 +73,6 @@ const Register = () => {
             </div>
           </div>
           
-          {/* Email Field */}
           <div>
             <label className="text-sm text-gray-400 mb-2 block font-semibold">Email Address</label>
             <div className="relative group">
@@ -97,7 +89,6 @@ const Register = () => {
             </div>
           </div>
           
-          {/* Password Field */}
           <div>
             <label className="text-sm text-gray-400 mb-2 block font-semibold">Password</label>
             <div className="relative group">
@@ -114,7 +105,6 @@ const Register = () => {
             </div>
           </div>
           
-          {/* Terms Checkbox */}
           <div className="flex items-center gap-2 px-1">
             <input 
               type="checkbox" 
@@ -129,11 +119,11 @@ const Register = () => {
             </label>
           </div>
           
-          {/* Submit Button */}
+          {/* Updated Button */}
           <button 
             type="submit" 
             disabled={isSubmitting} 
-            className="w-full bg-yellow-500 text-black py-4 rounded-xl font-bold hover:bg-yellow-400 transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-xl shadow-yellow-500/10 mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full bg-yellow-500 text-black py-4 rounded-xl font-bold hover:bg-yellow-400 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 shadow-xl shadow-yellow-500/10 mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <Loader2 className="animate-spin" size={20} />
@@ -143,7 +133,6 @@ const Register = () => {
           </button>
         </form>
         
-        {/* Login Link */}
         <p className="text-gray-500 text-sm mt-8 text-center font-medium">
           Already have an account? 
           <Link to="/login" className="text-yellow-500 font-bold ml-1 hover:underline">Log In</Link>

@@ -61,7 +61,12 @@ const Login = () => {
               <input type="password" name="password" value={password} onChange={onChange} required className="w-full bg-[#0b0e11] border border-gray-800 rounded-xl py-3 pl-10 pr-4 text-white outline-none focus:border-yellow-500" />
             </div>
           </div>
-          <button type="submit" disabled={isSubmitting} className="w-full bg-yellow-500 text-black py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-70">
+          {/* Updated Button */}
+          <button 
+            type="submit" 
+            disabled={isSubmitting} 
+            className="w-full bg-yellow-500 text-black py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-70 transition-all cursor-pointer active:scale-95 shadow-lg active:shadow-inner"
+          >
             {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <>Log In <ArrowRight size={18} /></>}
           </button>
         </form>
