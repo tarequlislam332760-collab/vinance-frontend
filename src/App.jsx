@@ -22,8 +22,11 @@ import ManagePlans from './admin/ManagePlans';
 import InvestmentLogs from './admin/InvestmentLogs';
 import TraderProfile from './pages/TraderProfile';
 
-// --- Fixed Futures Import (As per your VS Code Screenshot) ---
+// --- Fixed Futures Import ---
 import Futures from "./pages/Futures.jsx"; 
+
+// --- API URL Definition ---
+const API_URL = "https://vinance-backend.vercel.app";
 
 // --- NavItem Component ---
 const NavItem = ({ to, icon, label }) => (
@@ -35,7 +38,7 @@ const NavItem = ({ to, icon, label }) => (
 // --- Trade Component (Spot) ---
 const Trade = () => {
   const { coinSymbol } = useParams();
-  const { user, refreshUser, API_URL, token } = useContext(UserContext);
+  const { user, refreshUser, token } = useContext(UserContext);
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const currentCoin = (coinSymbol || 'btc').toUpperCase();
@@ -70,12 +73,11 @@ const Trade = () => {
   );
 };
 
-// --- Auth Components ---
 // --- Auth Components (Login) ---
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, API_URL } = useContext(UserContext);
+  const { login } = useContext(UserContext);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -109,7 +111,6 @@ const Login = () => {
 // --- Auth Components (Register) ---
 const Register = () => {
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
-  const { API_URL } = useContext(UserContext);
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
@@ -144,7 +145,7 @@ const Register = () => {
 
 // --- Dashboard Component ---
 const Dashboard = ({ cryptoData }) => {
-  const { user, refreshUser, API_URL, token } = useContext(UserContext);
+  const { user, refreshUser, token } = useContext(UserContext);
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState([]);
 
@@ -158,7 +159,7 @@ const Dashboard = ({ cryptoData }) => {
       } catch (err) { console.warn("Activity fetch error"); }
     };
     fetchTransactions();
-  }, [token, API_URL, refreshUser]);
+  }, [token, refreshUser]);
 
   return (
     <div className="p-4 md:p-8 text-left space-y-6 bg-[#0b0e11] min-h-screen">
@@ -311,7 +312,6 @@ const AppContent = ({ cryptoData }) => {
             <Route path="/dashboard" element={<Dashboard cryptoData={cryptoData} />} />
             <Route path="/market" element={<Market cryptoData={cryptoData} />} />
             
-            {/* --- Corrected Futures Routes --- */}
             <Route path="/futures" element={<Navigate to="/futures/btc" replace />} />
             <Route path="/futures/:coinSymbol" element={<Futures />} />
             
@@ -330,7 +330,6 @@ const AppContent = ({ cryptoData }) => {
         </div>
       </main>
 
-      {/* --- Mobile Navigation --- */}
       {token && !isHomePage && (
         <>
           {showMoreMenu && (
