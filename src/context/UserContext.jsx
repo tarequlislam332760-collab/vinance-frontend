@@ -10,8 +10,8 @@ export const UserProvider = ({ children }) => {
 
   const API_URL = "https://vinance-backend.vercel.app"; 
 
-  // লগইন ফাংশন যা Login.jsx থেকে কল হবে
-  const login = (userData, userToken) => {
+  // ✅ Login function logic fixed (Token first, then User)
+  const login = (userToken, userData) => {
     localStorage.setItem('token', userToken);
     setToken(userToken);
     setUser(userData);
@@ -38,7 +38,9 @@ export const UserProvider = ({ children }) => {
       });
       setUser(res.data);
     } catch (err) {
-      if (err.response?.status === 401) logout();
+      if (err.response?.status === 401) {
+        logout();
+      }
     } finally {
       setLoading(false);
     }
