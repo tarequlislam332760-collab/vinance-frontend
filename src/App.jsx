@@ -26,7 +26,7 @@ import TraderProfile from './pages/TraderProfile';
 import Futures from "./pages/Futures.jsx"; 
 
 // --- API URL Definition ---
-const API_URL = "https://vinance-backend.vercel.app";
+const API_URL = "https://my-trading-backend-rji1.vercel.app";
 
 // --- NavItem Component ---
 const NavItem = ({ to, icon, label }) => (

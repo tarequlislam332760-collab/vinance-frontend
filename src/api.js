@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'https://vinance-backend.vercel.app', 
+  baseURL: 'https://my-trading-backend-rji1.vercel.app', 
 });
 
 API.interceptors.request.use((config) => {
