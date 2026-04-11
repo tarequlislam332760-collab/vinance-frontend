@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'https://my-trading-backend-rji1.vercel.app', 
+  // আপনার Vercel ব্যাকএন্ড লিঙ্ক
+  baseURL: 'https://my-trading-backend-rji1.vercel.app/api', 
 });
 
 API.interceptors.request.use((config) => {
@@ -12,4 +13,4 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
-export default API; // এটিই Vercel বিল্ড ফিক্স করবে
+export default API;
