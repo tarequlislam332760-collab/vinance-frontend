@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const API = axios.create({
   // আপনার Vercel ব্যাকএন্ড লিঙ্ক
-  baseURL: 'https://my-trading-backend-rji1.vercel.app/api', 
+  baseURL: 'https://vinance-backend.vercel.app', 
 });
 
 API.interceptors.request.use((config) => {
