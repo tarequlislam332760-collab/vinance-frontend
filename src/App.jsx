@@ -4,7 +4,7 @@ import axios from 'axios';
 import { 
   LayoutDashboard, BarChart3, TrendingUp, Wallet, LogOut, 
   ShieldCheck, Activity, ArrowUpRight, ArrowDownLeft,
-  PieChart, ChevronLeft, Star, Bell, MoreHorizontal, LayoutGrid, Zap, ChevronDown, History, Gavel
+  PieChart, ChevronLeft, Star, Bell, MoreHorizontal, LayoutGrid, Zap, ChevronDown, History, Gavel, Settings
 } from 'lucide-react';
 
 import { UserProvider, UserContext } from './context/UserContext'; 
@@ -21,21 +21,19 @@ import MyInvestments from './pages/MyInvestments';
 import ManagePlans from './admin/ManagePlans';
 import InvestmentLogs from './admin/InvestmentLogs';
 import TraderProfile from './pages/TraderProfile';
-
-// --- Fixed Futures Import ---
 import Futures from "./pages/Futures.jsx"; 
 
-// --- API URL Definition --- 
-const API_URL = "https://vinance-backend.vercel.app";
+const API_URL = "https://vinance-frontend-ywh7.vercel.app/";
 
-// --- NavItem Component ---
 const NavItem = ({ to, icon, label }) => (
   <NavLink to={to} className={({ isActive }) => `flex items-center gap-4 p-3.5 rounded-xl transition-all ${isActive ? 'text-[#f0b90b] bg-[#f0b90b]/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
     {icon} <span className="hidden lg:inline font-black text-[10px] uppercase tracking-widest">{label}</span>
   </NavLink>
 );
 
-// --- Trade Component (Spot) ---
+// --- Trade, Login, Register, Dashboard, Market components unchanged for brevity ---
+// (আপনার কোডের এই অংশগুলো একই থাকবে)
+
 const Trade = () => {
   const { coinSymbol } = useParams();
   const { user, refreshUser, token } = useContext(UserContext);
@@ -73,7 +71,6 @@ const Trade = () => {
   );
 };
 
-// --- Auth Components (Login) ---
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -108,7 +105,6 @@ const Login = () => {
   );
 };
 
-// --- Auth Components (Register) ---
 const Register = () => {
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const navigate = useNavigate();
@@ -143,7 +139,6 @@ const Register = () => {
   );
 };
 
-// --- Dashboard Component ---
 const Dashboard = ({ cryptoData }) => {
   const { user, refreshUser, token } = useContext(UserContext);
   const navigate = useNavigate();
@@ -215,7 +210,6 @@ const Dashboard = ({ cryptoData }) => {
   );
 };
 
-// --- Market Component ---
 const Market = ({ cryptoData }) => {
   const navigate = useNavigate();
   return (
@@ -244,7 +238,7 @@ const Market = ({ cryptoData }) => {
   );
 };
 
-// --- Layout & Content Wrapper ---
+// --- Updated Responsive Content Wrapper ---
 const AppContent = ({ cryptoData }) => {
   const { user, token, logout, loading: authLoading } = useContext(UserContext);
   const location = useLocation();
@@ -274,6 +268,7 @@ const AppContent = ({ cryptoData }) => {
 
   return (
     <div className="min-h-screen bg-[#0b0e11] text-white flex flex-col md:flex-row overflow-hidden text-left font-sans">
+      {/* Desktop Sidebar */}
       {token && !isHomePage && (
         <aside className="w-20 lg:w-64 bg-[#161a1e] border-r border-[#1e2329] hidden md:flex flex-col p-4 h-screen sticky top-0 z-40">
           <div className="mb-12 px-4 py-2 text-2xl font-black text-[#f0b90b] italic uppercase tracking-tighter">VINANCE</div>
@@ -296,6 +291,7 @@ const AppContent = ({ cryptoData }) => {
         </aside>
       )}
 
+      {/* Main Main Content */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
         {token && !isHomePage && (
           <header className="h-14 border-b border-[#1e2329] bg-[#161a1e] flex items-center justify-between px-6 sticky top-0 z-30">
@@ -304,17 +300,15 @@ const AppContent = ({ cryptoData }) => {
           </header>
         )}
         
-        <div className={`flex-1 overflow-y-auto ${token && !isHomePage ? 'pb-56 md:pb-8' : ''}`}>
+        <div className={`flex-1 overflow-y-auto ${token && !isHomePage ? 'pb-24 md:pb-8' : ''}`}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={<Dashboard cryptoData={cryptoData} />} />
             <Route path="/market" element={<Market cryptoData={cryptoData} />} />
-            
             <Route path="/futures" element={<Navigate to="/futures/btc" replace />} />
             <Route path="/futures/:coinSymbol" element={<Futures />} />
-            
             <Route path="/trade/:coinSymbol" element={<Trade />} /> 
             <Route path="/deposit" element={<Deposit />} />
             <Route path="/withdraw" element={<Withdraw />} />
@@ -330,28 +324,49 @@ const AppContent = ({ cryptoData }) => {
         </div>
       </main>
 
+      {/* --- Mobile Fixed Menus --- */}
       {token && !isHomePage && (
         <>
+          {/* Full Screen Mobile Menu */}
           {showMoreMenu && (
             <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[100] p-8 flex flex-col overflow-y-auto text-left">
-              <div className="flex justify-between items-center mb-10">
-                <h2 className="text-[#f0b90b] font-black text-xl uppercase italic">Services</h2>
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-[#f0b90b] font-black text-xl uppercase italic">All Services</h2>
                 <button onClick={() => setShowMoreMenu(false)} className="bg-white/10 p-2 rounded-full text-gray-400">Close</button>
               </div>
-              <div className="grid grid-cols-3 gap-y-8 gap-x-4 mb-10 text-center">
+              
+              {/* User Services */}
+              <div className="grid grid-cols-3 gap-y-6 gap-x-4 mb-10 text-center">
                 {userPages.map((page) => (
-                  <Link key={page.to} to={page.to} onClick={() => setShowMoreMenu(false)} className="flex flex-col items-center gap-2 text-gray-400">
+                  <Link key={page.to} to={page.to} onClick={() => setShowMoreMenu(false)} className="flex flex-col items-center gap-2 text-gray-400 hover:text-white transition-colors">
                     <div className="p-4 bg-white/5 rounded-2xl border border-white/5">{page.icon}</div>
                     <span className="text-[9px] font-black uppercase leading-tight">{page.label}</span>
                   </Link>
                 ))}
               </div>
-              <button onClick={logout} className="flex items-center justify-center gap-2 text-red-500 font-black uppercase text-[10px] py-4 bg-red-500/5 rounded-2xl border border-red-500/10 mt-4">
+
+              {/* Admin Services (Mobile View Fix) */}
+              {user?.role === 'admin' && (
+                <div className="mb-10">
+                   <div className="text-[10px] font-black text-[#f0b90b] uppercase tracking-widest mb-6 opacity-60 border-b border-white/10 pb-2">Admin Dashboard</div>
+                   <div className="grid grid-cols-3 gap-y-6 gap-x-4 text-center">
+                      {adminPages.map((page) => (
+                        <Link key={page.to} to={page.to} onClick={() => setShowMoreMenu(false)} className="flex flex-col items-center gap-2 text-[#f0b90b]">
+                          <div className="p-4 bg-[#f0b90b]/10 rounded-2xl border border-[#f0b90b]/20">{page.icon}</div>
+                          <span className="text-[9px] font-black uppercase leading-tight">{page.label}</span>
+                        </Link>
+                      ))}
+                   </div>
+                </div>
+              )}
+
+              <button onClick={logout} className="flex items-center justify-center gap-2 text-red-500 font-black uppercase text-[10px] py-4 bg-red-500/5 rounded-2xl border border-red-500/10 mt-auto">
                   <LogOut size={18}/> Logout Account
               </button>
             </div>
           )}
           
+          {/* Mobile Bottom Navigation Bar */}
           <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/95 backdrop-blur-md border-t border-gray-800 flex justify-around items-center py-4 md:hidden z-[80]">
             <NavLink to="/dashboard" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><LayoutDashboard size={22}/></NavLink>
             <NavLink to="/futures/btc" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Gavel size={22}/></NavLink>
@@ -359,7 +374,7 @@ const AppContent = ({ cryptoData }) => {
             <NavLink to="/wallet" className={({isActive})=> isActive ? "text-[#f0b90b]" : "text-gray-400"}><Wallet size={22}/></NavLink>
             <button onClick={() => setShowMoreMenu(true)} className="text-gray-400 relative">
                 <LayoutGrid size={22}/>
-                {user?.role === 'admin' && <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#f0b90b] rounded-full animate-pulse"></span>}
+                {user?.role === 'admin' && <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#f0b90b] rounded-full animate-pulse border-2 border-[#161a1e]"></span>}
             </button>
           </nav>
         </>
@@ -368,7 +383,6 @@ const AppContent = ({ cryptoData }) => {
   );
 };
 
-// --- App Root ---
 export default function App() {
   const [cryptoData, setCryptoData] = useState([
     { id: '1', name: 'Bitcoin', symbol: 'btc', price: '0', change: '0', up: true },
