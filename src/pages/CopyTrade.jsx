@@ -8,7 +8,7 @@ const CopyTrade = () => {
   const navigate = useNavigate();
   const [traders, setTraders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null); // ইউজার রোল চেক করার জন্য
+  const [user, setUser] = useState(null); 
 
   /* --- কন্ট্রোল স্টেট --- */
   const [showBanner, setShowBanner] = useState(true);
@@ -28,35 +28,34 @@ const CopyTrade = () => {
         const fetchedData = Array.isArray(res.data) ? res.data : res.data.traders || [];
         setTraders(fetchedData);
 
-        // ২. ইউজার প্রোফাইল আনা (রোল চেক করার জন্য)
+        // ২. ইউজার প্রোফাইল আনা
         if (token) {
           const userRes = await axios.get(`${API_URL}/profile`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           setUser(userRes.data);
+          console.log("Current User Role:", userRes.data.role); // ব্রাউজার কনসোলে চেক করার জন্য
         }
-        setLoading(false);
       } catch (err) {
         console.error("Error fetching data", err);
+      } finally {
         setLoading(false);
       }
     };
     fetchData();
   }, []);
 
-  // --- ট্রেডার ডিলিট করার ফাংশন ---
   const handleDelete = async (id) => {
-    if (window.confirm("আপনি কি নিশ্চিত যে এই মাস্টার ট্রেডারকে ডিলিট করতে চান?")) {
+    if (window.confirm("Are you sure you want to delete this trader?")) {
       try {
         const token = localStorage.getItem("token");
         await axios.delete(`${API_URL}/admin/delete-trader/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        // ডিলিট হওয়ার পর লিস্ট আপডেট করা
         setTraders(traders.filter(t => t._id !== id));
-        alert("ট্রেডার ডিলিট হয়েছে!");
+        alert("Deleted Successfully!");
       } catch (err) {
-        alert("ডিলিট করতে সমস্যা হয়েছে।");
+        alert("Delete failed!");
       }
     }
   };
@@ -65,7 +64,7 @@ const CopyTrade = () => {
     <div className="bg-[#0b0e11] min-h-screen pb-24 text-white font-sans overflow-x-hidden">
       
       {/* --- ১. হেডার সেকশন --- */}
-      <div className="p-4 flex justify-between items-center sticky top-0 bg-[#0b0e11] z-[100] border-b border-gray-900">
+      <div className="p-4 flex justify-between items-center sticky top-0 bg-[#0b0e11] z-[110] border-b border-gray-900">
         <div className="relative">
           <button 
             onClick={(e) => { e.stopPropagation(); setSpotCopyOpen(!spotCopyOpen); }}
@@ -75,7 +74,7 @@ const CopyTrade = () => {
           </button>
           
           {spotCopyOpen && (
-            <div className="absolute left-0 mt-2 w-48 bg-[#1e2329] border border-gray-700 rounded-lg shadow-2xl p-2 z-[110]">
+            <div className="absolute left-0 mt-2 w-48 bg-[#1e2329] border border-gray-700 rounded-lg shadow-2xl p-2 z-[120]">
               <div className="p-3 hover:bg-[#2b3139] rounded cursor-pointer text-sm">Futures Copy</div>
               <div className="p-3 hover:bg-[#2b3139] rounded cursor-pointer text-sm">Strategy Copy</div>
             </div>
@@ -88,7 +87,7 @@ const CopyTrade = () => {
             onClick={(e) => { e.stopPropagation(); setMoreOptionsOpen(!moreOptionsOpen); }} 
           />
           {moreOptionsOpen && (
-            <div className="absolute right-8 top-6 w-40 bg-[#1e2329] border border-gray-700 rounded shadow-xl p-2 z-[110] text-sm text-white">
+            <div className="absolute right-8 top-6 w-40 bg-[#1e2329] border border-gray-700 rounded shadow-xl p-2 z-[120] text-sm text-white">
               <div className="p-2 hover:bg-[#2b3139] cursor-pointer">Copy Settings</div>
               <div className="p-2 hover:bg-[#2b3139] cursor-pointer">Trade History</div>
             </div>
@@ -115,7 +114,7 @@ const CopyTrade = () => {
         </div>
       )}
 
-      {/* --- ৩. ট্যাব এবং স্মার্ট কপি --- */}
+      {/* --- ৩. ট্যাব --- */}
       <div className="px-4 mt-4 flex items-center justify-between border-b border-gray-800">
         <div className="flex gap-6 text-[13px] font-bold uppercase overflow-x-auto no-scrollbar">
           {['Recommended', 'All Portfolios', 'Favorite'].map((tab) => (
@@ -128,64 +127,51 @@ const CopyTrade = () => {
             </span>
           ))}
         </div>
-        <button 
-          onClick={() => alert("Smart Copy is Active!")}
-          className="flex items-center gap-1 bg-[#2b3139] text-[#f0b90b] text-[10px] px-2 py-1 rounded-md font-bold mb-2 active:scale-90 transition"
-        >
+        <button className="flex items-center gap-1 bg-[#2b3139] text-[#f0b90b] text-[10px] px-2 py-1 rounded-md font-bold mb-2 active:scale-90 transition">
           <Zap size={10} fill="#f0b90b" /> Smart Copy
         </button>
       </div>
 
-      {/* --- ৪. High ROI এবং More --- */}
-      <div className="p-4 flex justify-between items-center">
-        <div className="flex items-center gap-1 text-gray-400 text-xs">
-          <span>High ROI</span> <ChevronDown size={14} />
-        </div>
-        <div 
-          className="text-xs text-gray-400 flex items-center cursor-pointer hover:text-yellow-500 font-bold active:scale-90 transition"
-          onClick={() => alert("More Traders Loading...")}
-        >
-          More <ChevronDown size={14} className="-rotate-90 ml-1" />
-        </div>
-      </div>
-
-      {/* --- ৫. ট্রেডার লিস্ট (Edit/Delete বাটন সহ) --- */}
-      <div className="px-4 grid grid-cols-1 gap-4">
+      {/* --- ৪. ট্রেডার লিস্ট --- */}
+      <div className="px-4 grid grid-cols-1 gap-6 mt-6">
         {loading ? (
-          <div className="flex justify-center mt-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div></div>
+          <div className="flex justify-center mt-10">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
+          </div>
         ) : (
           traders.map((t) => (
-            <div key={t._id} className="relative group">
-              <TraderCard trader={t} />
+            <div key={t._id} className="relative overflow-visible">
               
-              {/* যদি অ্যাডমিন লগইন থাকে তবে এডিট এবং ডিলিট বাটন দেখাবে */}
+              {/* এডমিন কন্ট্রোল বাটনগুলো কার্ডের একদম উপরে এবং বাইরে পজিশন করা হয়েছে */}
               {user?.role === 'admin' && (
-                <div className="absolute top-2 right-2 flex gap-2 z-[50]">
+                <div className="absolute -top-3 -right-1 flex gap-2 z-[999]">
                   <button 
                     onClick={() => navigate(`/admin/edit-trader/${t._id}`)}
-                    className="p-1.5 bg-blue-600 rounded-md hover:bg-blue-700 transition"
+                    className="p-2 bg-blue-600 rounded-full hover:bg-blue-700 transition shadow-2xl border border-blue-400"
                     title="Edit Trader"
                   >
-                    <Edit size={14} />
+                    <Edit size={14} className="text-white" />
                   </button>
                   <button 
                     onClick={() => handleDelete(t._id)}
-                    className="p-1.5 bg-red-600 rounded-md hover:bg-red-700 transition"
+                    className="p-2 bg-red-600 rounded-full hover:bg-red-700 transition shadow-2xl border border-red-400"
                     title="Delete Trader"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={14} className="text-white" />
                   </button>
                 </div>
               )}
+
+              <TraderCard trader={t} />
             </div>
           ))
         )}
       </div>
 
-      {/* --- ৬. ফিক্সড বাটন --- */}
-      <div className="p-4">
-        <button className="w-full bg-[#f0b90b] text-black font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 text-sm shadow-xl active:scale-95 transition">
-          <Zap size={16} fill="black" /> APPLY TO BE A MASTER TRADER
+      {/* --- ৫. ফিক্সড বাটন --- */}
+      <div className="p-4 mt-4">
+        <button className="w-full bg-[#f0b90b] text-black font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 text-sm shadow-xl active:scale-95 transition uppercase">
+          <Zap size={16} fill="black" /> Apply to be a Master Trader
         </button>
       </div>
     </div>
