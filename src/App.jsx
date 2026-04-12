@@ -23,7 +23,7 @@ import InvestmentLogs from './admin/InvestmentLogs';
 import TraderProfile from './pages/TraderProfile';
 import Futures from "./pages/Futures.jsx"; 
 
-const API_URL = "https://vinance-frontend-ywh7.vercel.app/";
+const API_URL = "https://vinance-backend.vercel.app";
 
 const NavItem = ({ to, icon, label }) => (
   <NavLink to={to} className={({ isActive }) => `flex items-center gap-4 p-3.5 rounded-xl transition-all ${isActive ? 'text-[#f0b90b] bg-[#f0b90b]/10' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
