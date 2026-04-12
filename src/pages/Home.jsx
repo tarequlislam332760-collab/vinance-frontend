@@ -13,8 +13,11 @@ const Home = () => {
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
-        const messageRes = await axios.get('http://localhost:5000/api/message');
-        setMessage(messageRes.data.message);
+        // আপনার দেওয়া ব্যাকএন্ড লিঙ্ক এখানে আপডেট করা হয়েছে
+        const res = await axios.get("https://vinance-backend.vercel.app/api/some-route");         
+        if (res.data && res.data.message) {
+          setMessage(res.data.message);
+        }
       } catch (err) {
         console.error("Connection error:", err);
         setMessage("Professional Trading Scripts Marketplace");
