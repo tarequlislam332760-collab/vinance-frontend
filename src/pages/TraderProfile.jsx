@@ -19,9 +19,10 @@ const TraderProfile = () => {
       try {
         setLoading(true);
         const res = await axios.get(`${API_URL}/api/traders/all`);
-        setTraders(res.data);
+        setTraders(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         console.error("Error fetching traders", err);
+        setTraders([]);
       } finally {
         setLoading(false);
       }
@@ -30,10 +31,15 @@ const TraderProfile = () => {
   }, [API_URL]);
 
   const filteredTraders = useMemo(() => {
-    if (activeTab === 'All Portfolios') return traders;
-    if (activeTab === 'Favorite') return traders.filter(t => favorites.includes(t._id));
-    if (activeTab === 'Recommended') return traders.filter(t => t.profit > 10 || t.winRate >= 90);
-    return traders;
+    const list = Array.isArray(traders) ? traders : [];
+    if (activeTab === 'All Portfolios') return list;
+    if (activeTab === 'Favorite') return list.filter(t => favorites.includes(t._id));
+    if (activeTab === 'Recommended') return list.filter(t => {
+       const profitVal = parseFloat(t.profit) || 0;
+       const winRateVal = parseFloat(t.winRate) || 0;
+       return profitVal > 10 || winRateVal >= 90;
+    });
+    return list;
   }, [activeTab, traders, favorites]);
 
   const toggleFavorite = (e, id) => {
@@ -58,7 +64,7 @@ const TraderProfile = () => {
   return (
     <div className="p-4 md:p-8 bg-[#0b0e11] min-h-screen text-left pb-60 max-w-7xl mx-auto relative font-sans">
       
-      {/* Header Info - স্ক্রিনশটের মতো "Spot Copy" লুক */}
+      {/* Header Info */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-2 text-gray-300 font-bold text-sm">
           <span>Spot Copy</span>
@@ -66,11 +72,11 @@ const TraderProfile = () => {
         </div>
         <div className="flex gap-4">
           <MoreHorizontal size={20} className="text-gray-400" />
-          <span className="text-gray-400 text-xl">×</span>
+          <span className="text-gray-400 text-xl cursor-pointer" onClick={() => navigate(-1)}>×</span>
         </div>
       </div>
 
-      {/* Premium Banner - স্ক্রিনশটের মতো টেক্সট ও আইকন */}
+      {/* Premium Banner */}
       <div className="relative overflow-hidden bg-[#1e2329] p-6 rounded-2xl border border-[#f0b90b]/10 mb-8 flex justify-between items-center shadow-xl">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-[#f0b90b]/10 rounded-xl text-[#f0b90b]">
@@ -88,7 +94,7 @@ const TraderProfile = () => {
 
       <div id="trader-list-section" className="scroll-mt-24"></div>
 
-      {/* Tabs Menu - স্ক্রিনশটের মতো ডাইনামিক লুক */}
+      {/* Tabs Menu */}
       <div className="flex items-center justify-between mb-6 border-b border-[#1e2329] sticky top-0 bg-[#0b0e11] z-[70] pt-2">
         <div className="flex gap-6 overflow-x-auto scrollbar-hide">
           {tabs.map((tab) => (
@@ -103,7 +109,6 @@ const TraderProfile = () => {
             </button>
           ))}
         </div>
-        {/* Smart Copy Badge */}
         <div className="flex items-center gap-1 bg-[#2b3139] px-2 py-1 rounded text-[10px] text-[#929aa5] font-bold">
            <Zap size={10} className="text-[#f0b90b]" fill="#f0b90b" /> Smart Copy
         </div>

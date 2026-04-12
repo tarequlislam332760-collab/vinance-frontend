@@ -29,19 +29,25 @@ const Profile = () => {
     fetchProfile();
   }, [API_URL]);
 
-  // ✅ প্রোফাইল আপডেট করা (নাম ও পাসওয়ার্ড)
+  // ✅ প্রোফাইল আপডেট করা (নাম ও পাসওয়ার্ড)
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      await axios.put(`${API_URL}/api/profile/update`, 
+      // ব্যাকএন্ডের সাথে মিল রাখতে PUT এর বদলে POST ব্যবহার করা হয়েছে
+      const res = await axios.post(`${API_URL}/api/profile/update`, 
         { name, password },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert("Profile Updated Successfully!");
-      setPassword(''); // পাসওয়ার্ড ফিল্ড খালি করা
+      
+      if (res.data.success) {
+        alert("Profile Updated Successfully!");
+        setUserData(res.data.user); // UI আপডেট করার জন্য
+        setPassword(''); 
+      }
     } catch (err) {
-      alert("Update failed!");
+      console.error("Update error", err);
+      alert(err.response?.data?.message || "Update failed!");
     }
   };
 
