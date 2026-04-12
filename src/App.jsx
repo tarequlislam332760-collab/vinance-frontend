@@ -304,7 +304,7 @@ const AppContent = ({ cryptoData }) => {
           </header>
         )}
         
-        <div className={`flex-1 overflow-y-auto ${token && !isHomePage ? 'pb-56 md:pb-8' : ''}`}>
+        <div className={`flex-1 overflow-y-auto ${token && !isHomePage ? 'pb-24 md:pb-8' : ''}`}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -338,6 +338,7 @@ const AppContent = ({ cryptoData }) => {
                 <h2 className="text-[#f0b90b] font-black text-xl uppercase italic">Services</h2>
                 <button onClick={() => setShowMoreMenu(false)} className="bg-white/10 p-2 rounded-full text-gray-400">Close</button>
               </div>
+              
               <div className="grid grid-cols-3 gap-y-8 gap-x-4 mb-10 text-center">
                 {userPages.map((page) => (
                   <Link key={page.to} to={page.to} onClick={() => setShowMoreMenu(false)} className="flex flex-col items-center gap-2 text-gray-400">
@@ -346,6 +347,22 @@ const AppContent = ({ cryptoData }) => {
                   </Link>
                 ))}
               </div>
+
+              {/* Mobile Admin Section Inside More Menu */}
+              {user?.role === 'admin' && (
+                <div className="mb-10">
+                   <h3 className="text-[#f0b90b] font-black text-[10px] uppercase tracking-widest mb-6 opacity-50">Admin Panel</h3>
+                   <div className="grid grid-cols-3 gap-y-8 gap-x-4 text-center">
+                     {adminPages.map((page) => (
+                        <Link key={page.to} to={page.to} onClick={() => setShowMoreMenu(false)} className="flex flex-col items-center gap-2 text-yellow-500/80">
+                          <div className="p-4 bg-yellow-500/5 rounded-2xl border border-yellow-500/10">{page.icon}</div>
+                          <span className="text-[9px] font-black uppercase leading-tight">{page.label}</span>
+                        </Link>
+                      ))}
+                   </div>
+                </div>
+              )}
+              
               <button onClick={logout} className="flex items-center justify-center gap-2 text-red-500 font-black uppercase text-[10px] py-4 bg-red-500/5 rounded-2xl border border-red-500/10 mt-4">
                   <LogOut size={18}/> Logout Account
               </button>
