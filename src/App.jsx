@@ -261,7 +261,7 @@ const AppContent = ({ cryptoData }) => {
     { to: "/market", icon: <BarChart3 size={22}/>, label: "Market" },
     { to: "/futures/btc", icon: <Gavel size={22}/>, label: "Futures" },
     { to: "/invest", icon: <PieChart size={22}/>, label: "Invest" },
-    { to: "/copy-trade", icon: <Zap size={22}/>, label: "Portfolio" }, 
+    { to: "/trader-profile", icon: <Zap size={22}/>, label: "Portfolio" }, 
     { to: `/trade/${cryptoData[0]?.symbol || 'btc'}`, icon: <TrendingUp size={22}/>, label: "Spot" },
     { to: "/my-investments", icon: <History size={22}/>, label: "Logs" },
     { to: "/wallet", icon: <Wallet size={22}/>, label: "Wallet" },
@@ -321,7 +321,7 @@ const AppContent = ({ cryptoData }) => {
             <Route path="/wallet" element={<WalletPage />} /> 
             <Route path="/invest" element={<Investment />} />
             <Route path="/my-investments" element={<MyInvestments />} />
-            <Route path="/copy-trade" element={<TraderProfile />} /> 
+            <Route path="/trader-profile" element={<TraderProfile />} /> 
             <Route path="/profile" element={<Profile />} />
             <Route path="/become-trader" element={<BecomeTrader />} />
             <Route path="/admin" element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/dashboard" />} />
@@ -348,7 +348,6 @@ const AppContent = ({ cryptoData }) => {
                 ))}
               </div>
 
-              {/* Mobile Admin Section Inside More Menu */}
               {user?.role === 'admin' && (
                 <div className="mb-10">
                    <h3 className="text-[#f0b90b] font-black text-[10px] uppercase tracking-widest mb-6 opacity-50">Admin Panel</h3>
