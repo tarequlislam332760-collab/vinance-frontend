@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { MoreHorizontal, X, Zap, ChevronDown } from 'lucide-react';
+import { MoreHorizontal, X, Zap, ChevronDown, Edit, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TraderCard from '../components/TraderCard';
 
@@ -8,6 +8,7 @@ const CopyTrade = () => {
   const navigate = useNavigate();
   const [traders, setTraders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null); // ইউজার রোল চেক করার জন্য
 
   /* --- কন্ট্রোল স্টেট --- */
   const [showBanner, setShowBanner] = useState(true);
@@ -15,27 +16,55 @@ const CopyTrade = () => {
   const [moreOptionsOpen, setMoreOptionsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Recommended');
 
-  const API_URL = "https://vinance-backend.vercel.app/api/traders";
+  const API_URL = "https://vinance-backend.vercel.app/api";
 
   useEffect(() => {
-    const fetchTraders = async () => {
+    const fetchData = async () => {
       try {
-        const res = await axios.get(API_URL);
+        const token = localStorage.getItem("token");
+        
+        // ১. ট্রেডার লিস্ট আনা
+        const res = await axios.get(`${API_URL}/traders/all`);
         const fetchedData = Array.isArray(res.data) ? res.data : res.data.traders || [];
         setTraders(fetchedData);
+
+        // ২. ইউজার প্রোফাইল আনা (রোল চেক করার জন্য)
+        if (token) {
+          const userRes = await axios.get(`${API_URL}/profile`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          setUser(userRes.data);
+        }
         setLoading(false);
       } catch (err) {
-        console.error("Error fetching traders", err);
+        console.error("Error fetching data", err);
         setLoading(false);
       }
     };
-    fetchTraders();
+    fetchData();
   }, []);
+
+  // --- ট্রেডার ডিলিট করার ফাংশন ---
+  const handleDelete = async (id) => {
+    if (window.confirm("আপনি কি নিশ্চিত যে এই মাস্টার ট্রেডারকে ডিলিট করতে চান?")) {
+      try {
+        const token = localStorage.getItem("token");
+        await axios.delete(`${API_URL}/admin/delete-trader/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        // ডিলিট হওয়ার পর লিস্ট আপডেট করা
+        setTraders(traders.filter(t => t._id !== id));
+        alert("ট্রেডার ডিলিট হয়েছে!");
+      } catch (err) {
+        alert("ডিলিট করতে সমস্যা হয়েছে।");
+      }
+    }
+  };
 
   return (
     <div className="bg-[#0b0e11] min-h-screen pb-24 text-white font-sans overflow-x-hidden">
       
-      {/* --- ১. হেডার সেকশন (X এবং ৩-ডট ফিক্সড) --- */}
+      {/* --- ১. হেডার সেকশন --- */}
       <div className="p-4 flex justify-between items-center sticky top-0 bg-[#0b0e11] z-[100] border-b border-gray-900">
         <div className="relative">
           <button 
@@ -68,7 +97,7 @@ const CopyTrade = () => {
         </div>
       </div>
 
-      {/* --- ২. ব্যানার ক্লোজ বাটন --- */}
+      {/* --- ২. ব্যানার --- */}
       {showBanner && (
         <div className="mx-4 mt-4 bg-[#1e2329] p-4 rounded-xl flex justify-between items-center relative border border-yellow-500/10">
           <div className="flex items-center gap-3">
@@ -120,12 +149,36 @@ const CopyTrade = () => {
         </div>
       </div>
 
-      {/* --- ৫. ট্রেডার লিস্ট --- */}
+      {/* --- ৫. ট্রেডার লিস্ট (Edit/Delete বাটন সহ) --- */}
       <div className="px-4 grid grid-cols-1 gap-4">
         {loading ? (
           <div className="flex justify-center mt-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div></div>
         ) : (
-          traders.map((t) => <TraderCard key={t._id} trader={t} />)
+          traders.map((t) => (
+            <div key={t._id} className="relative group">
+              <TraderCard trader={t} />
+              
+              {/* যদি অ্যাডমিন লগইন থাকে তবে এডিট এবং ডিলিট বাটন দেখাবে */}
+              {user?.role === 'admin' && (
+                <div className="absolute top-2 right-2 flex gap-2 z-[50]">
+                  <button 
+                    onClick={() => navigate(`/admin/edit-trader/${t._id}`)}
+                    className="p-1.5 bg-blue-600 rounded-md hover:bg-blue-700 transition"
+                    title="Edit Trader"
+                  >
+                    <Edit size={14} />
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(t._id)}
+                    className="p-1.5 bg-red-600 rounded-md hover:bg-red-700 transition"
+                    title="Delete Trader"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              )}
+            </div>
+          ))
         )}
       </div>
 
