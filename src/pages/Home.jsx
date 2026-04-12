@@ -13,7 +13,7 @@ const Home = () => {
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
-        const messageRes = await axios.get('https://my-trading-backend-rji1.vercel.app');
+        const messageRes = await axios.get('https://vinance-backend.vercel.app');
         setMessage(messageRes.data.message);
       } catch (err) {
         console.error("Connection error:", err);
