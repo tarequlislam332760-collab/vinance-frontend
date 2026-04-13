@@ -8,7 +8,7 @@ const CopyTrade = () => {
   const navigate = useNavigate();
   const [traders, setTraders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null); 
+  const [user, setUser] = useState(null);
 
   /* --- কন্ট্রোল স্টেট --- */
   const [showBanner, setShowBanner] = useState(true);
@@ -22,7 +22,7 @@ const CopyTrade = () => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
-        
+
         // ১. ট্রেডার লিস্ট আনা
         const res = await axios.get(`${API_URL}/traders/all`);
         const fetchedData = Array.isArray(res.data) ? res.data : res.data.traders || [];
@@ -34,7 +34,7 @@ const CopyTrade = () => {
             headers: { Authorization: `Bearer ${token}` }
           });
           setUser(userRes.data);
-          console.log("Current User Role:", userRes.data.role); 
+          console.log("Current User Role:", userRes.data.role);
         }
       } catch (err) {
         console.error("Error fetching data", err);
@@ -141,28 +141,32 @@ const CopyTrade = () => {
           </div>
         ) : (
           traders.map((t) => (
-            <div key={t._id} className="relative group"> 
+            <div key={t._id} className="relative group overflow-visible"> 
               
-              {/* এডমিন কন্ট্রোল বাটন - কার্ডের ভেতরে টপ-রাইটে পজিশন করা */}
+              {/* এডমিন কন্ট্রোল বাটন - কার্ডের একদম উপরে ফ্লোটিং অবস্থায় */}
               {user?.role === 'admin' && (
-                <div className="absolute top-3 right-3 flex gap-2 z-[9999]">
+                <div className="absolute top-2 right-2 flex gap-2 z-[9999] pointer-events-auto">
                   <button 
                     onClick={(e) => {
-                      e.stopPropagation(); // কার্ডের ক্লিক ইভেন্ট বন্ধ করার জন্য
+                      e.preventDefault();
+                      e.stopPropagation();
                       navigate(`/admin/edit-trader/${t._id}`);
                     }}
-                    className="p-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition shadow-lg border border-blue-400/50"
+                    className="p-2 bg-blue-600/90 hover:bg-blue-600 rounded-lg shadow-2xl border border-white/20 transition-all active:scale-90"
+                    title="Edit Trader"
                   >
-                    <Edit size={16} className="text-white" />
+                    <Edit size={14} className="text-white" />
                   </button>
                   <button 
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       handleDelete(t._id);
                     }}
-                    className="p-2 bg-red-600 rounded-lg hover:bg-red-700 transition shadow-lg border border-red-400/50"
+                    className="p-2 bg-red-600/90 hover:bg-red-600 rounded-lg shadow-2xl border border-white/20 transition-all active:scale-90"
+                    title="Delete Trader"
                   >
-                    <Trash2 size={16} className="text-white" />
+                    <Trash2 size={14} className="text-white" />
                   </button>
                 </div>
               )}
