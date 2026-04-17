@@ -3,7 +3,7 @@ import API from '../api';
 import { UserContext } from '../context/UserContext';
 import { ShieldCheck, Users, Clock, PieChart, ListIcon, UserPlus, Trash2, TrendingUp, CheckCircle, Edit, X } from 'lucide-react';
 
-// ✅ আপনার ফোল্ডার স্ট্রাকচার অনুযায়ী ইম্পোর্ট
+// ✅ আপনার ফোল্ডার স্ট্রাকচার অনুযায়ী ইম্পোর্ট
 import ManageUsers from './ManageUsers';
 import PendingRequests from './PendingRequests';
 import ManagePlans from './ManagePlans';
@@ -154,12 +154,12 @@ const AdminPanel = () => {
                 <Clock size={14}/> Pending Lead Applications
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {pendingTraders.map((trader) => (
+                {traders.filter(t => t.status === "pending" || t.status === false || t.status === "false").map((trader) => (
                   <div key={trader._id} className="bg-[#0b0e11] p-5 rounded-3xl border border-dashed border-gray-700 flex justify-between items-center group">
                     <div>
                       <p className="text-white font-black text-sm">{trader.name}</p>
                       <div className="flex gap-3 mt-1">
-                         <p className="text-gray-500 text-[10px] font-bold uppercase">Exp: <span className="text-white">{trader.profit}Y</span></p>
+                         <p className="text-gray-500 text-[10px] font-bold uppercase">ROI: <span className="text-white">{trader.profit}%</span></p>
                          <p className="text-gray-500 text-[10px] font-bold uppercase">Capital: <span className="text-white">${trader.aum}</span></p>
                       </div>
                     </div>
@@ -174,7 +174,7 @@ const AdminPanel = () => {
                   </div>
                 ))}
               </div>
-              {pendingTraders.length === 0 && <p className="text-gray-600 text-[10px] italic uppercase tracking-widest">No new applications yet.</p>}
+              {traders.filter(t => t.status === "pending" || t.status === false || t.status === "false").length === 0 && <p className="text-gray-600 text-[10px] italic uppercase tracking-widest">No new applications yet.</p>}
             </div>
 
             <AddTrader fetchData={fetchData} />
@@ -182,10 +182,10 @@ const AdminPanel = () => {
             <div className="pt-10">
               <h3 className="font-black uppercase text-xs tracking-widest text-gray-400 mb-6">Existing Master Traders</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {traders.filter(t => t.status === true).map((trader) => (
+                {traders.filter(t => t.status === true || t.status === "true" || t.status === "approved").map((trader) => (
                   <div key={trader._id} className="bg-[#0b0e11] p-5 rounded-3xl border border-gray-800 flex justify-between items-center group hover:border-[#f0b90b]/50 transition-all">
                     <div className="flex items-center gap-4">
-                      <img src={trader.image || 'https://via.placeholder.com/150'} className="w-12 h-12 rounded-full object-cover border-2 border-gray-800 group-hover:border-[#f0b90b]" alt="" />
+                      <img src={trader.image || trader.img || 'https://via.placeholder.com/150'} className="w-12 h-12 rounded-full object-cover border-2 border-gray-800 group-hover:border-[#f0b90b]" alt="" />
                       <div>
                         <p className="text-white font-black text-sm">{trader.name}</p>
                         <p className="text-emerald-400 text-[10px] flex items-center gap-1 font-bold">
@@ -214,7 +214,7 @@ const AdminPanel = () => {
                   </div>
                 ))}
               </div>
-              {traders.length === 0 && <p className="text-gray-600 text-xs italic">No master traders found.</p>}
+              {traders.filter(t => t.status === true || t.status === "true" || t.status === "approved").length === 0 && <p className="text-gray-600 text-xs italic uppercase">No approved traders found in database.</p>}
             </div>
           </div>
         )}
@@ -241,7 +241,7 @@ const AdminPanel = () => {
         </div>
       )}
 
-      {/* ✅ Trader Edit Modal (নতুন যোগ করা হয়েছে) */}
+      {/* ✅ Trader Edit Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-black/90 backdrop-blur-md z-[999] p-4">
           <div className="bg-[#161a1e] p-8 rounded-[2.5rem] border border-[#1e2329] w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-300">
