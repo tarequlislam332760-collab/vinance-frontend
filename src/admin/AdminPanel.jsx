@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import API from '../api'; 
 import { UserContext } from '../context/UserContext';
-import { ShieldCheck, Users, Clock, PieChart, ListIcon, UserPlus, Trash2, TrendingUp, CheckCircle } from 'lucide-react';
+import { ShieldCheck, Users, Clock, PieChart, ListIcon, UserPlus, Trash2, TrendingUp, CheckCircle, Edit, X } from 'lucide-react';
 
-// ✅ আপনার ফোল্ডার স্ট্রাকচার ও ফাইল নেম অনুযায়ী সুনির্দিষ্ট ইম্পোর্ট
+// ✅ আপনার ফোল্ডার স্ট্রাকচার অনুযায়ী ইম্পোর্ট
 import ManageUsers from './ManageUsers';
 import PendingRequests from './PendingRequests';
 import ManagePlans from './ManagePlans';
 import InvestmentLogs from './InvestmentLogs';
-import AddTrader from './AddTrader'
+import AddTrader from './AddTrader';
 
 const AdminPanel = () => {
   const { token } = useContext(UserContext);
@@ -18,7 +18,7 @@ const AdminPanel = () => {
   const [requests, setRequests] = useState([]);
   const [investments, setInvestments] = useState([]); 
   const [traders, setTraders] = useState([]); 
-  const [pendingTraders, setPendingTraders] = useState([]); // 👈 নতুন আবেদন দেখার জন্য স্টেট
+  const [pendingTraders, setPendingTraders] = useState([]); 
   const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -26,23 +26,22 @@ const AdminPanel = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [newBalance, setNewBalance] = useState("");
 
+  // ✅ এডিট ট্রেডারের জন্য নতুন স্টেট
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedTrader, setSelectedTrader] = useState(null);
+  const [editTraderData, setEditTraderData] = useState({ name: '', profit: '' });
+
   const fetchData = useCallback(async () => {
     if (!token) return;
-
     try {
       setLoading(true);
       const res = await API.get('/api/admin/all-data');
-      
-      console.log("Full Backend Data:", res.data); 
-
       setUsers(res.data.users || []);
       setRequests(res.data.requests || []);
       setTraders(res.data.traders || []); 
-      setPendingTraders(res.data.pendingApplications || []); // 👈 ব্যাকএন্ড থেকে পেন্ডিং ডাটা নেওয়া হচ্ছে
-
+      setPendingTraders(res.data.pendingApplications || []);
       const logData = res.data.investments || res.data.logs || res.data.allInvestments || res.data.requests || [];
       setInvestments(logData);
-      
     } catch (err) {
       console.error("Admin Fetch error:", err);
     } finally {
@@ -54,7 +53,6 @@ const AdminPanel = () => {
     fetchData();
   }, [fetchData]);
 
-  // ✅ ট্রেডার এপ্রুভ করার ফাংশন (Status True করে দেওয়া)
   const handleApproveTrader = async (traderId) => {
     try {
       await API.put(`/api/admin/edit-trader/${traderId}`, { status: true });
@@ -77,18 +75,28 @@ const AdminPanel = () => {
     }
   };
 
+  // ✅ ট্রেডার এডিট সাবমিট ফাংশন
+  const handleEditTraderSubmit = async () => {
+    try {
+      await API.put(`/api/admin/edit-trader/${selectedTrader._id}`, editTraderData);
+      alert("Trader Updated Successfully!");
+      setIsEditModalOpen(false);
+      fetchData();
+    } catch (err) {
+      alert("Failed to update trader");
+    }
+  };
+
   const handleBalanceUpdate = async () => {
     if (!newBalance || newBalance < 0) {
       alert("Invalid balance amount");
       return;
     }
-
     try {
       await API.post('/api/admin/update-balance', {
         userId: selectedUser._id,
         balance: newBalance
       });
-
       setIsModalOpen(false);
       fetchData(); 
       alert("Balance Updated Successfully!");
@@ -141,7 +149,6 @@ const AdminPanel = () => {
         
         {activeTab === 'traders' && (
           <div className="space-y-12 text-left">
-            {/* ১. নতুন লিড আবেদন সেকশন */}
             <div className="pb-10 border-b border-gray-800">
               <h3 className="font-black uppercase text-xs tracking-widest text-[#f0b90b] mb-6 flex items-center gap-2">
                 <Clock size={14}/> Pending Lead Applications
@@ -186,12 +193,24 @@ const AdminPanel = () => {
                         </p>
                       </div>
                     </div>
-                    <button 
-                      onClick={() => handleDeleteTrader(trader._id)}
-                      className="p-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-2xl transition-all shadow-xl shadow-red-500/5"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => {
+                          setSelectedTrader(trader);
+                          setEditTraderData({ name: trader.name, profit: trader.profit });
+                          setIsEditModalOpen(true);
+                        }}
+                        className="p-3 bg-blue-500/10 hover:bg-blue-500 text-blue-500 hover:text-white rounded-2xl transition-all shadow-xl shadow-blue-500/5"
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteTrader(trader._id)}
+                        className="p-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-2xl transition-all shadow-xl shadow-red-500/5"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -201,31 +220,50 @@ const AdminPanel = () => {
         )}
       </div>
 
+      {/* ✅ User Balance Update Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-black/90 backdrop-blur-md z-[999] p-4">
-          <div className="bg-[#161a1e] p-8 rounded-[2.5rem] border border-[#1e2329] w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-300">
+          <div className="bg-[#161a1e] p-8 rounded-[2.5rem] border border-[#1e2329] w-full max-w-sm shadow-2xl">
             <h3 className="text-xl font-black uppercase italic text-[#f0b90b] mb-2">Update Balance</h3>
-            <p className="text-[10px] text-gray-500 mb-6 uppercase tracking-widest font-bold border-b border-[#1e2329] pb-3 text-left">
-              User: <span className="text-white ml-2">{selectedUser?.name}</span>
-            </p>
-
+            <p className="text-[10px] text-gray-500 mb-6 uppercase tracking-widest font-bold border-b border-[#1e2329] pb-3">User: <span className="text-white ml-2">{selectedUser?.name}</span></p>
             <div className="mb-6">
-              <label className="text-[10px] text-gray-500 uppercase font-black mb-3 block text-left">Set New Balance (USD)</label>
+              <label className="text-[10px] text-gray-500 uppercase font-black mb-3 block">Set New Balance (USD)</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#f0b90b] font-bold">$</span>
-                <input
-                    type="number"
-                    value={newBalance}
-                    onChange={(e) => setNewBalance(e.target.value)}
-                    className="w-full bg-[#0b0e11] border border-[#1e2329] p-4 pl-8 rounded-2xl text-white font-mono text-2xl outline-none focus:border-[#f0b90b] transition-all"
-                    placeholder="0.00"
-                />
+                <input type="number" value={newBalance} onChange={(e) => setNewBalance(e.target.value)} className="w-full bg-[#0b0e11] border border-[#1e2329] p-4 pl-8 rounded-2xl text-white font-mono text-2xl outline-none focus:border-[#f0b90b]" placeholder="0.00" />
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <button onClick={() => setIsModalOpen(false)} className="flex-1 text-gray-500 font-black uppercase text-[10px] py-4">Cancel</button>
+              <button onClick={handleBalanceUpdate} className="flex-1 bg-[#f0b90b] text-black py-4 rounded-2xl font-black uppercase text-[10px] hover:bg-[#d4a30a]">Confirm</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ Trader Edit Modal (নতুন যোগ করা হয়েছে) */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 flex justify-center items-center bg-black/90 backdrop-blur-md z-[999] p-4">
+          <div className="bg-[#161a1e] p-8 rounded-[2.5rem] border border-[#1e2329] w-full max-w-sm shadow-2xl animate-in fade-in zoom-in duration-300">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-black uppercase italic text-[#f0b90b]">Edit Trader</h3>
+              <button onClick={() => setIsEditModalOpen(false)} className="text-gray-500 hover:text-white"><X size={20}/></button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] text-gray-500 uppercase font-black mb-2 block">Trader Name</label>
+                <input type="text" value={editTraderData.name} onChange={(e) => setEditTraderData({...editTraderData, name: e.target.value})} className="w-full bg-[#0b0e11] border border-[#1e2329] p-4 rounded-2xl text-white outline-none focus:border-[#f0b90b]" />
+              </div>
+              <div>
+                <label className="text-[10px] text-gray-500 uppercase font-black mb-2 block">ROI Profit (%)</label>
+                <input type="number" value={editTraderData.profit} onChange={(e) => setEditTraderData({...editTraderData, profit: e.target.value})} className="w-full bg-[#0b0e11] border border-[#1e2329] p-4 rounded-2xl text-white outline-none focus:border-[#f0b90b]" />
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <button onClick={() => setIsModalOpen(false)} className="flex-1 text-gray-500 font-black uppercase text-[10px] py-4 hover:text-white transition-colors">Cancel</button>
-              <button onClick={handleBalanceUpdate} className="flex-1 bg-[#f0b90b] text-black py-4 rounded-2xl font-black uppercase text-[10px] hover:bg-[#d4a30a] transition-all shadow-lg active:scale-95">Confirm</button>
+            <div className="flex gap-4 mt-8">
+              <button onClick={() => setIsEditModalOpen(false)} className="flex-1 text-gray-500 font-black uppercase text-[10px] py-4">Cancel</button>
+              <button onClick={handleEditTraderSubmit} className="flex-1 bg-[#f0b90b] text-black py-4 rounded-2xl font-black uppercase text-[10px] hover:bg-[#d4a30a] shadow-lg">Save Changes</button>
             </div>
           </div>
         </div>
