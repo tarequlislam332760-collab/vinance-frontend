@@ -1,241 +1,489 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
 import axios from 'axios';
-import { ChevronDown, MoreHorizontal, Settings, Plus, Minus, Info, LayoutGrid, Activity } from 'lucide-react';
+import {
+  ChevronDown, MoreHorizontal, Settings, Plus, Minus,
+  Activity, RefreshCw, TrendingUp, TrendingDown,
+  AlertCircle, Loader2
+} from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
-// সাব-কম্পোনেন্ট ইমপোর্ট
 import OrderBook from "../components/OrderBook";
-import PositionTable from "../components/PositionTable";
 import LeverageSlider from "../components/LeverageSlider";
+import PositionTable from "../components/PositionTable";
 
+/* ─── axios instance ─────────────────────────────────────────────── */
 const api = axios.create({
   baseURL: "https://vinance-backend.vercel.app",
-  withCredentials: true 
+  withCredentials: true,
 });
 
+/* ─── IBM Plex Mono + styles ─────────────────────────────────────── */
+const Styles = () => (
+  <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap');
+
+    .fut-root * { box-sizing: border-box; }
+    .fut-root    {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      background: #0b0e11; color: #848e9c;
+      min-height: 100dvh; overflow-x: hidden;
+    }
+
+    /* tabs */
+    .pos-tab {
+      padding: 10px 0 8px; font-size: 11px; font-weight: 600;
+      background: transparent; border: none; border-bottom: 2px solid transparent;
+      color: #5e6673; cursor: pointer; font-family: inherit;
+      letter-spacing: .03em; transition: color .15s, border-color .15s;
+    }
+    .pos-tab.active { color: #eaecef; border-bottom-color: #f0b90b; }
+
+    /* position card */
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .pos-card {
+      background: #1e2329; border-radius: 6px; padding: 10px 12px;
+      margin-bottom: 6px; animation: slideIn .2s ease-out;
+      border-left: 3px solid transparent;
+    }
+    .pos-card.long  { border-left-color: #0ecb81; }
+    .pos-card.short { border-left-color: #f6465d; }
+
+    /* pnl badge */
+    .pnl-pos { color: #0ecb81; background: rgba(14,203,129,.1);
+               padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+    .pnl-neg { color: #f6465d; background: rgba(246,70,93,.1);
+               padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+
+    /* side toggle */
+    .side-buy  { background: #0ecb81 !important; color: #0b0e11 !important; }
+    .side-sell { background: #f6465d !important; color: #fff !important; }
+
+    /* empty state */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 28px 0; gap: 8px;
+      color: #404854; font-size: 11px;
+    }
+
+    /* spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin .8s linear infinite; }
+
+    /* price flash */
+    @keyframes flashG { 0%{background:rgba(14,203,129,.15)} 100%{background:transparent} }
+    @keyframes flashR { 0%{background:rgba(246,70,93,.15)}  100%{background:transparent} }
+    .fg { animation: flashG .4s ease-out; }
+    .fr { animation: flashR .4s ease-out; }
+
+    /* close btn */
+    .close-pos-btn {
+      font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 3px;
+      border: 1px solid #f6465d; color: #f6465d; background: transparent;
+      cursor: pointer; font-family: inherit; transition: background .15s, color .15s;
+    }
+    .close-pos-btn:hover { background: #f6465d; color: #fff; }
+  `}</style>
+);
+
+/* ─── PositionCard ───────────────────────────────────────────────── */
+const PositionCard = ({ pos, currentPrice, onClose }) => {
+  const isLong  = pos.side === 'buy' || pos.type === 'buy';
+  const entry   = parseFloat(pos.entryPrice || pos.entry_price || 0);
+  const size    = parseFloat(pos.amount     || pos.size         || 0);
+  const lev     = parseFloat(pos.leverage   || 1);
+  const mark    = parseFloat(currentPrice   || entry);
+
+  const pnl     = isLong
+    ? (mark - entry) * (size / entry) * lev
+    : (entry - mark) * (size / entry) * lev;
+  const pnlPct  = entry > 0 ? ((pnl / size) * 100).toFixed(2) : '0.00';
+  const liqPrice = isLong
+    ? (entry * (1 - 1 / lev)).toFixed(2)
+    : (entry * (1 + 1 / lev)).toFixed(2);
+
+  return (
+    <div className={`pos-card ${isLong ? 'long' : 'short'}`}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+          <span style={{ color: isLong ? '#0ecb81':'#f6465d', fontWeight:700, fontSize:12 }}>
+            {isLong ? '↑ LONG' : '↓ SHORT'}
+          </span>
+          <span style={{ background:'#2b3139', color:'#848e9c', fontSize:9, padding:'1px 5px', borderRadius:3 }}>
+            {lev}x
+          </span>
+          <span style={{ color:'#eaecef', fontSize:11, fontWeight:600 }}>
+            {(pos.symbol || 'BTC').toUpperCase()}USDT
+          </span>
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+          <span className={pnl >= 0 ? 'pnl-pos' : 'pnl-neg'}>
+            {pnl >= 0 ? '+' : ''}{pnl.toFixed(2)} ({pnlPct}%)
+          </span>
+          <button className="close-pos-btn" onClick={() => onClose(pos._id || pos.id)}>
+            Close
+          </button>
+        </div>
+      </div>
+
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:4, fontSize:10 }}>
+        {[
+          ['Size',       `${size.toFixed(2)} USDT`],
+          ['Entry',       entry.toFixed(2)],
+          ['Mark',        mark.toFixed(2)],
+          ['Liq. Price', liqPrice],
+        ].map(([label, val]) => (
+          <div key={label}>
+            <div style={{ color:'#5e6673', marginBottom:2 }}>{label}</div>
+            <div style={{ color:'#c6cad2', fontWeight:600 }}>{val}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/* ─── Main Component ─────────────────────────────────────────────── */
 const Futures = () => {
   const { coinSymbol } = useParams();
   const { user, refreshUser, token } = useContext(UserContext);
-  const [leverage, setLeverage] = useState(60);
-  const [amount, setAmount] = useState('');
-  const [side, setSide] = useState('buy'); 
-  const [loading, setLoading] = useState(false);
+
+  const [leverage,      setLeverage]     = useState(60);
+  const [amount,        setAmount]       = useState('');
+  const [side,          setSide]         = useState('buy');
+  const [loading,       setLoading]      = useState(false);
   const [currentPrice, setCurrentPrice] = useState('0.0');
-  
-  // --- নতুন যোগ করা স্টেট (ট্যাব পরিবর্তনের জন্য) ---
-  const [activeTab, setActiveTab] = useState('positions');
+  const [priceUp,       setPriceUp]      = useState(true);
+  const [flashCls,      setFlashCls]     = useState('');
+  const [activeTab,     setActiveTab]    = useState('positions');
+
+  const [positions,     setPositions]    = useState([]);
+  const [posLoading,    setPosLoading]   = useState(false);
+  const [posError,      setPosError]     = useState(null);
 
   const currentCoin = (coinSymbol || 'BTC').toUpperCase();
 
+  const fetchPositions = useCallback(async () => {
+    if (!token) return;
+    setPosLoading(true);
+    setPosError(null);
+    try {
+      const res = await api.get('/api/futures/positions', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = res.data?.positions || res.data?.data || res.data || [];
+      setPositions(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Positions fetch error:', err);
+      setPosError('Could not load positions');
+      setPositions([]);
+    } finally {
+      setPosLoading(false);
+    }
+  }, [token]);
+
   useEffect(() => {
-    const priceWs = new WebSocket(`wss://stream.binance.com:9443/ws/${currentCoin.toLowerCase()}usdt@ticker`);
-    priceWs.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      setCurrentPrice(parseFloat(data.c).toFixed(1)); 
+    fetchPositions();
+  }, [fetchPositions]);
+
+  useEffect(() => {
+    let prev = null;
+    const ws = new WebSocket(
+      `wss://stream.binance.com:9443/ws/${currentCoin.toLowerCase()}usdt@ticker`
+    );
+    ws.onmessage = (e) => {
+      const d = JSON.parse(e.data);
+      const price = parseFloat(d.c);
+      if (prev !== null) {
+        const up = price >= prev;
+        setPriceUp(up);
+        setFlashCls(up ? 'fg' : 'fr');
+        setTimeout(() => setFlashCls(''), 420);
+      }
+      prev = price;
+      setCurrentPrice(price.toFixed(2));
     };
-    return () => priceWs.close();
+    ws.onerror = () => ws.close();
+    return () => ws.close();
   }, [currentCoin]);
 
   const handleTrade = async () => {
-    if (!amount || parseFloat(amount) <= 0) return toast.error("Enter valid amount");
-    if (parseFloat(amount) > (user?.balance || 0)) return toast.error("Insufficient balance");
+    if (!amount || parseFloat(amount) <= 0) return toast.error('Enter valid amount');
+    if (parseFloat(amount) > (user?.balance || 0)) return toast.error('Insufficient balance');
 
     setLoading(true);
     try {
-      const res = await api.post('/api/futures/trade', { 
-        type: side, 
-        amount: parseFloat(amount), 
-        leverage: Number(leverage),
-        symbol: currentCoin,
-        entryPrice: parseFloat(currentPrice) 
-      }, {
-        headers: { Authorization: `Bearer ${token}` } 
-      });
+      const res = await api.post('/api/futures/trade', {
+        type:       side,
+        amount:     parseFloat(amount),
+        leverage:   Number(leverage),
+        symbol:     currentCoin,
+        entryPrice: parseFloat(currentPrice),
+      }, { headers: { Authorization: `Bearer ${token}` } });
 
       if (res.data.success) {
-        toast.success(res.data.message);
-        setAmount("");
-        if (refreshUser) await refreshUser(); 
+        toast.success(res.data.message || 'Trade placed!');
+        setAmount('');
+        await Promise.all([
+          refreshUser?.(),
+          fetchPositions(),
+        ]);
       }
-    } catch (err) { 
-      toast.error(err.response?.data?.message || "Trade failed"); 
-    } finally { 
-      setLoading(false); 
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Trade failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClosePosition = async (positionId) => {
+    if (!positionId) return toast.error('Invalid position');
+    try {
+      await api.post('/api/futures/close', { positionId }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success('Position closed');
+      await Promise.all([refreshUser?.(), fetchPositions()]);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Could not close position');
     }
   };
 
   const adjustAmount = (val) => {
     setAmount(prev => {
-      const currentVal = parseFloat(prev) || 0;
-      const newVal = Math.max(0, currentVal + val);
-      return newVal === 0 ? "" : newVal.toString();
+      const n = Math.max(0, (parseFloat(prev) || 0) + val);
+      return n === 0 ? '' : n.toString();
     });
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0b0e11] text-[#848e9c] font-sans select-none overflow-x-hidden">
-      {/* --- Header Section (No Change) --- */}
-      <div className="flex justify-between items-center px-4 py-2 bg-[#161a1e] border-b border-gray-800">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1 cursor-pointer">
-            <h2 className="text-white font-bold text-lg">{currentCoin}USDT</h2>
-            <span className="bg-gray-800 text-[10px] px-1 rounded text-gray-400">Perp</span>
-            <ChevronDown size={14} />
+    <>
+      <Styles />
+      <div className="fut-root">
+        {/* HEADER */}
+        <div style={{
+          display:'flex', justifyContent:'space-between', alignItems:'center',
+          padding:'10px 16px', background:'#161a1e', borderBottom:'1px solid #1e2329',
+        }}>
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:5, cursor:'pointer' }}>
+              <span style={{ color:'#eaecef', fontWeight:700, fontSize:15 }}>{currentCoin}USDT</span>
+              <span style={{ background:'#2b3139', color:'#848e9c', fontSize:8, padding:'1px 5px', borderRadius:3 }}>PERP</span>
+              <ChevronDown size={13} />
+            </div>
+            <span style={{
+              fontSize:12, fontWeight:700,
+              color: priceUp ? '#0ecb81' : '#f6465d',
+            }}>{currentPrice}</span>
           </div>
-          <div className="text-[#02c076] text-sm font-bold">+2.44%</div>
+          <div style={{ display:'flex', gap:14, color:'#5e6673' }}>
+            <Activity size={17} style={{ cursor:'pointer' }} />
+            <Settings size={17} style={{ cursor:'pointer' }} />
+            <MoreHorizontal size={17} style={{ cursor:'pointer' }} />
+          </div>
         </div>
-        <div className="flex gap-4 items-center text-gray-400">
-          <Activity size={18} className="hover:text-[#f0b90b] cursor-pointer" />
-          <Settings size={18} className="cursor-pointer" />
-          <MoreHorizontal size={18} className="cursor-pointer" />
-        </div>
-      </div>
 
-      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-        
-        {/* --- Left Column: Order Book (No Change) --- */}
-        <div className="w-full md:w-64 bg-[#161a1e] border-r border-gray-800 flex flex-col p-2">
-          <div className="flex justify-between text-[10px] mb-2 px-1">
-            <span>Price(USDT)</span>
-            <span>Amount(USDT)</span>
-          </div>
-          <div className="space-y-[1px] mb-4">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="flex justify-between text-[12px] relative h-5 items-center px-1">
-                <span className="text-[#f6465d] z-10">{(parseFloat(currentPrice) + (i * 0.2)).toFixed(1)}</span>
-                <span className="text-gray-300 z-10">{(Math.random() * 5).toFixed(2)}K</span>
+        <div style={{ display:'flex', flex:1, overflow:'hidden' }}>
+          {/* LEFT: Order Book */}
+          <div style={{ width:160, background:'#161a1e', borderRight:'1px solid #1e2329', padding:'8px 6px', flexShrink:0 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', fontSize:9, color:'#5e6673', marginBottom:6, padding:'0 2px' }}>
+              <span>Price</span><span>Size</span>
+            </div>
+            {[...Array(7)].map((_,i) => (
+              <div key={`a${i}`} style={{ display:'flex', justifyContent:'space-between', fontSize:11, padding:'2px 2px', position:'relative' }}>
+                <span style={{ color:'#f6465d' }}>{(parseFloat(currentPrice) + (i+1)*0.5).toFixed(2)}</span>
+                <span style={{ color:'#c6cad2' }}>{(Math.random()*5+0.5).toFixed(2)}K</span>
+              </div>
+            ))}
+            <div className={flashCls} style={{
+              textAlign:'center', padding:'5px 0', margin:'4px 0',
+              borderTop:'1px solid #1e2329', borderBottom:'1px solid #1e2329',
+              color: priceUp ? '#0ecb81' : '#f6465d',
+              fontWeight:700, fontSize:13,
+            }}>{currentPrice}</div>
+            {[...Array(7)].map((_,i) => (
+              <div key={`b${i}`} style={{ display:'flex', justifyContent:'space-between', fontSize:11, padding:'2px 2px' }}>
+                <span style={{ color:'#0ecb81' }}>{(parseFloat(currentPrice) - (i+1)*0.5).toFixed(2)}</span>
+                <span style={{ color:'#c6cad2' }}>{(Math.random()*5+0.5).toFixed(2)}K</span>
               </div>
             ))}
           </div>
-          <div className="py-2 border-y border-gray-800 my-1 text-center font-bold text-[#02c076] text-lg">{currentPrice}</div>
-          <div className="space-y-[1px]">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="flex justify-between text-[12px] relative h-5 items-center px-1">
-                <span className="text-[#02c076] z-10">{(parseFloat(currentPrice) - (i * 0.2)).toFixed(1)}</span>
-                <span className="text-gray-300 z-10">{(Math.random() * 5).toFixed(2)}K</span>
-              </div>
-            ))}
-          </div>
-        </div>
 
-        {/* --- Middle Column: Chart & Position Table --- */}
-        <div className="flex-1 flex flex-col bg-[#0b0e11]">
-          <div className="flex-1 min-h-[400px] border-b border-gray-800 relative">
-            <iframe
-              title="Binance Futures Chart"
-              src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${currentCoin}USDT.P&interval=15&theme=dark&style=1&timezone=Etc%2FUTC`}
-              className="absolute inset-0 w-full h-full border-none"
-            ></iframe>
-          </div>
-
-          {/* --- আপডেট করা অপশন ট্যাব --- */}
-          <div className="h-64 overflow-y-auto bg-[#161a1e]">
-            <div className="flex gap-6 border-b border-gray-800 px-4 py-0 text-[12px] font-bold">
-              <button 
-                onClick={() => setActiveTab('positions')}
-                className={`pb-2 pt-2 transition-all cursor-pointer ${activeTab === 'positions' ? 'text-white border-b-2 border-[#f0b90b]' : 'text-gray-500 hover:text-gray-300'}`}
-              >
-                Positions({user?.positions?.length || 0})
-              </button>
-              <button 
-                onClick={() => setActiveTab('orders')}
-                className={`pb-2 pt-2 transition-all cursor-pointer ${activeTab === 'orders' ? 'text-white border-b-2 border-[#f0b90b]' : 'text-gray-500 hover:text-gray-300'}`}
-              >
-                Open Orders(0)
-              </button>
-              <button 
-                onClick={() => setActiveTab('assets')}
-                className={`pb-2 pt-2 transition-all cursor-pointer ${activeTab === 'assets' ? 'text-white border-b-2 border-[#f0b90b]' : 'text-gray-500 hover:text-gray-300'}`}
-              >
-                Assets
-              </button>
-            </div>
-
-            {/* ট্যাব অনুযায়ী কন্টেন্ট প্রদর্শন */}
-            <div className="p-2">
-              {activeTab === 'positions' && (
-                <PositionTable positions={user?.positions || []} />
-              )}
-              {activeTab === 'orders' && (
-                <div className="text-center py-10 text-gray-600 text-sm italic font-medium">No open orders</div>
-              )}
-              {activeTab === 'assets' && (
-                <div className="p-4 space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span>Wallet Balance</span>
-                    <span className="text-white font-bold">{user?.balance?.toFixed(2) || '0.00'} USDT</span>
-                  </div>
-                  <div className="flex justify-between text-sm text-[#02c076]">
-                    <span>Unrealized PNL</span>
-                    <span className="font-bold">0.00 USDT</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* --- Right Column: Trade Form (No Change) --- */}
-        <div className="w-full md:w-[320px] p-4 bg-[#161a1e] border-l border-gray-800 space-y-4">
-          <div className="flex gap-2">
-            <button className="flex-1 bg-gray-800 py-1.5 rounded text-[11px] text-white font-bold flex items-center justify-center gap-1 uppercase tracking-wider">Cross <ChevronDown size={12}/></button>
-            <button className="flex-1 bg-gray-800 py-1.5 rounded text-[11px] text-white font-bold flex items-center justify-center gap-1 uppercase tracking-wider">{leverage}x <ChevronDown size={12}/></button>
-          </div>
-
-          <div className="flex bg-gray-800 rounded p-1 h-10">
-            <button onClick={() => setSide('buy')} className={`flex-1 flex items-center justify-center text-[13px] font-bold rounded transition-all ${side === 'buy' ? 'bg-[#02c076] text-black' : 'text-gray-400'}`}>Buy</button>
-            <button onClick={() => setSide('sell')} className={`flex-1 flex items-center justify-center text-[13px] font-bold rounded transition-all ${side === 'sell' ? 'bg-[#f6465d] text-white' : 'text-gray-400'}`}>Sell</button>
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex justify-between text-[11px]">
-              <span className="flex items-center gap-1">Avbl</span>
-              <span className="text-white font-bold">{user?.balance?.toFixed(2) || '0.00'} USDT <Plus size={10} className="inline text-[#f0b90b] ml-1 cursor-pointer" /></span>
-            </div>
-
-            <div className="bg-[#2b3139] py-2.5 px-3 rounded text-[13px] text-white flex justify-between items-center cursor-pointer hover:bg-[#363c45]">
-              <span>Market</span>
-              <ChevronDown size={14} className="text-gray-500" />
-            </div>
-
-            <div className="bg-[#2b3139] py-2.5 rounded text-center text-[13px] text-gray-400 font-bold border border-transparent">
-              Price: <span className="text-white ml-1">Market Price</span>
-            </div>
-
-            <div className="flex items-center bg-[#2b3139] rounded h-11 border border-transparent focus-within:border-[#f0b90b] px-1">
-              <button onClick={() => adjustAmount(-1)} className="p-2 text-gray-400 hover:text-white"><Minus size={16}/></button>
-              <input 
-                type="number" 
-                placeholder="Amount" 
-                value={amount} 
-                onChange={(e) => setAmount(e.target.value)} 
-                className="w-full bg-transparent text-center text-white text-[14px] font-bold outline-none" 
+          {/* MIDDLE: Chart + Tabs */}
+          <div style={{ flex:1, display:'flex', flexDirection:'column', minWidth:0 }}>
+            <div style={{ flex:1, minHeight:360, position:'relative', borderBottom:'1px solid #1e2329' }}>
+              <iframe
+                title="Futures Chart"
+                src={`https://s.tradingview.com/widgetembed/?symbol=BINANCE:${currentCoin}USDT.P&interval=15&theme=dark&style=1&timezone=Etc%2FUTC`}
+                style={{ position:'absolute', inset:0, width:'100%', height:'100%', border:'none' }}
               />
-              <div className="text-[11px] font-bold text-gray-400 px-2 border-l border-gray-700">USDT</div>
-              <button onClick={() => adjustAmount(1)} className="p-2 text-gray-400 hover:text-white"><Plus size={16}/></button>
             </div>
 
-            <LeverageSlider onChange={(v) => setLeverage(v)} />
+            <div style={{ height:240, overflow:'hidden', display:'flex', flexDirection:'column', background:'#161a1e' }}>
+              <div style={{ display:'flex', gap:20, borderBottom:'1px solid #1e2329', padding:'0 14px', flexShrink:0 }}>
+                {[
+                  { key:'positions', label:`Positions(${positions.length})` },
+                  { key:'orders',    label:'Open Orders(0)' },
+                  { key:'assets',    label:'Assets' },
+                ].map(t => (
+                  <button
+                    key={t.key}
+                    className={`pos-tab${activeTab === t.key ? ' active' : ''}`}
+                    onClick={() => {
+                      setActiveTab(t.key);
+                      if (t.key === 'positions') fetchPositions();
+                    }}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+                <button
+                  onClick={fetchPositions}
+                  style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', color:'#5e6673', padding:'8px 0' }}
+                >
+                  <RefreshCw size={12} className={posLoading ? 'spin' : ''} />
+                </button>
+              </div>
 
-            <div className="flex flex-col gap-1 text-[11px] pt-2">
-              <div className="flex justify-between"><span>Max</span><span className="text-white font-medium">3,033.12 USDT</span></div>
-              <div className="flex justify-between"><span>Cost</span><span className="text-white font-medium">0.00 USDT</span></div>
+              <div style={{ flex:1, overflowY:'auto', padding:'10px 12px' }}>
+                {activeTab === 'positions' && (
+                  <>
+                    {posLoading && (
+                      <div className="empty-state">
+                        <Loader2 size={20} className="spin" style={{ color:'#f0b90b' }} />
+                        <span>Loading positions...</span>
+                      </div>
+                    )}
+                    {!posLoading && posError && (
+                      <div className="empty-state" style={{ color:'#f6465d' }}>
+                        <AlertCircle size={20} />
+                        <span>{posError}</span>
+                        <button onClick={fetchPositions} style={{ color:'#f0b90b', background:'none', border:'none', cursor:'pointer', fontSize:10 }}>Retry</button>
+                      </div>
+                    )}
+                    {!posLoading && !posError && positions.length === 0 && (
+                      <div className="empty-state">
+                        <TrendingUp size={24} style={{ opacity:.3 }} />
+                        <span>No open positions</span>
+                      </div>
+                    )}
+                    {!posLoading && !posError && positions.map((pos, i) => (
+                      <PositionCard key={pos._id || pos.id || i} pos={pos} currentPrice={currentPrice} onClose={handleClosePosition} />
+                    ))}
+                  </>
+                )}
+
+                {activeTab === 'orders' && (
+                  <div className="empty-state">
+                    <TrendingDown size={20} style={{ opacity:.3 }} />
+                    <span>No open orders</span>
+                  </div>
+                )}
+
+                {activeTab === 'assets' && (
+                  <div style={{ fontSize:11 }}>
+                    {[
+                      ['Wallet Balance', `${user?.balance?.toFixed(2) || '0.00'} USDT`, '#eaecef'],
+                      ['Unrealized PNL', '0.00 USDT', '#0ecb81'],
+                      ['Margin Balance', `${user?.balance?.toFixed(2) || '0.00'} USDT`, '#eaecef'],
+                      ['Available Margin', `${user?.balance?.toFixed(2) || '0.00'} USDT`, '#848e9c'],
+                    ].map(([label, val, color]) => (
+                      <div key={label} style={{ display:'flex', justifyContent:'space-between', padding:'7px 0', borderBottom:'1px solid #1e2329' }}>
+                        <span style={{ color:'#5e6673' }}>{label}</span>
+                        <span style={{ color, fontWeight:600 }}>{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT: Trade Form */}
+          <div style={{ width:300, padding:14, background:'#161a1e', borderLeft:'1px solid #1e2329', display:'flex', flexDirection:'column', gap:12, flexShrink:0, overflowY:'auto' }}>
+            <div style={{ display:'flex', gap:8 }}>
+              {['Cross', `${leverage}x`].map((label, i) => (
+                <button key={i} style={{ flex:1, background:'#2b3139', border:'none', borderRadius:5, padding:'7px 0', fontSize:11, fontWeight:700, color:'#eaecef', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
+                  {label} <ChevronDown size={11} color="#848e9c"/>
+                </button>
+              ))}
             </div>
 
-            <button 
-              onClick={handleTrade} 
-              disabled={loading} 
-              className={`w-full py-3.5 rounded-lg font-bold text-sm transition-all active:scale-[0.98] shadow-lg ${loading ? 'opacity-50' : side === 'buy' ? 'bg-[#02c076] text-black' : 'bg-[#f6465d] text-white'}`}
+            <div style={{ display:'flex', background:'#2b3139', borderRadius:6, padding:3 }}>
+              {['buy','sell'].map(s => (
+                <button
+                  key={s}
+                  onClick={() => setSide(s)}
+                  style={{
+                    flex:1, padding:'8px 0', border:'none', borderRadius:5, fontSize:13, fontWeight:700, cursor:'pointer',
+                    background: side === s ? (s==='buy' ? '#0ecb81' : '#f6465d') : 'transparent',
+                    color: side === s ? (s==='buy' ? '#0b0e11' : '#fff') : '#5e6673',
+                  }}
+                >
+                  {s === 'buy' ? 'Buy' : 'Sell'}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ display:'flex', justifyContent:'space-between', fontSize:11 }}>
+              <span>Avbl</span>
+              <span style={{ color:'#eaecef', fontWeight:600 }}>{user?.balance?.toFixed(2) || '0.00'}<span style={{ color:'#5e6673', marginLeft:4 }}>USDT</span></span>
+            </div>
+
+            <div style={{ background:'#2b3139', padding:'10px 12px', borderRadius:5, display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:12, color:'#eaecef' }}>
+              <span>Market</span><ChevronDown size={13} color="#5e6673"/>
+            </div>
+
+            <div style={{ background:'#2b3139', padding:'8px 12px', borderRadius:5, fontSize:11, textAlign:'center' }}>
+              Price: <span style={{ color:'#eaecef', fontWeight:600 }}>Market ({currentPrice})</span>
+            </div>
+
+            <div style={{ display:'flex', alignItems:'center', background:'#2b3139', borderRadius:5, border:'1px solid #2b3139' }}>
+              <button onClick={() => adjustAmount(-1)} style={{ padding:'10px 10px', background:'none', border:'none', cursor:'pointer', color:'#848e9c' }}><Minus size={15}/></button>
+              <input
+                type="number"
+                placeholder="Amount"
+                value={amount}
+                onChange={e => setAmount(e.target.value)}
+                style={{ flex:1, background:'transparent', border:'none', outline:'none', textAlign:'center', color:'#eaecef', fontSize:14, fontWeight:700, fontFamily:'inherit' }}
+              />
+              <span style={{ fontSize:10, fontWeight:700, color:'#5e6673', padding:'0 8px', borderLeft:'1px solid #1e2329' }}>USDT</span>
+              <button onClick={() => adjustAmount(1)} style={{ padding:'10px 10px', background:'none', border:'none', cursor:'pointer', color:'#848e9c' }}><Plus size={15}/></button>
+            </div>
+
+            <div style={{ display:'flex', gap:6 }}>
+              {[25,50,75,100].map(p => (
+                <button key={p} onClick={() => setAmount(((user?.balance||0)*p/100).toFixed(2))} style={{ flex:1, background:'#1e2329', border:'none', borderRadius:4, padding:'5px 0', fontSize:10, fontWeight:700, color:'#5e6673', cursor:'pointer' }}>{p}%</button>
+              ))}
+            </div>
+
+            <LeverageSlider onChange={v => setLeverage(v)} />
+
+            <div style={{ fontSize:11, display:'flex', flexDirection:'column', gap:6 }}>
+              <div style={{ display:'flex', justifyContent:'space-between' }}><span>Max</span><span style={{ color:'#eaecef', fontWeight:600 }}>{((user?.balance||0)*leverage).toFixed(2)} USDT</span></div>
+              <div style={{ display:'flex', justifyContent:'space-between' }}><span>Cost</span><span style={{ color:'#eaecef', fontWeight:600 }}>{amount ? `${(parseFloat(amount)/leverage).toFixed(2)} USDT` : '0.00 USDT'}</span></div>
+            </div>
+
+            <button
+              onClick={handleTrade}
+              disabled={loading}
+              style={{
+                width:'100%', padding:'14px 0', border:'none', borderRadius:7, fontSize:13, fontWeight:700, cursor: loading ? 'not-allowed' : 'pointer',
+                background: loading ? '#2b3139' : side==='buy' ? '#0ecb81' : '#f6465d',
+                color: loading ? '#5e6673' : side==='buy' ? '#0b0e11' : '#fff',
+                display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+              }}
             >
-              {loading ? "Processing..." : side === 'buy' ? "Buy / Long" : "Sell / Short"}
+              {loading ? <><Loader2 size={15} className="spin"/> Processing...</> : (side === 'buy' ? <><TrendingUp size={15}/> Buy / Long</> : <><TrendingDown size={15}/> Sell / Short</>)}
             </button>
           </div>
         </div>
-
       </div>
-    </div>
+    </>
   );
 };
 
