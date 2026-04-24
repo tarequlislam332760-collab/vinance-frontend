@@ -4,7 +4,6 @@ import { UserContext } from '../context/UserContext';
 import {
   ShieldCheck, Users, Clock, PieChart, ListIcon,
   UserPlus, Trash2, TrendingUp, CheckCircle, Edit, X,
-  Image as ImageIcon
 } from 'lucide-react';
 
 import ManageUsers from './ManageUsers';
@@ -28,12 +27,10 @@ const AdminPanel = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [newBalance, setNewBalance] = useState('');
 
-  // ✅ FIX: Full trader edit state — সব field সহ
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTrader, setSelectedTrader] = useState(null);
   const [editTraderData, setEditTraderData] = useState({
     name: '',
-    image: '',
     profit: '',
     winRate: '',
     aum: '',
@@ -47,10 +44,7 @@ const AdminPanel = () => {
       const res = await API.get('/api/admin/all-data');
       setUsers(res.data.users || []);
       setRequests(res.data.requests || []);
-
-      // ✅ FIX: traders সব status সহ আসছে, filter frontend এ করা হবে
       setTraders(res.data.traders || []);
-
       const logData =
         res.data.investments ||
         res.data.logs ||
@@ -69,7 +63,6 @@ const AdminPanel = () => {
     fetchData();
   }, [fetchData]);
 
-  // ✅ FIX: Status check — backend boolean বা string যাই হোক কাজ করবে
   const isPending = (t) =>
     t.status === false ||
     t.status === 'false' ||
@@ -104,12 +97,10 @@ const AdminPanel = () => {
     }
   };
 
-  // ✅ FIX: Edit modal open করলে সব field populate হবে
   const openEditModal = (trader) => {
     setSelectedTrader(trader);
     setEditTraderData({
       name: trader.name || '',
-      image: trader.image || trader.img || '',
       profit: trader.profit || '',
       winRate: trader.winRate || '',
       aum: trader.aum || '',
@@ -118,7 +109,6 @@ const AdminPanel = () => {
     setIsEditModalOpen(true);
   };
 
-  // ✅ FIX: সব field update হবে
   const handleEditTraderSubmit = async () => {
     if (!editTraderData.name || !editTraderData.profit) {
       alert('❌ Name and Profit are required');
@@ -352,7 +342,7 @@ const AdminPanel = () => {
         </div>
       )}
 
-      {/* ── Trader Edit Modal (Full Fields) ── */}
+      {/* ── Trader Edit Modal (No Image Field) ── */}
       {isEditModalOpen && (
         <div className="fixed inset-0 flex justify-center items-center bg-black/90 backdrop-blur-md z-[999] p-4 overflow-y-auto">
           <div className="bg-[#161a1e] p-8 rounded-[2.5rem] border border-[#1e2329] w-full max-w-md shadow-2xl my-auto">
@@ -380,29 +370,6 @@ const AdminPanel = () => {
                   onChange={(e) => setEditTraderData({ ...editTraderData, name: e.target.value })}
                   className="w-full bg-[#0b0e11] border border-[#1e2329] p-4 rounded-2xl text-white outline-none focus:border-[#f0b90b]"
                 />
-              </div>
-
-              {/* Image URL */}
-              <div>
-                <label className="text-[10px] text-gray-500 uppercase font-black mb-2 block flex items-center gap-1">
-                  <ImageIcon size={10} /> Image URL
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={editTraderData.image}
-                    onChange={(e) => setEditTraderData({ ...editTraderData, image: e.target.value })}
-                    placeholder="https://..."
-                    className="flex-1 bg-[#0b0e11] border border-[#1e2329] p-4 rounded-2xl text-white outline-none focus:border-[#f0b90b] text-sm"
-                  />
-                  {editTraderData.image && (
-                    <img
-                      src={editTraderData.image}
-                      alt="preview"
-                      className="w-12 h-12 rounded-xl object-cover border border-gray-700 flex-shrink-0"
-                    />
-                  )}
-                </div>
               </div>
 
               {/* Profit & Win Rate */}
