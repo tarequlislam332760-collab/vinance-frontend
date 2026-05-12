@@ -15,7 +15,7 @@ import PositionTable from "../components/PositionTable";
 
 /* ─── axios instance ─────────────────────────────────────────────── */
 const api = axios.create({
-  baseURL: "https://vinance-backend.vercel.app",
+  baseURL: "https://vinance-backend-1.onrender.com",
   withCredentials: true,
 });
 
