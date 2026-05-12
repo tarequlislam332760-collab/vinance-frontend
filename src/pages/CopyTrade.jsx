@@ -16,7 +16,7 @@ const CopyTrade = () => {
   const [moreOptionsOpen, setMoreOptionsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Recommended');
 
-  const API_URL = "https://vinance-backend.vercel.app/api";
+  const API_URL = "https://vinance-backend-1.onrender.com/api";
 
   useEffect(() => {
     const fetchData = async () => {
