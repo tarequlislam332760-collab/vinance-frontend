@@ -8,7 +8,7 @@ export const UserProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
-  const API_URL = "https://vinance-backend.vercel.app"; 
+  const API_URL = "https://vinance-backend-1.onrender.com"; 
 
   // ✅ Login function logic fixed (Token first, then User)
   const login = (userToken, userData) => {
