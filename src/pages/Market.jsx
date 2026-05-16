@@ -362,3 +362,4 @@ export default function Market() {
     </>
   );
 }
+export default Market;
