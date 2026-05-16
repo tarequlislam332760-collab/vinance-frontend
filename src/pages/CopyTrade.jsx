@@ -431,4 +431,3 @@ export default function CopyTrade() {
     </>
   );
 }
-export default CopyTrade;
