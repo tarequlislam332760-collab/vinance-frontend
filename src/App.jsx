@@ -1,50 +1,53 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { BrowserRouter, Routes, Route, NavLink, useLocation, useNavigate, Link, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter, Routes, Route, NavLink,
+  useLocation, useNavigate, Link, Navigate
+} from 'react-router-dom';
 import axios from 'axios';
 import {
   LayoutDashboard, BarChart3, TrendingUp, Wallet, LogOut,
   ShieldCheck, Activity, ArrowUpRight, ArrowDownLeft,
-  PieChart, LayoutGrid, Zap, History, Gavel, Globe,
-  Copy, MessageSquare
+  PieChart, LayoutGrid, Zap, History, Gavel, Copy, MessageSquare
 } from 'lucide-react';
 
 import { UserProvider, UserContext } from './context/UserContext';
-import BecomeTrader    from './pages/BecomeTrader';
-import Profile         from './pages/Profile';
-import Home            from './pages/Home';
 import NotificationSystem from './components/NotificationSystem';
-import AdminPanel      from './admin/AdminPanel';
-import Deposit         from './pages/Deposit';
-import Withdraw        from './pages/Withdraw';
-import WalletPage      from './pages/Wallet';
-import Investment      from './pages/Investment';
-import MyInvestments   from './pages/MyInvestments';
-import ManagePlans     from './admin/ManagePlans';
-import InvestmentLogs  from './admin/InvestmentLogs';
-import TraderProfile   from './pages/TraderProfile';
 
-/* New Pages */
-import Futures    from './pages/Futures';
-import Trade      from './pages/Trade';
-import Market     from './pages/Market';
-import CopyTrade  from './pages/CopyTrade';
-import Square     from './pages/Square';
-import HistoryPage from './pages/History';
+/* Pages */
+import Home          from './pages/Home';
+import BecomeTrader  from './pages/BecomeTrader';
+import Profile       from './pages/Profile';
+import Deposit       from './pages/Deposit';
+import Withdraw      from './pages/Withdraw';
+import WalletPage    from './pages/Wallet';
+import Investment    from './pages/Investment';
+import MyInvestments from './pages/MyInvestments';
+import TraderProfile from './pages/TraderProfile';
+import Futures       from './pages/Futures';
+import Trade         from './pages/Trade';
+import Market        from './pages/Market';
+import CopyTrade     from './pages/CopyTrade';
+import Square        from './pages/Square';
+import HistoryPage   from './pages/History';
+
+/* Admin */
+import AdminPanel  from './admin/AdminPanel';
+import ManagePlans from './admin/ManagePlans';
 
 const API_URL = "https://vinance-backend-1.onrender.com";
 
-/* NavItem */
+/* ── NavItem ── */
 const NavItem = ({ to, icon, label }) => (
   <NavLink to={to} className={({ isActive }) =>
-    `flex items-center gap-4 p-3.5 rounded-xl transition-all ${isActive
-      ? 'text-[#f0b90b] bg-[#f0b90b]/10'
-      : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+    `flex items-center gap-4 p-3.5 rounded-xl transition-all ${
+      isActive ? 'text-[#f0b90b] bg-[#f0b90b]/10' : 'text-gray-400 hover:text-white hover:bg-white/5'
+    }`}>
     {icon}
     <span className="hidden lg:inline font-black text-[10px] uppercase tracking-widest">{label}</span>
   </NavLink>
 );
 
-/* Login */
+/* ── Login ── */
 const Login = () => {
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
@@ -54,13 +57,13 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${API_URL}/api/login`, { email, password });
+      const res   = await axios.post(`${API_URL}/api/login`, { email, password });
       const token = res.data.token;
       const user  = res.data.user || res.data;
       login(token, user);
       navigate('/dashboard');
     } catch (err) {
-      alert(err.response?.data?.message || "Login Failed");
+      alert(err.response?.data?.message || 'Login Failed');
     }
   };
 
@@ -89,19 +92,19 @@ const Login = () => {
   );
 };
 
-/* Register */
+/* ── Register ── */
 const Register = () => {
-  const [formData, setFormData] = useState({ name:'', email:'', password:'' });
+  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
       await axios.post(`${API_URL}/api/register`, formData);
-      alert("Registration Successful! Please Login.");
+      alert('Registration Successful! Please Login.');
       navigate('/login');
     } catch (err) {
-      alert(err.response?.data?.message || "Registration Failed");
+      alert(err.response?.data?.message || 'Registration Failed');
     }
   };
 
@@ -112,13 +115,13 @@ const Register = () => {
         <form onSubmit={handleRegister} className="space-y-4">
           <input type="text" placeholder="Full Name"
             className="w-full bg-[#2b3139] p-4 rounded-xl outline-none border border-transparent focus:border-[#f0b90b] text-white"
-            onChange={e => setFormData({...formData, name:e.target.value})} required />
+            onChange={e => setFormData({ ...formData, name: e.target.value })} required />
           <input type="email" placeholder="Email Address"
             className="w-full bg-[#2b3139] p-4 rounded-xl outline-none border border-transparent focus:border-[#f0b90b] text-white"
-            onChange={e => setFormData({...formData, email:e.target.value})} required />
+            onChange={e => setFormData({ ...formData, email: e.target.value })} required />
           <input type="password" placeholder="Password"
             className="w-full bg-[#2b3139] p-4 rounded-xl outline-none border border-transparent focus:border-[#f0b90b] text-white"
-            onChange={e => setFormData({...formData, password:e.target.value})} required />
+            onChange={e => setFormData({ ...formData, password: e.target.value })} required />
           <button type="submit"
             className="w-full bg-[#f0b90b] text-black font-black py-4 rounded-xl uppercase tracking-widest hover:bg-[#d4a30a] transition-all">
             Register Now
@@ -133,7 +136,7 @@ const Register = () => {
   );
 };
 
-/* Dashboard */
+/* ── Dashboard ── */
 const Dashboard = ({ cryptoData }) => {
   const { user, refreshUser, token } = useContext(UserContext);
   const navigate = useNavigate();
@@ -141,25 +144,20 @@ const Dashboard = ({ cryptoData }) => {
 
   useEffect(() => {
     if (refreshUser) refreshUser();
-    const fetchTrx = async () => {
-      if (!token) return;
-      try {
-        const res = await axios.get(`${API_URL}/api/transactions`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setTransactions(Array.isArray(res.data) ? res.data : (res.data.transactions || []));
-      } catch {}
-    };
-    fetchTrx();
-  }, [token, refreshUser]);
+    if (!token) return;
+    axios.get(`${API_URL}/api/transactions`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => setTransactions(Array.isArray(r.data) ? r.data : []))
+      .catch(() => {});
+  }, [token]);
 
   return (
     <div className="p-4 md:p-8 text-left space-y-6 bg-[#0b0e11] min-h-screen">
+      {/* Balance */}
       <div className="bg-gradient-to-br from-[#161a1e] to-[#0b0e11] p-6 rounded-[2.5rem] border border-[#1e2329] flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
-        <div className="w-full md:w-auto text-center md:text-left z-10">
+        <div className="text-center md:text-left z-10">
           <p className="text-gray-500 text-[10px] uppercase tracking-[0.3em] font-black mb-2">Estimated Balance</p>
           <h1 className="text-3xl md:text-5xl font-mono font-black text-white tracking-tighter">
-            ${(user?.balance || 0).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}
+            ${(user?.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </h1>
         </div>
         <div className="flex gap-3 w-full md:w-auto z-10">
@@ -174,9 +172,10 @@ const Dashboard = ({ cryptoData }) => {
         </div>
       </div>
 
+      {/* Crypto + Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 grid grid-cols-2 gap-4">
-          {cryptoData.slice(0,4).map(coin => (
+          {cryptoData.slice(0, 4).map(coin => (
             <div key={coin.id} onClick={() => navigate(`/trade/${coin.symbol}`)}
               className="bg-[#161a1e] p-5 rounded-[2rem] border border-[#1e2329] cursor-pointer hover:border-[#f0b90b]/50 shadow-lg">
               <div className="flex justify-between mb-4 text-[10px] font-black uppercase">
@@ -191,46 +190,47 @@ const Dashboard = ({ cryptoData }) => {
         <div className="bg-[#161a1e] border border-[#1e2329] rounded-[2.5rem] p-6 shadow-xl">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-white font-black uppercase text-[10px] flex items-center gap-2 tracking-[0.2em]">
-              <Activity size={14} className="text-[#f0b90b]"/> Recent Activity
+              <Activity size={14} className="text-[#f0b90b]" /> Recent Activity
             </h3>
             <Link to="/wallet" className="text-[#f0b90b] text-[10px] font-black uppercase hover:underline">View All</Link>
           </div>
-          <div className="space-y-4">
-            {transactions.slice(0,5).map(trx => (
+          <div className="space-y-3">
+            {transactions.slice(0, 5).map(trx => (
               <div key={trx._id}
-                className="flex justify-between items-center p-3 hover:bg-white/[0.03] rounded-2xl border border-transparent hover:border-[#1e2329]">
+                className="flex justify-between items-center p-3 hover:bg-white/[0.03] rounded-2xl">
                 <div className="flex items-center gap-2">
-                  <div className={trx.type==='deposit'?'text-[#00c076]':'text-[#f6465d]'}>
-                    {trx.type==='deposit'?<ArrowDownLeft size={14}/>:<ArrowUpRight size={14}/>}
-                  </div>
+                  <span className={trx.type === 'deposit' ? 'text-[#00c076]' : 'text-[#f6465d]'}>
+                    {trx.type === 'deposit' ? <ArrowDownLeft size={14} /> : <ArrowUpRight size={14} />}
+                  </span>
                   <div>
                     <p className="font-black text-[9px] text-white uppercase">{trx.type}</p>
-                    <p className="text-[8px] text-gray-500 font-bold">
-                      {new Date(trx.createdAt||trx.date).toLocaleDateString()}
+                    <p className="text-[8px] text-gray-500">
+                      {new Date(trx.createdAt || trx.date).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="font-mono font-bold text-xs text-white">${trx.amount}</p>
-                  <p className={`text-[8px] font-black uppercase ${trx.status==='approved'||trx.status==='completed'?'text-[#00c076]':'text-[#f0b90b]'}`}>
-                    {trx.status}
-                  </p>
+                  <p className={`text-[8px] font-black uppercase ${
+                    trx.status === 'approved' || trx.status === 'completed' ? 'text-[#00c076]' : 'text-[#f0b90b]'
+                  }`}>{trx.status}</p>
                 </div>
               </div>
             ))}
-            {transactions.length === 0 && (
+            {!transactions.length && (
               <p className="text-gray-600 text-xs text-center py-6">No transactions yet</p>
             )}
           </div>
         </div>
       </div>
 
+      {/* Quick nav */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label:'Market',     icon:'📊', path:'/market' },
-          { label:'Futures',    icon:'⚡', path:'/futures/btc' },
-          { label:'Copy Trade', icon:'📋', path:'/copy-trade' },
-          { label:'Square',     icon:'🌐', path:'/square' },
+          { label: 'Market',     icon: '📊', path: '/market'     },
+          { label: 'Futures',    icon: '⚡', path: '/futures/btc' },
+          { label: 'Copy Trade', icon: '📋', path: '/copy-trade'  },
+          { label: 'Square',     icon: '🌐', path: '/square'      },
         ].map(item => (
           <div key={item.label} onClick={() => navigate(item.path)}
             className="bg-[#161a1e] border border-[#1e2329] rounded-2xl p-5 cursor-pointer hover:border-[#f0b90b]/50 text-center">
@@ -243,85 +243,76 @@ const Dashboard = ({ cryptoData }) => {
   );
 };
 
-/* AppContent */
+/* ── AppContent ── */
 const AppContent = ({ cryptoData }) => {
   const { user, token, logout, loading: authLoading } = useContext(UserContext);
-  const location  = useLocation();
-  const navigate  = useNavigate();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
-  if (authLoading) return (
-    <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center text-[#f0b90b] font-black text-3xl animate-pulse italic">
-      VINANCE
-    </div>
-  );
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#0b0e11] flex items-center justify-center text-[#f0b90b] font-black text-3xl animate-pulse italic">
+        VINANCE
+      </div>
+    );
+  }
 
-  const isAuthPage = ['/login','/register'].includes(location.pathname);
+  const isAuthPage = ['/login', '/register'].includes(location.pathname);
   const isHomePage = location.pathname === '/';
-  const isFullPage = ['/square', '/market'].some(p => location.pathname.startsWith(p));
+  const isFullPage = location.pathname.startsWith('/square') || location.pathname.startsWith('/market');
 
   if (!token && !isAuthPage && !isHomePage) return <Navigate to="/login" replace />;
 
   const userPages = [
-    { to:'/dashboard',                              icon:<LayoutDashboard size={22}/>, label:'Home'       },
-    { to:'/market',                                 icon:<BarChart3 size={22}/>,       label:'Market'     },
-    { to:'/futures/btc',                            icon:<Gavel size={22}/>,           label:'Futures'    },
-    { to:`/trade/${cryptoData[0]?.symbol||'btc'}`,  icon:<TrendingUp size={22}/>,      label:'Spot'       },
-    { to:'/copy-trade',                             icon:<Copy size={22}/>,            label:'Copy Trade' },
-    { to:'/square',                                 icon:<MessageSquare size={22}/>,   label:'Square'     },
-    { to:'/invest',                                 icon:<PieChart size={22}/>,        label:'Invest'     },
-    { to:'/trader-profile',                         icon:<Zap size={22}/>,             label:'Portfolio'  },
-    { to:'/my-investments',                         icon:<History size={22}/>,         label:'Logs'       },
-    { to:'/wallet',                                 icon:<Wallet size={22}/>,          label:'Wallet'     },
+    { to: '/dashboard',                              icon: <LayoutDashboard size={22} />, label: 'Home'       },
+    { to: '/market',                                 icon: <BarChart3 size={22} />,       label: 'Market'     },
+    { to: '/futures/btc',                            icon: <Gavel size={22} />,           label: 'Futures'    },
+    { to: `/trade/${cryptoData[0]?.symbol || 'btc'}`, icon: <TrendingUp size={22} />,    label: 'Spot'       },
+    { to: '/copy-trade',                             icon: <Copy size={22} />,            label: 'Copy Trade' },
+    { to: '/square',                                 icon: <MessageSquare size={22} />,   label: 'Square'     },
+    { to: '/invest',                                 icon: <PieChart size={22} />,        label: 'Invest'     },
+    { to: '/trader-profile',                         icon: <Zap size={22} />,             label: 'Portfolio'  },
+    { to: '/history',                                icon: <History size={22} />,         label: 'History'    },
+    { to: '/wallet',                                 icon: <Wallet size={22} />,          label: 'Wallet'     },
   ];
 
   const adminPages = [
-    { to:'/admin',              icon:<ShieldCheck size={22}/>, label:'Users' },
-    { to:'/admin/manage-plans', icon:<LayoutGrid size={22}/>,  label:'Plans' },
+    { to: '/admin',              icon: <ShieldCheck size={22} />, label: 'Users' },
+    { to: '/admin/manage-plans', icon: <LayoutGrid size={22} />,  label: 'Plans' },
   ];
 
-  const routes = (
+  const allRoutes = (
     <Routes>
-      <Route path="/"                     element={<Home/>}/>
-      <Route path="/login"                element={<Login/>}/>
-      <Route path="/register"             element={<Register/>}/>
-      <Route path="/dashboard"            element={<Dashboard cryptoData={cryptoData}/>}/>
-
-      {/* New Pages */}
-      <Route path="/market"               element={<Market/>}/>
-      <Route path="/copy-trade"           element={<CopyTrade/>}/>
-      <Route path="/square"               element={<Square/>}/>
-      <Route path="/history"              element={<HistoryPage/>}/>
-
-      {/* Trading */}
-      <Route path="/futures"              element={<Navigate to="/futures/btc" replace/>}/>
-      <Route path="/futures/:coinSymbol"  element={<Futures/>}/>
-      <Route path="/trade/:coinSymbol"    element={<Trade/>}/>
-
-      {/* User */}
-      <Route path="/deposit"              element={<Deposit/>}/>
-      <Route path="/withdraw"             element={<Withdraw/>}/>
-      <Route path="/wallet"               element={<WalletPage/>}/>
-      <Route path="/invest"               element={<Investment/>}/>
-      <Route path="/my-investments"       element={<MyInvestments/>}/>
-      <Route path="/trader-profile"       element={<TraderProfile/>}/>
-      <Route path="/profile"              element={<Profile/>}/>
-      <Route path="/become-trader"        element={<BecomeTrader/>}/>
-
-      {/* Admin */}
+      <Route path="/"                     element={<Home />} />
+      <Route path="/login"                element={<Login />} />
+      <Route path="/register"             element={<Register />} />
+      <Route path="/dashboard"            element={<Dashboard cryptoData={cryptoData} />} />
+      <Route path="/market"               element={<Market />} />
+      <Route path="/copy-trade"           element={<CopyTrade />} />
+      <Route path="/square"               element={<Square />} />
+      <Route path="/history"              element={<HistoryPage />} />
+      <Route path="/futures"              element={<Navigate to="/futures/btc" replace />} />
+      <Route path="/futures/:coinSymbol"  element={<Futures />} />
+      <Route path="/trade/:coinSymbol"    element={<Trade />} />
+      <Route path="/deposit"              element={<Deposit />} />
+      <Route path="/withdraw"             element={<Withdraw />} />
+      <Route path="/wallet"               element={<WalletPage />} />
+      <Route path="/invest"               element={<Investment />} />
+      <Route path="/my-investments"       element={<MyInvestments />} />
+      <Route path="/trader-profile"       element={<TraderProfile />} />
+      <Route path="/profile"              element={<Profile />} />
+      <Route path="/become-trader"        element={<BecomeTrader />} />
       <Route path="/admin"
-        element={user?.role==='admin' ? <AdminPanel/> : <Navigate to="/dashboard"/>}/>
+        element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/dashboard" />} />
       <Route path="/admin/manage-plans"
-        element={user?.role==='admin' ? <ManagePlans/> : <Navigate to="/dashboard"/>}/>
+        element={user?.role === 'admin' ? <ManagePlans /> : <Navigate to="/dashboard" />} />
     </Routes>
   );
 
+  /* Full-screen layout (Market, Square) */
   if (isFullPage) {
-    return (
-      <div className="min-h-screen bg-[#0b0e11] text-white">
-        {routes}
-      </div>
-    );
+    return <div className="min-h-screen bg-[#0b0e11] text-white">{allRoutes}</div>;
   }
 
   return (
@@ -333,9 +324,9 @@ const AppContent = ({ cryptoData }) => {
           <div className="mb-8 px-4 py-2 text-2xl font-black text-[#f0b90b] italic uppercase tracking-tighter">
             VINANCE
           </div>
-          <nav className="space-y-1 flex-1 overflow-y-auto scrollbar-hide">
+          <nav className="space-y-1 flex-1 overflow-y-auto">
             {userPages.map(page => (
-              <NavItem key={page.to} to={page.to} icon={page.icon} label={page.label}/>
+              <NavItem key={page.to} to={page.to} icon={page.icon} label={page.label} />
             ))}
           </nav>
           {user?.role === 'admin' && (
@@ -344,13 +335,13 @@ const AppContent = ({ cryptoData }) => {
                 Admin Control
               </div>
               {adminPages.map(page => (
-                <NavItem key={page.to} to={page.to} icon={page.icon} label={page.label}/>
+                <NavItem key={page.to} to={page.to} icon={page.icon} label={page.label} />
               ))}
             </div>
           )}
           <button onClick={logout}
             className="p-4 text-gray-500 hover:text-red-500 flex items-center gap-4 font-bold border-t border-gray-800 transition-colors">
-            <LogOut size={20}/>
+            <LogOut size={20} />
             <span className="hidden lg:inline text-[10px] font-black uppercase">Sign Out</span>
           </button>
         </aside>
@@ -365,32 +356,31 @@ const AppContent = ({ cryptoData }) => {
             </div>
             <div className="flex items-center gap-4">
               <span className="text-xs text-gray-400 hidden sm:block">
-                Balance: <span className="text-[#f0b90b] font-bold">${(user?.balance||0).toFixed(2)}</span>
+                Balance: <span className="text-[#f0b90b] font-bold">${(user?.balance || 0).toFixed(2)}</span>
               </span>
-              <NotificationSystem/>
+              <NotificationSystem />
             </div>
           </header>
         )}
-
         <div className={`flex-1 overflow-y-auto ${token && !isHomePage ? 'pb-24 md:pb-8' : ''}`}>
-          {routes}
+          {allRoutes}
         </div>
       </main>
 
-      {/* Mobile Bottom Nav */}
+      {/* Mobile nav */}
       {token && !isHomePage && (
         <>
           {showMoreMenu && (
-            <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[100] p-8 flex flex-col overflow-y-auto text-left">
+            <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[100] p-8 flex flex-col overflow-y-auto">
               <div className="flex justify-between items-center mb-10">
                 <h2 className="text-[#f0b90b] font-black text-xl uppercase italic">Services</h2>
                 <button onClick={() => setShowMoreMenu(false)}
-                  className="bg-white/10 p-2 rounded-full text-gray-400 hover:text-white">✕</button>
+                  className="bg-white/10 p-2 rounded-full text-gray-400">✕</button>
               </div>
               <div className="grid grid-cols-3 gap-y-8 gap-x-4 mb-10 text-center">
                 {userPages.map(page => (
                   <Link key={page.to} to={page.to} onClick={() => setShowMoreMenu(false)}
-                    className="flex flex-col items-center gap-2 text-gray-400 hover:text-white">
+                    className="flex flex-col items-center gap-2 text-gray-400">
                     <div className="p-4 bg-white/5 rounded-2xl border border-white/5">{page.icon}</div>
                     <span className="text-[9px] font-black uppercase leading-tight">{page.label}</span>
                   </Link>
@@ -412,31 +402,31 @@ const AppContent = ({ cryptoData }) => {
               )}
               <button onClick={logout}
                 className="flex items-center justify-center gap-2 text-red-500 font-black uppercase text-[10px] py-4 bg-red-500/5 rounded-2xl border border-red-500/10 mt-4">
-                <LogOut size={18}/> Logout Account
+                <LogOut size={18} /> Logout Account
               </button>
             </div>
           )}
 
           <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/95 backdrop-blur-md border-t border-gray-800 flex justify-around items-center py-3 md:hidden z-[80]">
-            <NavLink to="/dashboard" className={({isActive}) => isActive?'text-[#f0b90b]':'text-gray-400'}>
-              <LayoutDashboard size={22}/>
+            <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'text-[#f0b90b]' : 'text-gray-400'}>
+              <LayoutDashboard size={22} />
             </NavLink>
-            <NavLink to="/market" className={({isActive}) => isActive?'text-[#f0b90b]':'text-gray-400'}>
-              <BarChart3 size={22}/>
+            <NavLink to="/market" className={({ isActive }) => isActive ? 'text-[#f0b90b]' : 'text-gray-400'}>
+              <BarChart3 size={22} />
             </NavLink>
-            <NavLink to="/futures/btc" className={({isActive}) => isActive?'text-[#f0b90b]':'text-gray-400'}>
-              <Gavel size={22}/>
+            <NavLink to="/futures/btc" className={({ isActive }) => isActive ? 'text-[#f0b90b]' : 'text-gray-400'}>
+              <Gavel size={22} />
             </NavLink>
-            <NavLink to="/invest" className={({isActive}) => isActive?'text-[#f0b90b]':'text-gray-400'}>
-              <PieChart size={22}/>
+            <NavLink to="/invest" className={({ isActive }) => isActive ? 'text-[#f0b90b]' : 'text-gray-400'}>
+              <PieChart size={22} />
             </NavLink>
-            <NavLink to="/wallet" className={({isActive}) => isActive?'text-[#f0b90b]':'text-gray-400'}>
-              <Wallet size={22}/>
+            <NavLink to="/wallet" className={({ isActive }) => isActive ? 'text-[#f0b90b]' : 'text-gray-400'}>
+              <Wallet size={22} />
             </NavLink>
             <button onClick={() => setShowMoreMenu(true)} className="text-gray-400 relative">
-              <LayoutGrid size={22}/>
+              <LayoutGrid size={22} />
               {user?.role === 'admin' && (
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#f0b90b] rounded-full animate-pulse"/>
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#f0b90b] rounded-full animate-pulse" />
               )}
             </button>
           </nav>
@@ -446,28 +436,28 @@ const AppContent = ({ cryptoData }) => {
   );
 };
 
-/* App Root */
+/* ── App Root ── */
 export default function App() {
   const [cryptoData, setCryptoData] = useState([
-    { id:'1', name:'Bitcoin',  symbol:'btc', price:'0', change:'0', up:true },
-    { id:'2', name:'Ethereum', symbol:'eth', price:'0', change:'0', up:true },
-    { id:'3', name:'Solana',   symbol:'sol', price:'0', change:'0', up:true },
-    { id:'4', name:'BNB',      symbol:'bnb', price:'0', change:'0', up:true },
+    { id: '1', name: 'Bitcoin',  symbol: 'btc', price: '0', change: '0', up: true },
+    { id: '2', name: 'Ethereum', symbol: 'eth', price: '0', change: '0', up: true },
+    { id: '3', name: 'Solana',   symbol: 'sol', price: '0', change: '0', up: true },
+    { id: '4', name: 'BNB',      symbol: 'bnb', price: '0', change: '0', up: true },
   ]);
 
   const fetchPrices = async () => {
     try {
-      const symbols = ['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT'];
+      const syms    = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT'];
       const results = await Promise.all(
-        symbols.map(s => axios.get(`https://api.binance.com/api/v3/ticker/24hr?symbol=${s}`))
+        syms.map(s => axios.get(`https://api.binance.com/api/v3/ticker/24hr?symbol=${s}`))
       );
       setCryptoData(results.map((res, i) => ({
-        id: (i+1).toString(),
-        name: res.data.symbol.replace('USDT',''),
-        symbol: res.data.symbol.replace('USDT','').toLowerCase(),
-        price: parseFloat(res.data.lastPrice).toLocaleString(undefined,{minimumFractionDigits:2}),
+        id:     (i + 1).toString(),
+        name:   res.data.symbol.replace('USDT', ''),
+        symbol: res.data.symbol.replace('USDT', '').toLowerCase(),
+        price:  parseFloat(res.data.lastPrice).toLocaleString(undefined, { minimumFractionDigits: 2 }),
         change: parseFloat(res.data.priceChangePercent).toFixed(2),
-        up: parseFloat(res.data.priceChangePercent) > 0,
+        up:     parseFloat(res.data.priceChangePercent) > 0,
       })));
     } catch {}
   };
@@ -481,7 +471,7 @@ export default function App() {
   return (
     <UserProvider>
       <BrowserRouter>
-        <AppContent cryptoData={cryptoData}/>
+        <AppContent cryptoData={cryptoData} />
       </BrowserRouter>
     </UserProvider>
   );
