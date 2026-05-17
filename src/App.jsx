@@ -23,16 +23,17 @@ import ManagePlans     from './admin/ManagePlans';
 import InvestmentLogs  from './admin/InvestmentLogs';
 import TraderProfile   from './pages/TraderProfile';
 
-/* ── New Pages ── */
+/* New Pages */
 import Futures    from './pages/Futures';
 import Trade      from './pages/Trade';
 import Market     from './pages/Market';
 import CopyTrade  from './pages/CopyTrade';
 import Square     from './pages/Square';
+import HistoryPage from './pages/History';
 
 const API_URL = "https://vinance-backend-1.onrender.com";
 
-/* ── NavItem ─────────────────────────────────────────────────────── */
+/* NavItem */
 const NavItem = ({ to, icon, label }) => (
   <NavLink to={to} className={({ isActive }) =>
     `flex items-center gap-4 p-3.5 rounded-xl transition-all ${isActive
@@ -43,7 +44,7 @@ const NavItem = ({ to, icon, label }) => (
   </NavLink>
 );
 
-/* ── Login ───────────────────────────────────────────────────────── */
+/* Login */
 const Login = () => {
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
@@ -88,7 +89,7 @@ const Login = () => {
   );
 };
 
-/* ── Register ────────────────────────────────────────────────────── */
+/* Register */
 const Register = () => {
   const [formData, setFormData] = useState({ name:'', email:'', password:'' });
   const navigate = useNavigate();
@@ -132,7 +133,7 @@ const Register = () => {
   );
 };
 
-/* ── Dashboard ───────────────────────────────────────────────────── */
+/* Dashboard */
 const Dashboard = ({ cryptoData }) => {
   const { user, refreshUser, token } = useContext(UserContext);
   const navigate = useNavigate();
@@ -154,7 +155,6 @@ const Dashboard = ({ cryptoData }) => {
 
   return (
     <div className="p-4 md:p-8 text-left space-y-6 bg-[#0b0e11] min-h-screen">
-      {/* Balance card */}
       <div className="bg-gradient-to-br from-[#161a1e] to-[#0b0e11] p-6 rounded-[2.5rem] border border-[#1e2329] flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
         <div className="w-full md:w-auto text-center md:text-left z-10">
           <p className="text-gray-500 text-[10px] uppercase tracking-[0.3em] font-black mb-2">Estimated Balance</p>
@@ -175,7 +175,6 @@ const Dashboard = ({ cryptoData }) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Crypto cards */}
         <div className="lg:col-span-2 grid grid-cols-2 gap-4">
           {cryptoData.slice(0,4).map(coin => (
             <div key={coin.id} onClick={() => navigate(`/trade/${coin.symbol}`)}
@@ -189,7 +188,6 @@ const Dashboard = ({ cryptoData }) => {
           ))}
         </div>
 
-        {/* Recent activity */}
         <div className="bg-[#161a1e] border border-[#1e2329] rounded-[2.5rem] p-6 shadow-xl">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-white font-black uppercase text-[10px] flex items-center gap-2 tracking-[0.2em]">
@@ -227,13 +225,12 @@ const Dashboard = ({ cryptoData }) => {
         </div>
       </div>
 
-      {/* Quick nav cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label:'Market',      icon:'📊', path:'/market' },
-          { label:'Futures',     icon:'⚡', path:'/futures/btc' },
-          { label:'Copy Trade',  icon:'📋', path:'/copy-trade' },
-          { label:'Square',      icon:'🌐', path:'/square' },
+          { label:'Market',     icon:'📊', path:'/market' },
+          { label:'Futures',    icon:'⚡', path:'/futures/btc' },
+          { label:'Copy Trade', icon:'📋', path:'/copy-trade' },
+          { label:'Square',     icon:'🌐', path:'/square' },
         ].map(item => (
           <div key={item.label} onClick={() => navigate(item.path)}
             className="bg-[#161a1e] border border-[#1e2329] rounded-2xl p-5 cursor-pointer hover:border-[#f0b90b]/50 text-center">
@@ -246,7 +243,7 @@ const Dashboard = ({ cryptoData }) => {
   );
 };
 
-/* ── AppContent ──────────────────────────────────────────────────── */
+/* AppContent */
 const AppContent = ({ cryptoData }) => {
   const { user, token, logout, loading: authLoading } = useContext(UserContext);
   const location  = useLocation();
@@ -261,8 +258,6 @@ const AppContent = ({ cryptoData }) => {
 
   const isAuthPage = ['/login','/register'].includes(location.pathname);
   const isHomePage = location.pathname === '/';
-
-  /* Full-screen pages — no sidebar/header needed */
   const isFullPage = ['/square', '/market'].some(p => location.pathname.startsWith(p));
 
   if (!token && !isAuthPage && !isHomePage) return <Navigate to="/login" replace />;
@@ -292,17 +287,18 @@ const AppContent = ({ cryptoData }) => {
       <Route path="/register"             element={<Register/>}/>
       <Route path="/dashboard"            element={<Dashboard cryptoData={cryptoData}/>}/>
 
-      {/* ── NEW PAGES ── */}
+      {/* New Pages */}
       <Route path="/market"               element={<Market/>}/>
       <Route path="/copy-trade"           element={<CopyTrade/>}/>
       <Route path="/square"               element={<Square/>}/>
+      <Route path="/history"              element={<HistoryPage/>}/>
 
-      {/* ── TRADING ── */}
+      {/* Trading */}
       <Route path="/futures"              element={<Navigate to="/futures/btc" replace/>}/>
       <Route path="/futures/:coinSymbol"  element={<Futures/>}/>
       <Route path="/trade/:coinSymbol"    element={<Trade/>}/>
 
-      {/* ── USER ── */}
+      {/* User */}
       <Route path="/deposit"              element={<Deposit/>}/>
       <Route path="/withdraw"             element={<Withdraw/>}/>
       <Route path="/wallet"               element={<WalletPage/>}/>
@@ -312,7 +308,7 @@ const AppContent = ({ cryptoData }) => {
       <Route path="/profile"              element={<Profile/>}/>
       <Route path="/become-trader"        element={<BecomeTrader/>}/>
 
-      {/* ── ADMIN ── */}
+      {/* Admin */}
       <Route path="/admin"
         element={user?.role==='admin' ? <AdminPanel/> : <Navigate to="/dashboard"/>}/>
       <Route path="/admin/manage-plans"
@@ -320,7 +316,6 @@ const AppContent = ({ cryptoData }) => {
     </Routes>
   );
 
-  /* Full-page layout (no sidebar, no header) */
   if (isFullPage) {
     return (
       <div className="min-h-screen bg-[#0b0e11] text-white">
@@ -332,7 +327,7 @@ const AppContent = ({ cryptoData }) => {
   return (
     <div className="min-h-screen bg-[#0b0e11] text-white flex flex-col md:flex-row overflow-hidden text-left font-sans">
 
-      {/* ── SIDEBAR ── */}
+      {/* Sidebar */}
       {token && !isHomePage && (
         <aside className="w-20 lg:w-64 bg-[#161a1e] border-r border-[#1e2329] hidden md:flex flex-col p-4 h-screen sticky top-0 z-40">
           <div className="mb-8 px-4 py-2 text-2xl font-black text-[#f0b90b] italic uppercase tracking-tighter">
@@ -361,7 +356,7 @@ const AppContent = ({ cryptoData }) => {
         </aside>
       )}
 
-      {/* ── MAIN ── */}
+      {/* Main */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
         {token && !isHomePage && (
           <header className="h-14 border-b border-[#1e2329] bg-[#161a1e] flex items-center justify-between px-6 sticky top-0 z-30">
@@ -382,10 +377,9 @@ const AppContent = ({ cryptoData }) => {
         </div>
       </main>
 
-      {/* ── MOBILE BOTTOM NAV ── */}
+      {/* Mobile Bottom Nav */}
       {token && !isHomePage && (
         <>
-          {/* More Menu Overlay */}
           {showMoreMenu && (
             <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[100] p-8 flex flex-col overflow-y-auto text-left">
               <div className="flex justify-between items-center mb-10">
@@ -423,7 +417,6 @@ const AppContent = ({ cryptoData }) => {
             </div>
           )}
 
-          {/* Bottom Nav Bar */}
           <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/95 backdrop-blur-md border-t border-gray-800 flex justify-around items-center py-3 md:hidden z-[80]">
             <NavLink to="/dashboard" className={({isActive}) => isActive?'text-[#f0b90b]':'text-gray-400'}>
               <LayoutDashboard size={22}/>
@@ -453,7 +446,7 @@ const AppContent = ({ cryptoData }) => {
   );
 };
 
-/* ── App Root ─────────────────────────────────────────────────────── */
+/* App Root */
 export default function App() {
   const [cryptoData, setCryptoData] = useState([
     { id:'1', name:'Bitcoin',  symbol:'btc', price:'0', change:'0', up:true },
