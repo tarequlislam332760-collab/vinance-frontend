@@ -1,602 +1,833 @@
 import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
+import API from '../api';
 import { UserContext } from '../context/UserContext';
 import {
   ShieldCheck, Users, Clock, PieChart, List,
   UserPlus, Trash2, TrendingUp, CheckCircle, Edit, X,
-  Upload, Loader2, RefreshCw, DollarSign, Award,
-  AlertCircle, Save, Plus, Settings
+  Upload, Loader2, RefreshCw, DollarSign, AlertCircle,
+  Save, Award, Search, ArrowDownLeft, ArrowUpRight
 } from 'lucide-react';
 
-import ManageUsers      from './ManageUsers';
-import PendingRequests  from './PendingRequests';
-import ManagePlans      from './ManagePlans';
-import InvestmentLogs   from './InvestmentLogs';
-
-/* ─── CORRECT backend URL ─── */
-const API_URL = "https://vinance-backend-1.onrender.com";
-
-/* ─── Cloudinary config ─── */
-const CLD_URL    = "https://api.cloudinary.com/v1_1/demo/image/upload";
-const CLD_PRESET = "ml_default";
-/* ↑ Replace "demo" with your Cloud Name and "ml_default" with your preset name if you have them */
-
-const uploadToCloudinary = async (file) => {
-  const fd = new FormData();
-  fd.append('file', file);
-  fd.append('upload_preset', CLD_PRESET);
-  fd.append('folder', 'vinance/traders');
-  const res  = await fetch(CLD_URL, { method: 'POST', body: fd });
-  const data = await res.json();
-  if (data.secure_url) return data.secure_url;
-  throw new Error(data.error?.message || 'Upload failed');
-};
-
-/* ─── Reusable API call with token ─── */
-const useApi = (token) => {
-  const call = useCallback(async (method, path, body) => {
-    const opts = {
-      method: method.toUpperCase(),
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    };
-    if (body) opts.body = JSON.stringify(body);
-    const res  = await fetch(`${API_URL}${path}`, opts);
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Request failed');
-    return data;
-  }, [token]);
-  return call;
-};
+/* ══ We render sub-panels inline to avoid prop/search bugs ══ */
 
 /* ─── Image Uploader ─── */
 const ImageUploader = ({ value, onChange, label = 'Profile Image' }) => {
   const [uploading, setUploading] = useState(false);
-  const [drag, setDrag]           = useState(false);
+  const [drag,      setDrag]      = useState(false);
   const inputRef = useRef();
 
+  const toBase64 = (file) => new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload  = e => res(e.target.result);
+    r.onerror = () => rej(new Error('read error'));
+    r.readAsDataURL(file);
+  });
+
   const handleFile = async (file) => {
-    if (!file || !file.type.startsWith('image/')) { alert('Please select an image'); return; }
+    if (!file || !file.type.startsWith('image/')) return;
     setUploading(true);
     try {
-      const url = await uploadToCloudinary(file);
-      onChange(url);
-    } catch {
-      /* fallback: local preview */
-      onChange(URL.createObjectURL(file));
-    } finally {
-      setUploading(false);
-    }
+      /* Try imgbb free API — replace key with yours from imgbb.com */
+      const fd = new FormData();
+      fd.append('image', file);
+      fd.append('key', '2e46a4d0c87a36e4bfc0a7de8bdd4e34'); /* free key */
+      const res  = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data?.data?.url) { onChange(data.data.url); return; }
+    } catch (_) {}
+    /* Fallback: base64 local preview */
+    try {
+      const b64 = await toBase64(file);
+      onChange(b64);
+    } catch (_) {}
+    finally { setUploading(false); }
+    setUploading(false);
+  };
+
+  const zoneStyle = {
+    border: `2px dashed ${drag ? '#f0b90b' : '#2b3139'}`,
+    borderRadius: 12, overflow: 'hidden', position: 'relative',
+    minHeight: value ? 130 : 96, cursor: uploading ? 'wait' : 'pointer',
+    background: drag ? 'rgba(240,185,11,.04)' : '#0b0e11',
+    transition: 'all .2s', display: 'flex', alignItems: 'center', justifyContent: 'center',
   };
 
   return (
     <div>
-      <label style={{ fontSize:10, fontWeight:700, color:'#848e9c', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8, display:'block' }}>
+      <label style={{ fontSize: 11, fontWeight: 700, color: '#848e9c', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8, display: 'block' }}>
         {label}
       </label>
-      <div
+      <div style={zoneStyle}
         onClick={() => !uploading && inputRef.current?.click()}
         onDragOver={e => { e.preventDefault(); setDrag(true); }}
         onDragLeave={() => setDrag(false)}
-        onDrop={e => { e.preventDefault(); setDrag(false); handleFile(e.dataTransfer.files[0]); }}
-        style={{ border:`2px dashed ${drag?'#f0b90b':'#2b3139'}`, borderRadius:12, minHeight:value?120:90, position:'relative', cursor:'pointer', background:drag?'rgba(240,185,11,.04)':'#0b0e11', overflow:'hidden', transition:'all .2s', display:'flex', alignItems:'center', justifyContent:'center' }}>
-        <input ref={inputRef} type="file" accept="image/*" style={{ display:'none' }} onChange={e => handleFile(e.target.files[0])} />
+        onDrop={e => { e.preventDefault(); setDrag(false); handleFile(e.dataTransfer.files[0]); }}>
+        <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }}
+          onChange={e => handleFile(e.target.files[0])} />
+
         {uploading ? (
-          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:8, padding:20 }}>
-            <Loader2 size={28} style={{ color:'#f0b90b', animation:'spin .8s linear infinite' }}/>
-            <span style={{ fontSize:12, color:'#848e9c' }}>Uploading...</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: 20 }}>
+            <Loader2 size={26} style={{ color: '#f0b90b', animation: 'spin .8s linear infinite' }} />
+            <span style={{ fontSize: 12, color: '#848e9c' }}>Uploading...</span>
           </div>
         ) : value ? (
           <>
-            <img src={value} alt="preview" style={{ width:'100%', height:140, objectFit:'cover', display:'block' }}/>
-            <button onClick={e=>{ e.stopPropagation(); onChange(''); }}
-              style={{ position:'absolute', top:8, right:8, background:'rgba(0,0,0,.7)', border:'none', borderRadius:'50%', width:28, height:28, cursor:'pointer', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <X size={14}/>
+            <img src={value} alt="preview"
+              style={{ width: '100%', height: 130, objectFit: 'cover', display: 'block' }}
+              onError={e => { e.target.style.display = 'none'; }} />
+            <button onClick={e => { e.stopPropagation(); onChange(''); }}
+              style={{ position: 'absolute', top: 7, right: 7, background: 'rgba(0,0,0,.8)', border: 'none', borderRadius: '50%', width: 26, height: 26, cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
+              <X size={13} />
             </button>
-            <div style={{ position:'absolute', bottom:0, left:0, right:0, background:'rgba(0,0,0,.6)', padding:'5px 10px', fontSize:11, color:'#848e9c', textAlign:'center' }}>
-              Click to change
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,.6)', padding: '5px 10px', fontSize: 11, color: '#848e9c', textAlign: 'center' }}>
+              Click to replace
             </div>
           </>
         ) : (
-          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:8, padding:20 }}>
-            <Upload size={22} style={{ color:'#f0b90b' }}/>
-            <span style={{ fontSize:12, color:'#848e9c' }}>Click or drag image</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: 20 }}>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#1e2329', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Upload size={18} style={{ color: '#f0b90b' }} />
+            </div>
+            <span style={{ fontSize: 13, color: '#eaecef', fontWeight: 600 }}>Click or drag image</span>
+            <span style={{ fontSize: 11, color: '#5e6673' }}>PNG / JPG / GIF — max 10MB</span>
           </div>
         )}
       </div>
-      <input type="text" placeholder="Or paste image URL"
-        value={value && !value.startsWith('blob:') ? value : ''}
+
+      {/* URL fallback */}
+      <input type="text" placeholder="Or paste image URL here"
+        value={value && !value.startsWith('data:') ? value : ''}
         onChange={e => onChange(e.target.value)}
-        style={{ marginTop:8, width:'100%', background:'#0b0e11', border:'1px solid #2b3139', borderRadius:8, padding:'8px 12px', color:'#eaecef', fontSize:12, outline:'none', fontFamily:'inherit' }}
-        onFocus={e=>e.target.style.borderColor='#f0b90b'}
-        onBlur={e=>e.target.style.borderColor='#2b3139'}
-      />
+        style={{ marginTop: 8, width: '100%', background: '#0b0e11', border: '1px solid #2b3139', borderRadius: 8, padding: '8px 12px', color: '#eaecef', fontSize: 12, outline: 'none', fontFamily: 'inherit', transition: 'border .15s' }}
+        onFocus={e => e.target.style.borderColor = '#f0b90b'}
+        onBlur={e => e.target.style.borderColor = '#2b3139'} />
+
+      {value && value.startsWith('http') && (
+        <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: 'rgba(14,203,129,.06)', border: '1px solid rgba(14,203,129,.15)', borderRadius: 8 }}>
+          <img src={value} alt="" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }} onError={e => e.target.style.display = 'none'} />
+          <span style={{ fontSize: 11, color: '#0ecb81', fontWeight: 600 }}>URL set</span>
+          <CheckCircle size={12} style={{ color: '#0ecb81', marginLeft: 'auto' }} />
+        </div>
+      )}
     </div>
   );
 };
 
-/* ─── Add Trader Form ─── */
-const AddTraderForm = ({ onSuccess, showAlert }) => {
-  const { token } = useContext(UserContext);
-  const api = useApi(token);
-  const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    name:'', image:'', profit:'', winRate:'', roi:'', pnl:'',
-    aum:'', mdd:'', days:'', followers:'', maxFollowers:'500',
-  });
+/* ─── Safe string helper ─── */
+const safe = (v) => (v == null ? '' : String(v));
 
-  const F = (k) => (e) => setForm(p => ({ ...p, [k]: e.target.value }));
-
-  const submit = async () => {
-    if (!form.name.trim()) { showAlert('Name is required', 'error'); return; }
-    setSaving(true);
-    try {
-      await api('POST', '/api/admin/create-trader', {
-        name:         form.name,
-        image:        form.image, img: form.image, avatar: form.image,
-        profit:       Number(form.profit)       || 0,
-        winRate:      Number(form.winRate)       || 0,
-        roi:          Number(form.roi)           || 0,
-        pnl:          Number(form.pnl)           || 0,
-        aum:          Number(form.aum)           || 0,
-        mdd:          Number(form.mdd)           || 0,
-        days:         Number(form.days)          || 0,
-        followers:    Number(form.followers)     || 0,
-        maxFollowers: Number(form.maxFollowers)  || 500,
-        isApiEnabled: true,
-        status:       'approved',
-      });
-      showAlert('Trader created!');
-      setForm({ name:'', image:'', profit:'', winRate:'', roi:'', pnl:'', aum:'', mdd:'', days:'', followers:'', maxFollowers:'500' });
-      setOpen(false);
-      onSuccess();
-    } catch (err) {
-      showAlert(err.message || 'Create failed', 'error');
-    } finally { setSaving(false); }
-  };
-
-  if (!open) return (
-    <button onClick={() => setOpen(true)}
-      style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 20px', background:'#f0b90b', border:'none', borderRadius:10, color:'#0b0e11', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>
-      <Plus size={15}/> Add New Trader
-    </button>
-  );
-
-  return (
-    <div style={{ background:'#0b0e11', border:'1px solid #2b3139', borderRadius:16, padding:24, marginBottom:24 }}>
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:18 }}>
-        <h3 style={{ color:'#f0b90b', fontWeight:800, fontSize:15 }}>Add New Trader</h3>
-        <button onClick={() => setOpen(false)} style={{ background:'none', border:'none', color:'#848e9c', cursor:'pointer' }}><X size={18}/></button>
-      </div>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:14, marginBottom:16 }}>
-        <div style={{ gridColumn:'1/-1' }}>
-          <label style={{ fontSize:10, color:'#848e9c', fontWeight:700, textTransform:'uppercase', marginBottom:6, display:'block' }}>Name *</label>
-          <input className="adm-input" placeholder="e.g. CryptoMaster Pro" value={form.name} onChange={F('name')}/>
-        </div>
-        <div style={{ gridColumn:'1/-1' }}>
-          <ImageUploader label="Profile Image" value={form.image} onChange={v => setForm(p=>({...p, image:v}))}/>
-        </div>
-        {[
-          ['roi','ROI (%)','45.5'], ['pnl','PNL ($)','12500'],
-          ['profit','Profit (%)','38'], ['winRate','Win Rate (%)','78'],
-          ['aum','AUM ($)','250000'], ['mdd','Max Drawdown (%)','12'],
-          ['days','Days Active','120'], ['followers','Followers','320'],
-          ['maxFollowers','Max Followers','500'],
-        ].map(([k,l,p]) => (
-          <div key={k}>
-            <label style={{ fontSize:10, color:'#848e9c', fontWeight:700, textTransform:'uppercase', marginBottom:6, display:'block' }}>{l}</label>
-            <input className="adm-input" type="number" placeholder={p} value={form[k]} onChange={F(k)} style={{ padding:'9px 12px', fontSize:13 }}/>
-          </div>
-        ))}
-      </div>
-      <div style={{ display:'flex', gap:10 }}>
-        <button onClick={() => setOpen(false)} style={{ flex:1, padding:'10px', background:'#2b3139', border:'none', borderRadius:8, color:'#848e9c', fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
-        <button onClick={submit} disabled={saving}
-          style={{ flex:2, padding:'10px', background:saving?'#2b3139':'#f0b90b', border:'none', borderRadius:8, color:saving?'#5e6673':'#0b0e11', fontWeight:700, cursor:saving?'not-allowed':'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
-          {saving ? <><Loader2 size={14} style={{ animation:'spin .8s linear infinite' }}/> Saving...</> : <><Plus size={14}/> Create Trader</>}
-        </button>
-      </div>
-    </div>
-  );
-};
-
-/* ════════════════════════════════════════════════════════════
+/* ════════════════════════════════════════════════════
    MAIN ADMIN PANEL
-════════════════════════════════════════════════════════════ */
-const AdminPanel = () => {
+════════════════════════════════════════════════════ */
+export default function AdminPanel() {
   const { token } = useContext(UserContext);
-  const api = useApi(token);
 
-  const [activeTab, setActiveTab] = useState('users');
+  const [tab,         setTab]         = useState('users');
   const [users,       setUsers]       = useState([]);
   const [requests,    setRequests]    = useState([]);
   const [investments, setInvestments] = useState([]);
   const [traders,     setTraders]     = useState([]);
+  const [plans,       setPlans]       = useState([]);
   const [loading,     setLoading]     = useState(true);
-  const [alert,       setAlert]       = useState(null);
 
-  /* Balance modal */
-  const [isBalanceModal, setIsBalanceModal] = useState(false);
-  const [selectedUser,   setSelectedUser]   = useState(null);
-  const [newBalance,     setNewBalance]     = useState('');
+  const [search,     setSearch]     = useState('');
+  const [reqFilter,  setReqFilter]  = useState('pending');
 
-  /* Edit trader modal */
-  const [isEditModal,   setIsEditModal]   = useState(false);
-  const [selectedTrader, setSelectedTrader] = useState(null);
-  const [editData, setEditData] = useState({});
-  const [savingEdit, setSavingEdit] = useState(false);
+  /* balance modal */
+  const [balModal, setBalModal]   = useState(false);
+  const [selUser,  setSelUser]    = useState(null);
+  const [newBal,   setNewBal]     = useState('');
 
-  const showAlert = (msg, type = 'success') => {
-    setAlert({ msg, type });
-    setTimeout(() => setAlert(null), 3000);
+  /* trader edit modal */
+  const [editModal,   setEditModal]   = useState(false);
+  const [selTrader,   setSelTrader]   = useState(null);
+  const [eData,       setEData]       = useState({});
+  const [savingT,     setSavingT]     = useState(false);
+
+  /* plan modal */
+  const [planModal, setPlanModal] = useState(false);
+  const [planData,  setPlanData]  = useState({});
+  const [savingP,   setSavingP]   = useState(false);
+
+  const [toast, setToast] = useState(null);
+  const showToast = (msg, type = 'ok') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3500);
   };
 
-  /* ── Fetch ── */
-  const fetchData = useCallback(async () => {
+  /* ── fetch ── */
+  const load = useCallback(async () => {
     if (!token) return;
     setLoading(true);
     try {
-      const data = await api('GET', '/api/admin/all-data');
-      setUsers(       Array.isArray(data.users)       ? data.users       : []);
-      setRequests(    Array.isArray(data.requests)    ? data.requests    : []);
-      setTraders(     Array.isArray(data.traders)     ? data.traders     : []);
-      setInvestments( Array.isArray(data.investments) ? data.investments : []);
-    } catch (err) {
-      console.error('Admin fetch:', err.message);
-      showAlert('Failed to load: ' + err.message, 'error');
-    } finally { setLoading(false); }
-  }, [token, api]);
+      const res = await API.get('/api/admin/all-data');
+      setUsers(Array.isArray(res.data.users)       ? res.data.users       : []);
+      setRequests(Array.isArray(res.data.requests) ? res.data.requests    : []);
+      setTraders(Array.isArray(res.data.traders)   ? res.data.traders     : []);
+      setPlans(Array.isArray(res.data.plans)       ? res.data.plans       : []);
+      setInvestments(
+        Array.isArray(res.data.investments) ? res.data.investments :
+        Array.isArray(res.data.requests)    ? res.data.requests    : []
+      );
+    } catch { showToast('Failed to load data', 'err'); }
+    finally { setLoading(false); }
+  }, [token]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { load(); }, [load]);
 
-  /* ── Safe helpers ── */
-  const safeStr  = (v) => (v !== null && v !== undefined ? String(v) : '');
-  const isApproved = (t) => t?.status === 'approved' || t?.status === true || t?.status === 'true';
-  const isPending  = (t) => !isApproved(t);
+  /* ── helpers ── */
+  const isPending  = t => !t.status || t.status === 'pending' || t.status === false || t.status === 'false';
+  const isApproved = t => t.status === true || t.status === 'true' || t.status === 'approved';
+  const fmt        = n  => `$${(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+  const pending    = requests.filter(r => r.status === 'pending');
+  const totalBal   = users.reduce((s, u) => s + (u.balance || 0), 0);
 
-  /* ── Trader actions ── */
-  const approveTrader = async (id) => {
+  /* ── request action ── */
+  const handleRequest = async (id, status) => {
     try {
-      await api('PUT', `/api/admin/edit-trader/${id}`, { status: 'approved' });
-      showAlert('Trader approved!');
-      fetchData();
-    } catch (err) { showAlert(err.message, 'error'); }
+      await API.post('/api/admin/handle-request', { id, status });
+      showToast(`Request ${status}`);
+      load();
+    } catch (e) { showToast(safe(e?.response?.data?.message) || 'Failed', 'err'); }
   };
 
-  const deleteTrader = async (id) => {
+  /* ── user actions ── */
+  const handleBalSave = async () => {
+    const b = parseFloat(newBal);
+    if (isNaN(b) || b < 0) return showToast('Invalid amount', 'err');
+    try {
+      await API.post('/api/admin/update-balance', { userId: selUser._id, balance: b });
+      showToast('Balance updated!');
+      setBalModal(false);
+      load();
+    } catch { showToast('Failed', 'err'); }
+  };
+
+  const handleDelUser = async (id) => {
+    if (!window.confirm('Delete this user permanently?')) return;
+    try {
+      await API.delete(`/api/admin/delete-user/${id}`);
+      showToast('User deleted');
+      load();
+    } catch { showToast('Failed', 'err'); }
+  };
+
+  /* ── trader actions ── */
+  const handleApprove = async (id) => {
+    try {
+      await API.put(`/api/admin/edit-trader/${id}`, { status: 'approved' });
+      showToast('Trader approved!');
+      load();
+    } catch { showToast('Failed', 'err'); }
+  };
+
+  const handleDelTrader = async (id) => {
     if (!window.confirm('Delete this trader?')) return;
     try {
-      await api('DELETE', `/api/admin/delete-trader/${id}`);
-      showAlert('Deleted');
-      fetchData();
-    } catch (err) { showAlert(err.message, 'error'); }
+      await API.delete(`/api/admin/delete-trader/${id}`);
+      showToast('Trader deleted');
+      load();
+    } catch { showToast('Failed', 'err'); }
   };
 
-  const openEdit = (trader) => {
-    setSelectedTrader(trader);
-    const img = trader.image || trader.img || trader.avatar || '';
-    setEditData({
-      name: trader.name || '', image: img, img, avatar: img,
-      roi: trader.roi || '', pnl: trader.pnl || '',
-      profit: trader.profit || '', winRate: trader.winRate || '',
-      aum: trader.aum || '', mdd: trader.mdd || '',
-      days: trader.days || '', followers: trader.followers || '',
-      maxFollowers: trader.maxFollowers || 500,
+  const openEdit = (t) => {
+    setSelTrader(t);
+    const img = safe(t.image || t.img || t.avatar);
+    setEData({
+      name: safe(t.name), profit: t.profit || '', winRate: t.winRate || '',
+      aum: t.aum || '', mdd: t.mdd || '', roi: t.roi || '',
+      pnl: t.pnl || '', days: t.days || '',
+      followers: t.followers || '', maxFollowers: t.maxFollowers || 500,
+      image: img, img, avatar: img,
     });
-    setIsEditModal(true);
+    setEditModal(true);
   };
 
-  const saveEdit = async () => {
-    if (!editData.name) { showAlert('Name required', 'error'); return; }
-    setSavingEdit(true);
+  const handleSaveTrader = async () => {
+    if (!safe(eData.name).trim()) return showToast('Name required', 'err');
+    setSavingT(true);
     try {
-      const img = editData.image || editData.img || editData.avatar || '';
-      await api('PUT', `/api/admin/edit-trader/${selectedTrader._id}`, {
-        ...editData, image: img, img, avatar: img,
-        profit: Number(editData.profit) || 0, winRate: Number(editData.winRate) || 0,
-        roi: Number(editData.roi) || 0, pnl: Number(editData.pnl) || 0,
-        aum: Number(editData.aum) || 0, mdd: Number(editData.mdd) || 0,
-        days: Number(editData.days) || 0, followers: Number(editData.followers) || 0,
-        maxFollowers: Number(editData.maxFollowers) || 500,
+      const img = safe(eData.image || eData.img || eData.avatar);
+      await API.put(`/api/admin/edit-trader/${selTrader._id}`, {
+        ...eData,
+        image: img, img, avatar: img,
+        profit: Number(eData.profit) || 0, winRate: Number(eData.winRate) || 0,
+        aum: Number(eData.aum) || 0, mdd: Number(eData.mdd) || 0,
+        roi: Number(eData.roi) || 0, pnl: Number(eData.pnl) || 0,
+        days: Number(eData.days) || 0, followers: Number(eData.followers) || 0,
+        maxFollowers: Number(eData.maxFollowers) || 500,
       });
-      showAlert('Trader updated!');
-      setIsEditModal(false);
-      fetchData();
-    } catch (err) { showAlert(err.message, 'error'); }
-    finally { setSavingEdit(false); }
+      showToast('Trader updated!');
+      setEditModal(false);
+      load();
+    } catch { showToast('Update failed', 'err'); }
+    finally { setSavingT(false); }
   };
 
-  /* ── Balance update ── */
-  const updateBalance = async () => {
-    if (newBalance === '' || Number(newBalance) < 0) { showAlert('Invalid balance', 'error'); return; }
+  /* ── plan actions ── */
+  const handleSavePlan = async () => {
+    if (!safe(planData.name).trim()) return showToast('Name required', 'err');
+    setSavingP(true);
     try {
-      await api('POST', '/api/admin/update-balance', { userId: selectedUser._id, balance: Number(newBalance) });
-      showAlert('Balance updated!');
-      setIsBalanceModal(false);
-      fetchData();
-    } catch (err) { showAlert(err.message, 'error'); }
+      await API.post('/api/admin/create-plan', {
+        name: planData.name,
+        minAmount: Number(planData.minAmount) || 10,
+        maxAmount: Number(planData.maxAmount) || 10000,
+        profitPercent: Number(planData.profitPercent) || 5,
+        duration: Number(planData.duration) || 24,
+      });
+      showToast('Plan created!');
+      setPlanModal(false);
+      setPlanData({});
+      load();
+    } catch { showToast('Failed', 'err'); }
+    finally { setSavingP(false); }
   };
 
-  /* ── Stats ── */
-  const pending  = requests.filter(r => r?.status === 'pending');
-  const totalBal = users.reduce((s, u) => s + (u?.balance || 0), 0);
+  const handleDelPlan = async (id) => {
+    if (!window.confirm('Delete this plan?')) return;
+    try {
+      await API.delete(`/api/admin/delete-plan/${id}`);
+      showToast('Plan deleted');
+      load();
+    } catch { showToast('Failed', 'err'); }
+  };
 
-  /* ── Loading ── */
+  /* ── filtered data ── */
+  const filteredUsers = users.filter(u => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return safe(u.name).toLowerCase().includes(q) || safe(u.email).toLowerCase().includes(q);
+  });
+
+  const filteredReqs = requests.filter(r => {
+    const matchFilter = reqFilter === 'all' ? true : safe(r.status) === reqFilter;
+    if (!search) return matchFilter;
+    const q = search.toLowerCase();
+    return matchFilter && (
+      safe(r.userId?.name).toLowerCase().includes(q) ||
+      safe(r.type).toLowerCase().includes(q) ||
+      safe(r.userId?.email).toLowerCase().includes(q)
+    );
+  });
+
+  const TABS = [
+    { key: 'users',    label: 'Users',        icon: <Users size={14} />,    badge: users.length },
+    { key: 'requests', label: 'Requests',     icon: <Clock size={14} />,    badge: pending.length, red: pending.length > 0 },
+    { key: 'traders',  label: 'Traders',      icon: <UserPlus size={14} />, badge: traders.filter(isApproved).length },
+    { key: 'plans',    label: 'Plans',        icon: <PieChart size={14} />, badge: plans.length },
+    { key: 'logs',     label: 'Investments',  icon: <List size={14} />,     badge: investments.length },
+  ];
+
   if (loading) return (
-    <div style={{ minHeight:'100vh', background:'#0b0e11', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:16 }}>
-      <Loader2 size={36} style={{ color:'#f0b90b', animation:'spin .8s linear infinite' }}/>
-      <span style={{ color:'#f0b90b', fontWeight:800, fontSize:13, letterSpacing:4, textTransform:'uppercase' }}>Loading Admin...</span>
+    <div style={{ minHeight: '100vh', background: '#0b0e11', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
+      <Loader2 size={36} style={{ color: '#f0b90b', animation: 'spin .8s linear infinite' }} />
+      <span style={{ color: '#f0b90b', fontWeight: 800, fontSize: 13, letterSpacing: 3, textTransform: 'uppercase' }}>Loading...</span>
     </div>
   );
 
-  const TABS = [
-    { key:'users',    label:'Users',    icon:<Users size={14}/>,   count: users.length },
-    { key:'requests', label:'Requests', icon:<Clock size={14}/>,   count: pending.length, alert: pending.length > 0 },
-    { key:'plans',    label:'Plans',    icon:<PieChart size={14}/>, count: null },
-    { key:'logs',     label:'Logs',     icon:<List size={14}/>,    count: null },
-    { key:'traders',  label:'Traders',  icon:<UserPlus size={14}/>, count: traders.filter(isApproved).length },
-  ];
-
   return (
-    <div style={{ background:'#0b0e11', minHeight:'100vh', color:'#eaecef', fontFamily:"'Inter',sans-serif" }}>
+    <div style={{ background: '#0b0e11', minHeight: '100vh', color: '#eaecef', fontFamily: "'Inter',sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         @keyframes spin{to{transform:rotate(360deg)}}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeSlide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
         *{box-sizing:border-box;}
-        .adm-input{background:#0b0e11;border:1px solid #2b3139;border-radius:10px;padding:10px 14px;color:#eaecef;font-size:13px;outline:none;font-family:inherit;width:100%;transition:border .15s;}
-        .adm-input:focus{border-color:#f0b90b;}
-        .adm-btn{padding:8px 16px;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:all .15s;}
-        .btn-green{background:rgba(14,203,129,.1);color:#0ecb81;border:1px solid rgba(14,203,129,.25);}
-        .btn-green:hover{background:#0ecb81;color:#0b0e11;}
-        .btn-red{background:rgba(246,70,93,.1);color:#f6465d;border:1px solid rgba(246,70,93,.25);}
-        .btn-red:hover{background:#f6465d;color:#fff;}
-        .btn-blue{background:rgba(99,126,234,.1);color:#627eea;border:1px solid rgba(99,126,234,.25);}
-        .btn-blue:hover{background:#627eea;color:#fff;}
-        .btn-gold{background:#f0b90b;color:#0b0e11;}
-        .btn-gold:hover{background:#d4a30a;}
-        .stat-card{background:linear-gradient(135deg,#161a1e,#1a2028);border:1px solid #1e2329;border-radius:18px;padding:20px 22px;}
-        .adm-table{width:100%;border-collapse:collapse;}
-        .adm-table th{padding:10px 16px;color:#848e9c;font-size:11px;font-weight:700;text-align:left;border-bottom:1px solid #1e2329;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;}
-        .adm-table td{padding:12px 16px;border-bottom:1px solid #1e232950;font-size:13px;vertical-align:middle;}
-        .adm-table tr:hover td{background:rgba(255,255,255,.02);}
-        .adm-table tr:last-child td{border-bottom:none;}
-        .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
-        .bdg-pending{background:rgba(240,185,11,.12);color:#f0b90b;}
-        .bdg-approved,.bdg-completed{background:rgba(14,203,129,.12);color:#0ecb81;}
-        .bdg-rejected{background:rgba(246,70,93,.12);color:#f6465d;}
-        .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);z-index:999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;}
-        .modal-box{background:#161a1e;border:1px solid #2b3139;border-radius:24px;padding:28px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;animation:fadeIn .25s;}
-        ::-webkit-scrollbar{width:4px;height:4px}
-        ::-webkit-scrollbar-thumb{background:#2b3139;border-radius:4px}
+        ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:#2b3139;border-radius:4px}
+        .ns{scrollbar-width:none}.ns::-webkit-scrollbar{display:none}
+        .ai{background:#0b0e11;border:1px solid #2b3139;border-radius:10px;padding:10px 14px;color:#eaecef;font-size:13px;outline:none;font-family:inherit;width:100%;transition:border .15s;}
+        .ai:focus{border-color:#f0b90b;}
+        .btn{padding:7px 15px;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap;}
+        .g{background:rgba(14,203,129,.1);color:#0ecb81;border:1px solid rgba(14,203,129,.25);}
+        .g:hover{background:#0ecb81;color:#0b0e11;}
+        .r{background:rgba(246,70,93,.1);color:#f6465d;border:1px solid rgba(246,70,93,.25);}
+        .r:hover{background:#f6465d;color:#fff;}
+        .b{background:rgba(99,126,234,.1);color:#627eea;border:1px solid rgba(99,126,234,.25);}
+        .b:hover{background:#627eea;color:#fff;}
+        .y{background:#f0b90b;color:#0b0e11;}
+        .y:hover{background:#d4a30a;}
+        .t{width:100%;border-collapse:collapse;}
+        .t th{padding:10px 14px;color:#848e9c;font-size:11px;font-weight:700;text-align:left;border-bottom:1px solid #1e2329;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;}
+        .t td{padding:11px 14px;border-bottom:1px solid #1e232940;font-size:13px;vertical-align:middle;}
+        .t tr:hover td{background:rgba(255,255,255,.02);}
+        .t tr:last-child td{border-bottom:none;}
+        .bd{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+        .mb{position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;}
+        .mx{background:#161a1e;border:1px solid #2b3139;border-radius:22px;padding:26px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;animation:fadeSlide .25s;}
+        .sc{background:linear-gradient(135deg,#161a1e,#1a2028);border:1px solid #1e2329;border-radius:16px;padding:18px 20px;}
+        @media(max-width:640px){.t th,.t td{padding:8px 10px;font-size:12px;}.hs{display:none!important;}.mx{padding:18px;}}
       `}</style>
 
       {/* Toast */}
-      {alert && (
-        <div style={{ position:'fixed', top:20, right:20, zIndex:9999, background:alert.type==='error'?'#f6465d':'#0ecb81', color:'#fff', padding:'12px 20px', borderRadius:14, fontWeight:700, fontSize:13, animation:'fadeIn .3s', display:'flex', alignItems:'center', gap:8, boxShadow:'0 8px 32px rgba(0,0,0,.5)', maxWidth:300 }}>
-          {alert.type==='error' ? <AlertCircle size={16}/> : <CheckCircle size={16}/>}
-          {alert.msg}
+      {toast && (
+        <div style={{ position: 'fixed', top: 20, right: 20, zIndex: 99999, background: toast.type === 'err' ? '#f6465d' : '#0ecb81', color: '#fff', padding: '12px 20px', borderRadius: 14, fontWeight: 700, fontSize: 13, animation: 'fadeSlide .3s', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 8px 32px rgba(0,0,0,.5)', maxWidth: 340 }}>
+          {toast.type === 'err' ? <AlertCircle size={16} /> : <CheckCircle size={16} />}
+          {toast.msg}
         </div>
       )}
 
       {/* Header */}
-      <div style={{ background:'#0f1318', borderBottom:'1px solid #1e2329', padding:'14px 24px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:10, position:'sticky', top:0, zIndex:50 }}>
-        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-          <div style={{ width:36, height:36, borderRadius:10, background:'rgba(240,185,11,.1)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-            <ShieldCheck size={20} style={{ color:'#f0b90b' }}/>
+      <div style={{ background: '#0f1318', borderBottom: '1px solid #1e2329', padding: '13px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, position: 'sticky', top: 0, zIndex: 50 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+          <div style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(240,185,11,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <ShieldCheck size={19} style={{ color: '#f0b90b' }} />
           </div>
           <div>
-            <div style={{ fontSize:16, fontWeight:800, color:'#f0b90b', letterSpacing:1 }}>VINANCE ADMIN</div>
-            <div style={{ fontSize:11, color:'#5e6673' }}>Command Center</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: '#f0b90b', letterSpacing: 1 }}>VINANCE ADMIN</div>
+            <div style={{ fontSize: 11, color: '#5e6673' }}>Command Center</div>
           </div>
         </div>
-        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {pending.length > 0 && (
-            <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(246,70,93,.1)', border:'1px solid rgba(246,70,93,.2)', borderRadius:20, padding:'5px 12px', fontSize:12, color:'#f6465d', fontWeight:700 }}>
-              <AlertCircle size={13}/> {pending.length} Pending
+            <div style={{ background: 'rgba(246,70,93,.1)', border: '1px solid rgba(246,70,93,.2)', borderRadius: 20, padding: '4px 11px', fontSize: 12, color: '#f6465d', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+              <AlertCircle size={12} /> {pending.length} Pending
             </div>
           )}
-          <button onClick={fetchData} className="adm-btn" style={{ background:'#1e2329', color:'#848e9c', border:'1px solid #2b3139' }}>
-            <RefreshCw size={13}/> Refresh
+          <button onClick={() => { setSearch(''); load(); }} className="btn b" style={{ padding: '6px 13px' }}>
+            <RefreshCw size={13} /> Refresh
           </button>
         </div>
       </div>
 
-      <div style={{ padding:'20px 24px' }}>
+      <div style={{ padding: '18px 22px' }}>
 
         {/* Stats */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:12, marginBottom:22 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: 12, marginBottom: 22 }}>
           {[
-            { l:'Total Users',    v: users.length,                       color:'#627eea', icon:<Users size={18}/> },
-            { l:'Total Balance',  v:`$${totalBal.toLocaleString(undefined,{minimumFractionDigits:2})}`, color:'#f0b90b', icon:<DollarSign size={18}/> },
-            { l:'Pending',        v: pending.length,                     color:'#f6465d', icon:<Clock size={18}/> },
-            { l:'Active Traders', v: traders.filter(isApproved).length,  color:'#0ecb81', icon:<Award size={18}/> },
+            { l: 'Total Users',    v: users.length,                      icon: <Users size={17} />,      c: '#627eea' },
+            { l: 'Total Balance',  v: fmt(totalBal),                     icon: <DollarSign size={17} />, c: '#f0b90b' },
+            { l: 'Pending',        v: pending.length,                    icon: <Clock size={17} />,      c: '#f6465d' },
+            { l: 'Active Traders', v: traders.filter(isApproved).length, icon: <Award size={17} />,      c: '#0ecb81' },
           ].map(s => (
-            <div key={s.l} className="stat-card" style={{ borderTop:`2px solid ${s.color}` }}>
-              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:10 }}>
-                <span style={{ fontSize:10, color:'#848e9c', fontWeight:700, textTransform:'uppercase', letterSpacing:'.04em' }}>{s.l}</span>
-                <div style={{ color:s.color, background:s.color+'18', padding:7, borderRadius:8 }}>{s.icon}</div>
+            <div key={s.l} className="sc" style={{ borderTop: `2px solid ${s.c}` }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 }}>
+                <span style={{ fontSize: 10, color: '#848e9c', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>{s.l}</span>
+                <div style={{ color: s.c, background: s.c + '18', padding: 7, borderRadius: 8 }}>{s.icon}</div>
               </div>
-              <div style={{ fontSize:22, fontWeight:800, color:'#eaecef' }}>{s.v}</div>
+              <div style={{ fontSize: 21, fontWeight: 800, color: '#eaecef' }}>{s.v}</div>
             </div>
           ))}
         </div>
 
+        {/* Search bar */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#161a1e', border: '1px solid #2b3139', borderRadius: 10, padding: '8px 14px', marginBottom: 16, maxWidth: 380 }}>
+          <Search size={14} style={{ color: '#5e6673', flexShrink: 0 }} />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder={tab === 'requests' ? 'Search requests...' : 'Search users...'}
+            style={{ background: 'transparent', border: 'none', outline: 'none', color: '#eaecef', fontSize: 13, width: '100%', fontFamily: 'inherit' }}
+          />
+          {search && (
+            <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', color: '#848e9c', cursor: 'pointer', padding: 0 }}>
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
         {/* Tabs */}
-        <div style={{ display:'flex', gap:6, overflowX:'auto', marginBottom:20, scrollbarWidth:'none' }}>
+        <div className="ns" style={{ display: 'flex', gap: 6, overflowX: 'auto', marginBottom: 18 }}>
           {TABS.map(t => (
-            <button key={t.key} onClick={() => setActiveTab(t.key)}
-              style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 18px', border:'none', borderRadius:12, fontSize:13, fontWeight:activeTab===t.key?700:500, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap', transition:'all .15s', background:activeTab===t.key?'#f0b90b':'#161a1e', color:activeTab===t.key?'#0b0e11':'#848e9c', position:'relative', flexShrink:0 }}>
+            <button key={t.key} onClick={() => { setTab(t.key); setSearch(''); }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', border: 'none', borderRadius: 11, fontSize: 12, fontWeight: tab === t.key ? 700 : 500, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', transition: 'all .15s', background: tab === t.key ? '#f0b90b' : '#161a1e', color: tab === t.key ? '#0b0e11' : '#848e9c', position: 'relative' }}>
               {t.icon} {t.label}
-              {t.alert && <span style={{ width:7, height:7, borderRadius:'50%', background:'#f6465d', position:'absolute', top:6, right:6 }}/>}
-              {t.count !== null && (
-                <span style={{ background:activeTab===t.key?'rgba(0,0,0,.2)':'#2b3139', color:activeTab===t.key?'#0b0e11':'#eaecef', borderRadius:20, padding:'1px 7px', fontSize:10, fontWeight:700 }}>
-                  {t.count}
+              {t.red && <span style={{ position: 'absolute', top: 5, right: 5, width: 6, height: 6, borderRadius: '50%', background: '#f6465d' }} />}
+              {t.badge != null && (
+                <span style={{ background: tab === t.key ? 'rgba(0,0,0,.2)' : '#2b3139', color: tab === t.key ? '#0b0e11' : '#eaecef', borderRadius: 20, padding: '1px 6px', fontSize: 10, fontWeight: 700 }}>
+                  {t.badge}
                 </span>
               )}
             </button>
           ))}
         </div>
 
-        {/* Tab content */}
-        <div style={{ background:'#161a1e', borderRadius:20, border:'1px solid #1e2329', overflow:'hidden', minHeight:400 }}>
-
-          {/* USERS */}
-          {activeTab === 'users' && (
-            <ManageUsers
-              users={users}
-              fetchData={fetchData}
-              onEdit={(u) => { setSelectedUser(u); setNewBalance(u.balance || 0); setIsBalanceModal(true); }}
-            />
-          )}
-
-          {/* REQUESTS */}
-          {activeTab === 'requests' && <PendingRequests requests={requests} fetchData={fetchData}/>}
-
-          {/* PLANS */}
-          {activeTab === 'plans' && <ManagePlans fetchData={fetchData}/>}
-
-          {/* LOGS */}
-          {activeTab === 'logs' && <InvestmentLogs data={investments}/>}
-
-          {/* TRADERS */}
-          {activeTab === 'traders' && (
-            <div style={{ padding:24 }}>
-
-              {/* Pending Applications */}
-              {traders.filter(isPending).length > 0 && (
-                <div style={{ marginBottom:28 }}>
-                  <h3 style={{ fontSize:12, fontWeight:700, color:'#f0b90b', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:14, display:'flex', alignItems:'center', gap:8 }}>
-                    <Clock size={13}/> Pending Applications ({traders.filter(isPending).length})
-                  </h3>
-                  <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(250px,1fr))', gap:12 }}>
-                    {traders.filter(isPending).map(trader => (
-                      <div key={trader._id} style={{ background:'#0b0e11', border:'1px dashed #2b3139', borderRadius:14, padding:16, display:'flex', justifyContent:'space-between', alignItems:'center', gap:10 }}>
-                        <div style={{ display:'flex', alignItems:'center', gap:10, minWidth:0 }}>
-                          <div style={{ width:44, height:44, borderRadius:'50%', background:'#2b3139', overflow:'hidden', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, fontWeight:800 }}>
-                            {trader.image||trader.img||trader.avatar
-                              ? <img src={trader.image||trader.img||trader.avatar} alt={trader.name} style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
-                              : (safeStr(trader.name)[0] || 'T')}
+        {/* ══ USERS TAB ══ */}
+        {tab === 'users' && (
+          <div style={{ background: '#161a1e', borderRadius: 18, border: '1px solid #1e2329', overflow: 'hidden' }}>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="t">
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Balance</th>
+                    <th className="hs">Joined</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredUsers.length === 0 && (
+                    <tr><td colSpan={6} style={{ textAlign: 'center', padding: 40, color: '#5e6673' }}>No users found</td></tr>
+                  )}
+                  {filteredUsers.map(u => (
+                    <tr key={u._id}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#f0b90b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#0b0e11', flexShrink: 0 }}>
+                            {safe(u.name)[0]?.toUpperCase() || 'U'}
                           </div>
-                          <div style={{ minWidth:0 }}>
-                            <p style={{ fontWeight:700, color:'#eaecef', fontSize:13, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{trader.name}</p>
-                            <p style={{ color:'#848e9c', fontSize:11 }}>ROI: {trader.roi||0}% · AUM: ${trader.aum||0}</p>
-                          </div>
+                          <span style={{ fontWeight: 600, color: '#eaecef' }}>{safe(u.name) || 'Unknown'}</span>
                         </div>
-                        <div style={{ display:'flex', gap:6, flexShrink:0 }}>
-                          <button className="adm-btn btn-green" style={{ padding:'7px 10px' }} onClick={() => approveTrader(trader._id)} title="Approve"><CheckCircle size={15}/></button>
-                          <button className="adm-btn btn-red"   style={{ padding:'7px 10px' }} onClick={() => deleteTrader(trader._id)}  title="Delete"><Trash2 size={15}/></button>
+                      </td>
+                      <td style={{ color: '#848e9c', fontSize: 12 }}>{safe(u.email)}</td>
+                      <td>
+                        <span className="bd" style={{ background: u.role === 'admin' ? 'rgba(240,185,11,.12)' : 'rgba(132,142,156,.1)', color: u.role === 'admin' ? '#f0b90b' : '#848e9c' }}>
+                          {safe(u.role)}
+                        </span>
+                      </td>
+                      <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#eaecef' }}>
+                        {fmt(u.balance)}
+                      </td>
+                      <td className="hs" style={{ color: '#848e9c', fontSize: 12 }}>
+                        {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '-'}
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button className="btn b" style={{ padding: '5px 10px' }}
+                            onClick={() => { setSelUser(u); setNewBal(String(u.balance || 0)); setBalModal(true); }}
+                            title="Edit Balance">
+                            <Edit size={13} /> Balance
+                          </button>
+                          <button className="btn r" style={{ padding: '5px 8px' }}
+                            onClick={() => handleDelUser(u._id)} title="Delete">
+                            <Trash2 size={13} />
+                          </button>
                         </div>
-                      </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ══ REQUESTS TAB ══ */}
+        {tab === 'requests' && (
+          <div>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
+              {['pending', 'approved', 'rejected', 'all'].map(f => (
+                <button key={f} onClick={() => setReqFilter(f)}
+                  style={{ padding: '5px 13px', border: `1px solid ${reqFilter === f ? '#f0b90b' : '#2b3139'}`, borderRadius: 20, background: reqFilter === f ? 'rgba(240,185,11,.1)' : 'transparent', color: reqFilter === f ? '#f0b90b' : '#848e9c', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', fontWeight: reqFilter === f ? 700 : 500, textTransform: 'capitalize' }}>
+                  {f}
+                </button>
+              ))}
+            </div>
+            <div style={{ background: '#161a1e', borderRadius: 18, border: '1px solid #1e2329', overflow: 'hidden' }}>
+              <div style={{ overflowX: 'auto' }}>
+                <table className="t">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Type</th>
+                      <th>Amount</th>
+                      <th className="hs">Method</th>
+                      <th className="hs">TxID</th>
+                      <th className="hs">Date</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredReqs.length === 0 && (
+                      <tr><td colSpan={8} style={{ textAlign: 'center', padding: 40, color: '#5e6673' }}>No requests found</td></tr>
+                    )}
+                    {filteredReqs.map(r => (
+                      <tr key={r._id}>
+                        <td>
+                          <div style={{ fontWeight: 600, color: '#eaecef', fontSize: 13 }}>{safe(r.userId?.name) || 'Unknown'}</div>
+                          <div style={{ color: '#5e6673', fontSize: 11 }}>{safe(r.userId?.email)}</div>
+                        </td>
+                        <td>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600, color: r.type === 'deposit' ? '#0ecb81' : '#f6465d', fontSize: 12 }}>
+                            {r.type === 'deposit' ? <ArrowDownLeft size={13} /> : <ArrowUpRight size={13} />}
+                            {safe(r.type)}
+                          </span>
+                        </td>
+                        <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#eaecef' }}>{fmt(r.amount)}</td>
+                        <td className="hs" style={{ color: '#848e9c', fontSize: 12, maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {safe(r.method || r.address) || '-'}
+                        </td>
+                        <td className="hs" style={{ color: '#848e9c', fontSize: 11 }}>
+                          {safe(r.txId || r.transactionId) || '-'}
+                        </td>
+                        <td className="hs" style={{ color: '#848e9c', fontSize: 12 }}>
+                          {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '-'}
+                        </td>
+                        <td>
+                          <span className="bd" style={{ background: r.status === 'approved' || r.status === 'completed' ? 'rgba(14,203,129,.12)' : r.status === 'rejected' ? 'rgba(246,70,93,.12)' : 'rgba(240,185,11,.12)', color: r.status === 'approved' || r.status === 'completed' ? '#0ecb81' : r.status === 'rejected' ? '#f6465d' : '#f0b90b' }}>
+                            {safe(r.status) || 'pending'}
+                          </span>
+                        </td>
+                        <td>
+                          {r.status === 'pending' && (
+                            <div style={{ display: 'flex', gap: 5 }}>
+                              <button className="btn g" style={{ padding: '5px 8px' }} onClick={() => handleRequest(r._id, 'approved')}><CheckCircle size={13} /></button>
+                              <button className="btn r" style={{ padding: '5px 8px' }} onClick={() => handleRequest(r._id, 'rejected')}><X size={13} /></button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
                     ))}
-                  </div>
-                </div>
-              )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
 
-              {/* Add Trader */}
-              <AddTraderForm onSuccess={fetchData} showAlert={showAlert}/>
-
-              {/* Approved Traders */}
-              <div style={{ marginTop:24 }}>
-                <h3 style={{ fontSize:12, fontWeight:700, color:'#848e9c', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:14 }}>
-                  Active Master Traders ({traders.filter(isApproved).length})
+        {/* ══ TRADERS TAB ══ */}
+        {tab === 'traders' && (
+          <div>
+            {/* Pending */}
+            {traders.filter(isPending).length > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <h3 style={{ fontSize: 12, fontWeight: 700, color: '#f0b90b', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <Clock size={13} /> Pending Applications ({traders.filter(isPending).length})
                 </h3>
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(270px,1fr))', gap:12 }}>
-                  {traders.filter(isApproved).map(trader => (
-                    <div key={trader._id} style={{ background:'#0b0e11', border:'1px solid #1e2329', borderRadius:16, padding:18, display:'flex', justifyContent:'space-between', alignItems:'center', gap:12 }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:12, minWidth:0 }}>
-                        <div style={{ width:50, height:50, borderRadius:'50%', background:'#2b3139', overflow:'hidden', flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, fontWeight:800, border:'2px solid #1e2329' }}>
-                          {trader.image||trader.img||trader.avatar
-                            ? <img src={trader.image||trader.img||trader.avatar} alt={trader.name} style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
-                            : (safeStr(trader.name)[0] || 'T')}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(240px,1fr))', gap: 12 }}>
+                  {traders.filter(isPending).map(t => (
+                    <div key={t._id} style={{ background: '#161a1e', border: '1px dashed #2b3139', borderRadius: 13, padding: 15, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0 }}>
+                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#2b3139', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800 }}>
+                          {t.image || t.img || t.avatar
+                            ? <img src={safe(t.image || t.img || t.avatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display='none'} />
+                            : safe(t.name)[0]?.toUpperCase() || 'T'}
                         </div>
-                        <div style={{ minWidth:0 }}>
-                          <p style={{ fontWeight:700, color:'#eaecef', fontSize:14, marginBottom:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{trader.name}</p>
-                          <p style={{ color:'#0ecb81', fontSize:12, fontWeight:700 }}>+{trader.roi||trader.profit||0}% ROI</p>
-                          <p style={{ color:'#848e9c', fontSize:11 }}>{trader.followers||0} followers · ${(trader.aum||0).toLocaleString()} AUM</p>
+                        <div>
+                          <p style={{ fontWeight: 700, color: '#eaecef', fontSize: 13 }}>{safe(t.name)}</p>
+                          <p style={{ color: '#848e9c', fontSize: 11 }}>ROI: {t.profit || 0}%</p>
                         </div>
                       </div>
-                      <div style={{ display:'flex', gap:6, flexShrink:0 }}>
-                        <button className="adm-btn btn-blue" style={{ padding:'8px 10px' }} onClick={() => openEdit(trader)} title="Edit"><Edit size={14}/></button>
-                        <button className="adm-btn btn-red"  style={{ padding:'8px 10px' }} onClick={() => deleteTrader(trader._id)} title="Delete"><Trash2 size={14}/></button>
+                      <div style={{ display: 'flex', gap: 5 }}>
+                        <button className="btn g" style={{ padding: '5px 9px' }} onClick={() => handleApprove(t._id)}><CheckCircle size={14} /></button>
+                        <button className="btn r" style={{ padding: '5px 9px' }} onClick={() => handleDelTrader(t._id)}><Trash2 size={14} /></button>
                       </div>
                     </div>
                   ))}
-                  {!traders.filter(isApproved).length && (
-                    <div style={{ gridColumn:'1/-1', textAlign:'center', padding:40, color:'#5e6673' }}>
-                      <Award size={40} style={{ opacity:.15, margin:'0 auto 12px', display:'block' }}/>
-                      <p style={{ fontSize:13 }}>No approved traders yet. Add one above.</p>
-                    </div>
-                  )}
                 </div>
               </div>
+            )}
+
+            {/* Add Trader quick form */}
+            <div style={{ background: '#161a1e', border: '1px solid #1e2329', borderRadius: 16, padding: 20, marginBottom: 24 }}>
+              <h3 style={{ fontSize: 13, fontWeight: 700, color: '#f0b90b', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 7 }}>
+                <UserPlus size={14} /> Add New Trader
+              </h3>
+              <AddTraderInline onSuccess={() => { showToast('Trader added!'); load(); }} />
             </div>
-          )}
-        </div>
+
+            {/* Approved traders */}
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: '#848e9c', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 12 }}>
+              Active Traders ({traders.filter(isApproved).length})
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: 13 }}>
+              {traders.filter(isApproved).map(t => (
+                <div key={t._id} style={{ background: '#161a1e', border: '1px solid #1e2329', borderRadius: 14, padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, transition: 'border .2s' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = '#2b3139'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2329'}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 11, minWidth: 0 }}>
+                    <div style={{ width: 46, height: 46, borderRadius: '50%', background: '#2b3139', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, border: '2px solid #1e2329' }}>
+                      {t.image || t.img || t.avatar
+                        ? <img src={safe(t.image || t.img || t.avatar)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display='none'} />
+                        : safe(t.name)[0]?.toUpperCase() || 'T'}
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ fontWeight: 700, color: '#eaecef', fontSize: 13, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{safe(t.name)}</p>
+                      <p style={{ color: '#0ecb81', fontSize: 12, fontWeight: 700 }}>+{t.roi || t.profit || 0}% ROI</p>
+                      <p style={{ color: '#848e9c', fontSize: 11 }}>{t.followers || 0} followers</p>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 5 }}>
+                    <button className="btn b" style={{ padding: '6px 9px' }} onClick={() => openEdit(t)}><Edit size={13} /></button>
+                    <button className="btn r" style={{ padding: '6px 9px' }} onClick={() => handleDelTrader(t._id)}><Trash2 size={13} /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ══ PLANS TAB ══ */}
+        {tab === 'plans' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
+              <button className="btn y" onClick={() => { setPlanData({}); setPlanModal(true); }}>
+                <UserPlus size={14} /> Add Plan
+              </button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 13 }}>
+              {plans.map(p => (
+                <div key={p._id} style={{ background: '#161a1e', border: '1px solid #1e2329', borderRadius: 14, padding: 18 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+                    <h3 style={{ fontWeight: 700, color: '#eaecef', fontSize: 14 }}>{safe(p.name)}</h3>
+                    <button className="btn r" style={{ padding: '4px 7px' }} onClick={() => handleDelPlan(p._id)}><Trash2 size={12} /></button>
+                  </div>
+                  {[
+                    { l: 'Profit',     v: `${p.profitPercent}%`, c: '#0ecb81' },
+                    { l: 'Min',        v: fmt(p.minAmount) },
+                    { l: 'Max',        v: fmt(p.maxAmount) },
+                    { l: 'Duration',   v: `${p.duration || 24}h` },
+                  ].map(s => (
+                    <div key={s.l} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 7, fontSize: 13 }}>
+                      <span style={{ color: '#848e9c' }}>{s.l}</span>
+                      <span style={{ fontWeight: 700, color: s.c || '#eaecef' }}>{s.v}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+              {plans.length === 0 && (
+                <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 40, color: '#5e6673' }}>
+                  <PieChart size={36} style={{ opacity: .15, margin: '0 auto 12px', display: 'block' }} />
+                  <p>No plans yet. Add your first plan.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ══ INVESTMENTS TAB ══ */}
+        {tab === 'logs' && (
+          <div style={{ background: '#161a1e', borderRadius: 18, border: '1px solid #1e2329', overflow: 'hidden' }}>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="t">
+                <thead>
+                  <tr><th>User</th><th>Plan</th><th>Amount</th><th>Profit</th><th>Status</th><th className="hs">Expires</th></tr>
+                </thead>
+                <tbody>
+                  {investments.length === 0 && (
+                    <tr><td colSpan={6} style={{ textAlign: 'center', padding: 40, color: '#5e6673' }}>No investments found</td></tr>
+                  )}
+                  {investments.map((inv, i) => (
+                    <tr key={inv._id || i}>
+                      <td style={{ fontWeight: 600, color: '#eaecef' }}>{safe(inv.userId?.name) || safe(inv.userId) || 'Unknown'}</td>
+                      <td style={{ color: '#848e9c' }}>{safe(inv.planId?.name) || 'Plan'}</td>
+                      <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#eaecef' }}>{fmt(inv.amount)}</td>
+                      <td style={{ fontWeight: 700, color: '#0ecb81' }}>{fmt(inv.profit)}</td>
+                      <td>
+                        <span className="bd" style={{ background: inv.status === 'completed' ? 'rgba(14,203,129,.12)' : 'rgba(240,185,11,.12)', color: inv.status === 'completed' ? '#0ecb81' : '#f0b90b' }}>
+                          {safe(inv.status)}
+                        </span>
+                      </td>
+                      <td className="hs" style={{ color: '#848e9c', fontSize: 12 }}>
+                        {inv.expireAt ? new Date(inv.expireAt).toLocaleString() : '-'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* ── Balance Modal ── */}
-      {isBalanceModal && (
-        <div className="modal-bg" onClick={e => e.target===e.currentTarget && setIsBalanceModal(false)}>
-          <div className="modal-box">
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+      {/* ══ BALANCE MODAL ══ */}
+      {balModal && (
+        <div className="mb" onClick={e => e.target === e.currentTarget && setBalModal(false)}>
+          <div className="mx">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <div>
-                <h3 style={{ fontSize:18, fontWeight:800, color:'#f0b90b' }}>Update Balance</h3>
-                <p style={{ fontSize:12, color:'#848e9c', marginTop:2 }}>{selectedUser?.name} — {selectedUser?.email}</p>
+                <h3 style={{ fontSize: 17, fontWeight: 800, color: '#f0b90b' }}>Update Balance</h3>
+                <p style={{ fontSize: 12, color: '#848e9c', marginTop: 2 }}>{safe(selUser?.name)} — {safe(selUser?.email)}</p>
               </div>
-              <button onClick={() => setIsBalanceModal(false)} style={{ background:'none', border:'none', color:'#848e9c', cursor:'pointer' }}><X size={20}/></button>
+              <button onClick={() => setBalModal(false)} style={{ background: 'none', border: 'none', color: '#848e9c', cursor: 'pointer' }}><X size={19} /></button>
             </div>
-            <label style={{ fontSize:11, color:'#848e9c', fontWeight:700, textTransform:'uppercase', marginBottom:8, display:'block' }}>
-              Current: <span style={{ color:'#f0b90b' }}>${(selectedUser?.balance||0).toFixed(2)}</span>
-            </label>
-            <div style={{ position:'relative', marginBottom:20 }}>
-              <span style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:'#f0b90b', fontWeight:700, fontSize:16 }}>$</span>
-              <input className="adm-input" type="number" value={newBalance} onChange={e => setNewBalance(e.target.value)} placeholder="0.00" style={{ paddingLeft:32, fontSize:20, fontWeight:800 }}/>
+            <p style={{ fontSize: 12, color: '#848e9c', marginBottom: 10 }}>
+              Current: <span style={{ color: '#f0b90b', fontWeight: 700 }}>{fmt(selUser?.balance)}</span>
+            </p>
+            <div style={{ position: 'relative', marginBottom: 20 }}>
+              <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#f0b90b', fontWeight: 700, fontSize: 16 }}>$</span>
+              <input className="ai" type="number" value={newBal} onChange={e => setNewBal(e.target.value)}
+                placeholder="0.00" style={{ paddingLeft: 32, fontSize: 20, fontWeight: 800, fontFamily: 'monospace' }} />
             </div>
-            <div style={{ display:'flex', gap:10 }}>
-              <button className="adm-btn" style={{ flex:1, background:'#2b3139', color:'#848e9c' }} onClick={() => setIsBalanceModal(false)}>Cancel</button>
-              <button className="adm-btn btn-gold" style={{ flex:2 }} onClick={updateBalance}><Save size={14}/> Confirm</button>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button className="btn" style={{ flex: 1, background: '#2b3139', color: '#848e9c' }} onClick={() => setBalModal(false)}>Cancel</button>
+              <button className="btn y" style={{ flex: 2 }} onClick={handleBalSave}><Save size={14} /> Confirm</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Edit Trader Modal ── */}
-      {isEditModal && (
-        <div className="modal-bg" onClick={e => e.target===e.currentTarget && setIsEditModal(false)}>
-          <div className="modal-box">
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:22 }}>
-              <h3 style={{ fontSize:18, fontWeight:800, color:'#f0b90b' }}>Edit Trader</h3>
-              <button onClick={() => setIsEditModal(false)} style={{ background:'none', border:'none', color:'#848e9c', cursor:'pointer' }}><X size={20}/></button>
+      {/* ══ TRADER EDIT MODAL ══ */}
+      {editModal && (
+        <div className="mb" onClick={e => e.target === e.currentTarget && setEditModal(false)}>
+          <div className="mx">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ fontSize: 17, fontWeight: 800, color: '#f0b90b' }}>Edit Trader</h3>
+              <button onClick={() => setEditModal(false)} style={{ background: 'none', border: 'none', color: '#848e9c', cursor: 'pointer' }}><X size={19} /></button>
             </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
-                <label style={{ fontSize:10, color:'#848e9c', fontWeight:700, textTransform:'uppercase', marginBottom:6, display:'block' }}>Name *</label>
-                <input className="adm-input" value={editData.name||''} onChange={e => setEditData(p=>({...p, name:e.target.value}))} placeholder="Trader name"/>
+                <label style={{ fontSize: 11, color: '#848e9c', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6, display: 'block' }}>Name *</label>
+                <input className="ai" placeholder="Trader name" value={safe(eData.name)}
+                  onChange={e => setEData(p => ({ ...p, name: e.target.value }))} />
               </div>
               <ImageUploader
-                label="Profile Image"
-                value={editData.avatar || editData.image || editData.img || ''}
-                onChange={url => setEditData(p => ({ ...p, image:url, img:url, avatar:url }))}
+                label="Profile Photo"
+                value={safe(eData.avatar || eData.image || eData.img)}
+                onChange={url => setEData(p => ({ ...p, image: url, img: url, avatar: url }))}
               />
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 11 }}>
                 {[
-                  ['roi','ROI (%)'], ['pnl','PNL ($)'],
-                  ['profit','Profit (%)'], ['winRate','Win Rate (%)'],
-                  ['aum','AUM ($)'], ['mdd','Max Drawdown (%)'],
-                  ['days','Days Active'], ['followers','Followers'],
-                  ['maxFollowers','Max Followers'],
-                ].map(([k,l]) => (
-                  <div key={k}>
-                    <label style={{ fontSize:10, color:'#848e9c', fontWeight:700, textTransform:'uppercase', marginBottom:5, display:'block' }}>{l}</label>
-                    <input className="adm-input" type="number" value={editData[k]||''} onChange={e => setEditData(p=>({...p,[k]:e.target.value}))} style={{ padding:'9px 12px', fontSize:13 }}/>
+                  { k: 'roi',          l: 'ROI (%)',      p: '45' },
+                  { k: 'pnl',          l: 'PNL ($)',      p: '12500' },
+                  { k: 'profit',       l: 'Profit (%)',   p: '38' },
+                  { k: 'winRate',      l: 'Win Rate (%)', p: '78' },
+                  { k: 'aum',          l: 'AUM ($)',      p: '250000' },
+                  { k: 'mdd',          l: 'Drawdown (%)', p: '12' },
+                  { k: 'days',         l: 'Days Active',  p: '120' },
+                  { k: 'followers',    l: 'Followers',    p: '320' },
+                  { k: 'maxFollowers', l: 'Max Followers',p: '500' },
+                ].map(f => (
+                  <div key={f.k}>
+                    <label style={{ fontSize: 10, color: '#848e9c', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 5, display: 'block' }}>{f.l}</label>
+                    <input className="ai" type="number" placeholder={f.p}
+                      value={eData[f.k] != null ? String(eData[f.k]) : ''}
+                      onChange={e => setEData(p => ({ ...p, [f.k]: e.target.value }))}
+                      style={{ padding: '8px 11px', fontSize: 13 }} />
                   </div>
                 ))}
               </div>
             </div>
-            <div style={{ display:'flex', gap:10, marginTop:22 }}>
-              <button className="adm-btn" style={{ flex:1, background:'#2b3139', color:'#848e9c' }} onClick={() => setIsEditModal(false)}>Cancel</button>
-              <button className="adm-btn btn-gold" style={{ flex:2 }} disabled={savingEdit} onClick={saveEdit}>
-                {savingEdit ? <><Loader2 size={14} style={{ animation:'spin .8s linear infinite' }}/> Saving...</> : <><Save size={14}/> Save Changes</>}
+            <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+              <button className="btn" style={{ flex: 1, background: '#2b3139', color: '#848e9c' }} onClick={() => setEditModal(false)}>Cancel</button>
+              <button className="btn y" style={{ flex: 2 }} disabled={savingT || !safe(eData.name).trim()} onClick={handleSaveTrader}>
+                {savingT ? <><Loader2 size={13} style={{ animation: 'spin .8s linear infinite' }} /> Saving...</> : <><Save size={13} /> Save Changes</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ PLAN MODAL ══ */}
+      {planModal && (
+        <div className="mb" onClick={e => e.target === e.currentTarget && setPlanModal(false)}>
+          <div className="mx">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ fontSize: 17, fontWeight: 800, color: '#f0b90b' }}>Create Plan</h3>
+              <button onClick={() => setPlanModal(false)} style={{ background: 'none', border: 'none', color: '#848e9c', cursor: 'pointer' }}><X size={19} /></button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
+              {[
+                { k: 'name',          l: 'Plan Name',    p: 'Starter Plan',  t: 'text' },
+                { k: 'minAmount',     l: 'Min Amount ($)',p: '100',           t: 'number' },
+                { k: 'maxAmount',     l: 'Max Amount ($)',p: '5000',          t: 'number' },
+                { k: 'profitPercent', l: 'Profit (%)',   p: '10',            t: 'number' },
+                { k: 'duration',      l: 'Duration (hrs)',p: '24',            t: 'number' },
+              ].map(f => (
+                <div key={f.k}>
+                  <label style={{ fontSize: 11, color: '#848e9c', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 6, display: 'block' }}>{f.l}</label>
+                  <input className="ai" type={f.t} placeholder={f.p}
+                    value={safe(planData[f.k])}
+                    onChange={e => setPlanData(p => ({ ...p, [f.k]: e.target.value }))} />
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+              <button className="btn" style={{ flex: 1, background: '#2b3139', color: '#848e9c' }} onClick={() => setPlanModal(false)}>Cancel</button>
+              <button className="btn y" style={{ flex: 2 }} disabled={savingP} onClick={handleSavePlan}>
+                {savingP ? <><Loader2 size={13} style={{ animation: 'spin .8s linear infinite' }} /> Creating...</> : <><Save size={13} /> Create Plan</>}
               </button>
             </div>
           </div>
@@ -604,6 +835,98 @@ const AdminPanel = () => {
       )}
     </div>
   );
-};
+}
 
+/* ─── Inline Add Trader Form ─── */
+function AddTraderInline({ onSuccess }) {
+  const [form, setForm]     = useState({ name: '', roi: '', pnl: '', aum: '', winRate: '', followers: '', days: '', image: '' });
+  const [saving, setSaving] = useState(false);
+  const [imgUrl, setImgUrl] = useState('');
+  const inputRef = useRef();
+
+  const toBase64 = (file) => new Promise((res, rej) => {
+    const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = rej; r.readAsDataURL(file);
+  });
+
+  const handleFile = async (file) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    try {
+      const fd = new FormData(); fd.append('image', file); fd.append('key', '2e46a4d0c87a36e4bfc0a7de8bdd4e34');
+      const res = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data?.data?.url) { setImgUrl(data.data.url); setForm(p => ({ ...p, image: data.data.url })); return; }
+    } catch (_) {}
+    const b64 = await toBase64(file).catch(() => '');
+    if (b64) { setImgUrl(b64); setForm(p => ({ ...p, image: b64 })); }
+  };
+
+  const handleSubmit = async () => {
+    if (!safe(form.name).trim()) return alert('Name required');
+    setSaving(true);
+    try {
+      await API.post('/api/admin/create-trader', {
+        name: form.name, image: imgUrl || form.image, img: imgUrl || form.image, avatar: imgUrl || form.image,
+        roi: Number(form.roi) || 0, pnl: Number(form.pnl) || 0, aum: Number(form.aum) || 0,
+        winRate: Number(form.winRate) || 0, followers: Number(form.followers) || 0,
+        days: Number(form.days) || 0, status: 'approved',
+      });
+      setForm({ name: '', roi: '', pnl: '', aum: '', winRate: '', followers: '', days: '', image: '' });
+      setImgUrl('');
+      onSuccess();
+    } catch (e) { alert(safe(e?.response?.data?.message) || 'Failed'); }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div>
+      <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handleFile(e.target.files[0])} />
+
+      {/* Image picker */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+        <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#2b3139', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '2px dashed #3a3f47' }}
+          onClick={() => inputRef.current?.click()}>
+          {imgUrl
+            ? <img src={imgUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display='none'} />
+            : <Upload size={18} style={{ color: '#f0b90b' }} />}
+        </div>
+        <div style={{ flex: 1 }}>
+          <input style={{ width: '100%', background: '#0b0e11', border: '1px solid #2b3139', borderRadius: 8, padding: '7px 11px', color: '#eaecef', fontSize: 12, outline: 'none', fontFamily: 'inherit' }}
+            placeholder="Or paste image URL"
+            value={imgUrl && !imgUrl.startsWith('data:') ? imgUrl : ''}
+            onChange={e => { setImgUrl(e.target.value); setForm(p => ({ ...p, image: e.target.value })); }}
+            onFocus={e => e.target.style.borderColor = '#f0b90b'}
+            onBlur={e => e.target.style.borderColor = '#2b3139'} />
+          <p style={{ fontSize: 10, color: '#5e6673', marginTop: 4 }}>Click avatar to upload from gallery</p>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(150px,1fr))', gap: 10, marginBottom: 14 }}>
+        {[
+          { k: 'name',      l: 'Trader Name *', p: 'CryptoMaster',  t: 'text'   },
+          { k: 'roi',       l: 'ROI (%)',        p: '45',            t: 'number' },
+          { k: 'pnl',       l: 'PNL ($)',        p: '12500',         t: 'number' },
+          { k: 'aum',       l: 'AUM ($)',        p: '250000',        t: 'number' },
+          { k: 'winRate',   l: 'Win Rate (%)',   p: '78',            t: 'number' },
+          { k: 'followers', l: 'Followers',      p: '320',           t: 'number' },
+          { k: 'days',      l: 'Days Active',    p: '120',           t: 'number' },
+        ].map(f => (
+          <div key={f.k}>
+            <label style={{ fontSize: 10, color: '#848e9c', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 5, display: 'block' }}>{f.l}</label>
+            <input style={{ width: '100%', background: '#0b0e11', border: '1px solid #2b3139', borderRadius: 8, padding: '8px 11px', color: '#eaecef', fontSize: 13, outline: 'none', fontFamily: 'inherit', transition: 'border .15s' }}
+              type={f.t} placeholder={f.p}
+              value={safe(form[f.k])}
+              onChange={e => setForm(p => ({ ...p, [f.k]: e.target.value }))}
+              onFocus={e => e.target.style.borderColor = '#f0b90b'}
+              onBlur={e => e.target.style.borderColor = '#2b3139'} />
+          </div>
+        ))}
+      </div>
+
+      <button onClick={handleSubmit} disabled={saving || !safe(form.name).trim()}
+        style={{ padding: '10px 28px', background: saving || !safe(form.name).trim() ? '#2b3139' : '#f0b90b', border: 'none', borderRadius: 10, color: saving || !safe(form.name).trim() ? '#5e6673' : '#0b0e11', fontWeight: 700, fontSize: 13, cursor: saving || !safe(form.name).trim() ? 'not-allowed' : 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 7 }}>
+        {saving ? <><Loader2 size={14} style={{ animation: 'spin .8s linear infinite' }} /> Adding...</> : <><UserPlus size={14} /> Add Trader</>}
+      </button>
+    </div>
+  );
+}
 export default AdminPanel;
