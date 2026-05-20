@@ -929,4 +929,3 @@ function AddTraderInline({ onSuccess }) {
     </div>
   );
 }
-export default AdminPanel;
