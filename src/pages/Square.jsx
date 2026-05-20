@@ -13,34 +13,27 @@ import {
 const API = "https://vinance-backend-1.onrender.com";
 
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
   *{box-sizing:border-box;margin:0;padding:0;}
-  .sq{font-family:'Inter',sans-serif;background:#0b0e11;color:#eaecef;min-height:100vh;display:flex;width:100%;}
+  .sq{font-family:'Inter',sans-serif;background:#0b0e11;color:#eaecef;min-height:100vh;display:flex;}
   .sq-sidebar{width:260px;flex-shrink:0;border-right:1px solid #1e2329;padding:16px 12px;height:100vh;position:sticky;top:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:2px;}
   .sq-sidebar::-webkit-scrollbar{display:none;}
-  .sq-main{flex:1;min-width:0;border-right:1px solid #1e2329;overflow-y:auto;height:100vh;background:#0b0e11;}
+  .sq-main{flex:1;min-width:0;border-right:1px solid #1e2329;overflow-y:auto;height:100vh;}
   .sq-right{width:320px;flex-shrink:0;padding:20px 14px;height:100vh;position:sticky;top:0;overflow-y:auto;scrollbar-width:none;}
   .sq-right::-webkit-scrollbar{display:none;}
   .sq-nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;cursor:pointer;transition:all .15s;color:#848e9c;font-weight:500;font-size:14px;border:none;background:transparent;width:100%;text-align:left;font-family:inherit;}
   .sq-nav-item:hover,.sq-nav-item.on{background:#161a1e;color:#eaecef;}
   .sq-nav-item.on{font-weight:700;color:#f0b90b;}
-  
-  .post-card{border-bottom:1px solid #1e2329;padding:16px;transition:background .15s;display:flex;gap:12px;}
+  .post-card{border-bottom:1px solid #1e2329;padding:16px 18px;transition:background .15s;}
   .post-card:hover{background:#0d1117;}
   .avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;overflow:hidden;background:#2b3139;}
-  
-  .post-btn{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:20px;border:none;background:transparent;color:#848e9c;font-size:12px;cursor:pointer;transition:all .15s;font-family:inherit;}
+  .post-btn{display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:20px;border:none;background:transparent;color:#848e9c;font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit;}
   .post-btn:hover{color:#eaecef;background:#161a1e;}
   .post-btn.liked{color:#f6465d;}
   .post-btn.bookmarked{color:#f0b90b;}
   .post-btn.retweeted{color:#0ecb81;}
-  
-  .tags-container{display:flex;gap:8px;overflow-x:auto;padding:12px 16px;background:#0b0e11;border-bottom:1px solid #1e2329;scrollbar-width:none;}
-  .tags-container::-webkit-scrollbar{display:none;}
-  
-  .tag-chip{padding:6px 14px;border-radius:20px;border:1px solid #2b3139;background:transparent;color:#848e9c;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .15s;font-family:inherit;flex-shrink:0;}
+  .tag-chip{padding:5px 14px;border-radius:20px;border:1px solid #2b3139;background:transparent;color:#848e9c;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .15s;font-family:inherit;}
   .tag-chip:hover,.tag-chip.on{border-color:#f0b90b;color:#f0b90b;background:rgba(240,185,11,.05);}
-  
   .follow-btn{padding:6px 16px;border:1px solid #f0b90b;border-radius:20px;background:transparent;color:#f0b90b;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;font-family:inherit;white-space:nowrap;}
   .follow-btn:hover,.follow-btn.on{background:#f0b90b;color:#0b0e11;}
   .sq-search{display:flex;align-items:center;gap:10px;background:#161a1e;border:1px solid #2b3139;border-radius:24px;padding:9px 14px;transition:border .15s;}
@@ -54,7 +47,7 @@ const css = `
   .trending-item:hover{background:rgba(255,255,255,.02);}
   .trending-item:hover .trend-title{color:#f0b90b;}
   .creator-card{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #1e232940;}
-  .notif-item{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid #1e2329;cursor:pointer;transition:background .15s;}
+  .notif-item{display:flex;gap:12px;padding:14px 18px;border-bottom:1px solid #1e2329;cursor:pointer;transition:background .15s;}
   .notif-item:hover{background:#0d1117;}
   .comment-box{background:#161a1e;border-radius:12px;padding:12px;margin-top:8px;border:1px solid #1e2329;}
   .comment-input{background:#0b0e11;border:1px solid #2b3139;border-radius:8px;padding:8px 12px;width:100%;color:#eaecef;font-size:13px;outline:none;font-family:inherit;resize:none;}
@@ -62,13 +55,11 @@ const css = `
   @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
   @keyframes spin{to{transform:rotate(360deg)}}
   .spin{animation:spin .8s linear infinite}
-  
   @media(max-width:1100px){.sq-right{display:none;}}
   @media(max-width:768px){
     .sq-sidebar{display:none;}
-    .sq{display:block;width:100%;padding-bottom:60px;}
-    .sq-main{width:100%;height:auto;border-right:none;}
-    .post-card{padding:14px 12px;}
+    .sq-main{border:none;height:auto;min-height:100vh;}
+    .sq{display:block;}
   }
 `;
 
@@ -94,14 +85,14 @@ const NOTIFS = [
   { icon: '🚀', title: 'Platform Update', body: 'New features added: Advanced charting, stop-loss automation, and more.', time: 'May 6' },
 ];
 
-const fmtNum = n => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : n;
+const fmtNum = n => n >= 1000 ? ${(n / 1000).toFixed(1)}K : n;
 const fmtTime = ts => {
   const d = new Date(ts);
   const now = new Date();
   const diff = (now - d) / 1000;
   if (diff < 60) return 'just now';
-  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+  if (diff < 3600) return ${Math.floor(diff / 60)}m;
+  if (diff < 86400) return ${Math.floor(diff / 3600)}h;
   return d.toLocaleDateString();
 };
 
@@ -137,173 +128,448 @@ export default function Square() {
     setPosts(p => p.map(post => {
       if (post._id !== id) return post;
       const liked = post.likes.includes(myId);
-      return {
-        ...post,
-        likes: liked ? post.likes.filter(x => x !== myId) : [...post.likes, myId]
-      };
+      return { ...post, likes: liked ? post.likes.filter(x => x !== myId) : [...post.likes, myId] };
     }));
   };
 
-  const toggleBookmark = (id) => {
+  const bookmarkPost = (id) => {
     setBookmarked(b => b.includes(id) ? b.filter(x => x !== id) : [...b, id]);
   };
 
-  const createPost = () => {
-    if (!newPost.trim()) return;
-    setPosting(true);
-    setTimeout(() => {
-      const p = {
-        _id: Math.random().toString(),
-        author: user?.name || 'Anonymous',
-        handle: `@${user?.name?.toLowerCase().replace(/\s+/g, '') || 'user'}`,
-        verified: user?.role === 'admin',
-        createdAt: new Date(),
-        content: newPost,
-        likes: [],
-        comments: [],
-        shares: 0,
-        views: 1,
-        bookmarks: [],
-        tag: activeTag === 'All' ? 'News' : activeTag
-      };
-      setPosts([p, ...posts]);
-      setNewPost('');
-      setPosting(false);
-    }, 800);
+  const retweetPost = (id) => {
+    setPosts(p => p.map(post =>
+      post._id === id ? { ...post, shares: post.shares + 1 } : post
+    ));
   };
 
-  return (
-    <div className="sq">
-      <style>{css}</style>
+  const toggleComments = (id) => {
+    setOpenComments(o => ({ ...o, [id]: !o[id] }));
+  };
 
-      {/* Desktop Sidebar */}
-      <div className="sq-sidebar">
-        <div style={{padding:'0 14px 16px', borderBottom:'1px solid #1e2329', marginBottom:'12px'}}>
-          <h1 style={{fontSize:'20px', fontWeight:800, color:'#f0b90b', fontStyle:'italic'}}>VINANCE SQUARE</h1>
-        </div>
-        <button className={`sq-nav-item ${section==='Feed'?'on':''}`} onClick={()=>setSection('Feed')}><Home size={18}/> Feed</button>
-        <button className={`sq-nav-item ${section==='Notifications'?'on':''}`} onClick={()=>setSection('Notifications')}><Bell size={18}/> Notifications</button>
-        <button className={`sq-nav-item ${section==='Bookmarks'?'on':''}`} onClick={()=>setSection('Bookmarks')}><Bookmark size={18}/> Bookmarks</button>
-        <button className={`sq-nav-item ${section==='Profile'?'on':''}`} onClick={()=>setSection('Profile')}><Users size={18}/> My Profile</button>
-        <button className="sq-nav-item" onClick={()=>navigate('/dashboard')} style={{marginTop:'auto', borderTop:'1px solid #1e2329', paddingTop:'12px'}}><ArrowLeft size={18}/> Back to Trade</button>
-      </div>
+  const submitComment = (postId) => {
+    const text = commentInputs[postId]?.trim();
+    if (!text) return;
+    const comment = {
+      id: Date.now(),
+      author: user?.name || 'You',
+      handle: '@' + (user?.email?.split('@')[0] || 'user'),
+      text,
+      time: 'just now',
+    };
+    setPosts(p => p.map(post =>
+      post._id === postId ? { ...post, comments: [...post.comments, comment] } : post
+    ));
+    setCommentInputs(o => ({ ...o, [postId]: '' }));
+  };
 
-      {/* Main Content Area */}
-      <div className="sq-main">
-        {/* Mobile Top Navbar Header Fixed */}
-        <div className="md:hidden flex items-center justify-between p-4 bg-[#161a1e] border-b border-[#1e2329] sticky top-0 z-30">
-          <button onClick={()=>navigate('/dashboard')} className="text-gray-400"><ArrowLeft size={20}/></button>
-          <span className="font-black text-xs text-[#f0b90b] tracking-widest uppercase">{section}</span>
-          <div className="flex gap-4 items-center">
-            <button onClick={()=>setSection('Notifications')} className={`text-gray-400 ${section==='Notifications'?'text-[#f0b90b]':''}`}><Bell size={18}/></button>
-            <button onClick={()=>setSection('Profile')} className={`text-gray-400 ${section==='Profile'?'text-[#f0b90b]':''}`}><Users size={18}/></button>
+  const submitPost = async () => {
+    if (!newPost.trim()) return;
+    setPosting(true);
+    await new Promise(r => setTimeout(r, 600));
+    const np = {
+      _id: String(Date.now()),
+      author: user?.name || 'You',
+      handle: '@' + (user?.email?.split('@')[0] || 'user'),
+      verified: false,
+      createdAt: new Date(),
+      content: newPost,
+      likes: [], comments: [], shares: 0, views: 0, bookmarks: [],
+      tag: 'All',
+    };
+    setPosts(p => [np, ...p]);
+    setNewPost('');
+    setPosting(false);
+  };
+
+  const filteredPosts = posts.filter(p => {
+    const matchTag = activeTag === 'All' || p.tag === activeTag;
+    const matchSearch = !searchQ || p.content.toLowerCase().includes(searchQ.toLowerCase()) || p.author.toLowerCase().includes(searchQ.toLowerCase());
+    if (section === 'Bookmarks') return bookmarked.includes(p._id);
+    return matchTag && matchSearch;
+  });
+
+  const PostCard = ({ post }) => {
+    const liked = post.likes.includes(myId);
+    const isBookmarked = bookmarked.includes(post._id);
+    const showCmts = openComments[post._id];
+
+    return (
+      <div className="post-card" style={{ animation: 'fadeIn .3s' }}>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <div className="avatar" style={{ width: 44, height: 44, background: hsl(${post._id.charCodeAt(0) * 40},55%,40%), fontSize: 16, flexShrink: 0 }}>
+            {post.author[0]}
           </div>
-        </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
+              <span style={{ fontWeight: 700, fontSize: 14, color: '#eaecef' }}>{post.author}</span>
+              {post.verified && <span style={{ color: '#f0b90b', fontSize: 12 }}>✓</span>}
+              <span style={{ color: '#5e6673', fontSize: 12 }}>· {fmtTime(post.createdAt)}</span>
+            </div>
+            <p style={{ fontSize: 14, color: '#c6cad2', lineHeight: 1.6, marginBottom: 12 }}>
+              {post.content.split(/(\$\w+|@\w+|#\w+)/).map((part, i) =>
+                /^\$|^@|^#/.test(part)
+                  ? <span key={i} style={{ color: '#f0b90b', cursor: 'pointer' }}>{part}</span>
+                  : part
+              )}
+            </p>
 
-        {section === 'Feed' && (
-          <>
-            {/* Create Post Input Box */}
-            <div style={{padding:'16px', borderBottom:'1px solid #1e2329', background:'rgba(22, 26, 30, 0.2)'}}>
-              <div style={{display:'flex', gap:'12px'}}>
-                <div className="avatar" style={{width:'38px', height:'38px', background:'#f0b90b', color:'#0b0e11', fontSize:'14px'}}>{myId[0].toUpperCase()}</div>
-                <div style={{flex:1}}>
-                  <textarea className="post-input" rows="3" placeholder="What's happening in the crypto market today?..." value={newPost} onChange={e=>setNewPost(e.target.value)}/>
-                  <div style={{display:'flex', justifyContent:'end', marginTop:'10px'}}>
-                    <button onClick={createPost} disabled={posting || !newPost.trim()} className="follow-btn on" style={{padding:'7px 20px', fontSize:'13px', display:'flex', alignItems:'center', gap:'6px'}}>
-                      {posting ? <Loader2 size={14} className="spin"/> : <><Send size={12}/> Post</>}
-                    </button>
+            {/* Action buttons */}
+            <div style={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+              <button className={post-btn${liked ? ' liked' : ''}} onClick={() => likePost(post._id)}>
+                <Heart size={15} style={liked ? { fill: '#f6465d', color: '#f6465d' } : {}} />
+                <span>{fmtNum(post.likes.length)}</span>
+              </button>
+              <button className="post-btn" onClick={() => toggleComments(post._id)}>
+                <MessageSquare size={15} />
+                <span>{fmtNum(post.comments.length)}</span>
+              </button>
+              <button className="post-btn retweeted" onClick={() => retweetPost(post._id)}>
+                <Repeat2 size={15} />
+                <span>{fmtNum(post.shares)}</span>
+              </button>
+              <button className={post-btn${isBookmarked ? ' bookmarked' : ''}} onClick={() => bookmarkPost(post._id)}>
+                <Bookmark size={15} style={isBookmarked ? { fill: '#f0b90b', color: '#f0b90b' } : {}} />
+              </button>
+              <button className="post-btn" onClick={() => {
+                navigator.clipboard?.writeText(post.content);
+              }}>
+                <Share2 size={15} />
+              </button>
+              <span style={{ marginLeft: 'auto', fontSize: 12, color: '#5e6673', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Eye size={12} /> {fmtNum(post.views + post.likes.length)}
+              </span>
+            </div>
+
+            {/* Comments section */}
+            {showCmts && (
+              <div className="comment-box" style={{ animation: 'fadeIn .2s' }}>
+                {post.comments.map((c, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                    <div className="avatar" style={{ width: 28, height: 28, fontSize: 11, background: '#2b3139', flexShrink: 0 }}>
+                      {c.author[0]}
+                    </div>
+                    <div>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#eaecef' }}>{c.author} </span>
+                      <span style={{ fontSize: 11, color: '#5e6673' }}>· {c.time}</span>
+                      <p style={{ fontSize: 13, color: '#c6cad2', marginTop: 2 }}>{c.text}</p>
+                    </div>
                   </div>
+                ))}
+                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                  <div className="avatar" style={{ width: 28, height: 28, fontSize: 11, flexShrink: 0 }}>
+                    {user?.name?.[0] || 'U'}
+                  </div>
+                  <textarea
+                    className="comment-input"
+                    rows={2}
+                    placeholder="Write a comment..."
+                    value={commentInputs[post._id] || ''}
+                    onChange={e => setCommentInputs(o => ({ ...o, [post._id]: e.target.value }))}
+                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment(post._id); } }}
+                  />
+                  <button onClick={() => submitComment(post._id)}
+                    style={{ background: '#f0b90b', border: 'none', borderRadius: 8, padding: '0 12px', cursor: 'pointer', color: '#0b0e11', display: 'flex', alignItems: 'center' }}>
+                    <Send size={14} />
+                  </button>
                 </div>
               </div>
-            </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
-            {/* Horizontal Tags Scroll Bar */}
-            <div className="tags-container">
-              {TAGS.map(t => (
-                <button key={t} className={`tag-chip ${activeTag===t?'on':''}`} onClick={()=>setActiveTag(t)}>{t === 'All' ? '🔥 Trends' : `#${t}`}</button>
-              ))}
-            </div>
-
-            {/* Posts Feed Wrapper */}
-            <div style={{background:'#0b0e11'}}>
-              {posts.filter(p=>activeTag==='All'||p.tag===activeTag).map(post => (
-                <div key={post._id} className="post-card">
-                  <div className="avatar" style={{width:'40px', height:'40px', fontSize:'15px', flexShrink:0}}>{post.author[0].toUpperCase()}</div>
-                  <div style={{flex:1, minWidth:0}}>
-                    <div style={{display:'flex', alignItems:'center', justifyWith:'space-between', justifyContent:'space-between', gap:'6px', marginBottom:'4px'}}>
-                      <div style={{display:'flex', alignItems:'center', gap:'4px', minWidth:0}}>
-                        <span style={{fontWeight:700, color:'#eaecef', fontSize:'14px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{post.author}</span>
-                        {post.verified && <span style={{color:'#f0b90b', fontSize:'11px'}}>✓</span>}
-                        <span style={{color:'#5e6673', fontSize:'12px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{post.handle}</span>
-                      </div>
-                      <span style={{color:'#5e6673', fontSize:'11px', flexShrink:0}}>{fmtTime(post.createdAt)}</span>
-                    </div>
-                    <p style={{fontSize:'14px', color:'#cdbeaf', lineHeight:'1.5', wordBreak:'break-word'}}>{post.content}</p>
-                    {post.tag && <span style={{display:'inline-block', color:'#f0b90b', fontSize:'12px', marginTop:'6px', background:'rgba(240,185,11,0.06)', padding:'2px 8px', borderRadius:'4px'}}>#{post.tag}</span>}
-                    
-                    <div style={{display:'flex', justifyContent:'space-between', marginTop:'12px', maxWidth:'360px'}}>
-                      <button className={`post-btn ${post.likes.includes(myId)?'liked':''}`} onClick={()=>likePost(post._id)}><Heart size={15}/> {fmtNum(post.likes.length)}</button>
-                      <button className="post-btn" onClick={()=>setOpenComments(o=>({...o, [post._id]:!o[post._id]}))}><MessageCircle size={15}/> {fmtNum(post.comments.length)}</button>
-                      <button className="post-btn"><Repeat2 size={15}/> {fmtNum(post.shares)}</button>
-                      <button className={`post-btn ${bookmarked.includes(post._id)?'bookmarked':''}`} onClick={()=>toggleBookmark(post._id)}><Bookmark size={15}/></button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
-        {/* Notifications View */}
-        {section === 'Notifications' && (
-          <div>
-            <div style={{padding:'16px', borderBottom:'1px solid #1e2329', display:'flex', gap:'8px', background:'#0b0e11'}}>
-              <button className={`tag-chip ${notifTab==='All'?'on':''}`} onClick={()=>setNotifTab('All')}>All Alerts</button>
-              <button className={`tag-chip ${notifTab==='System'?'on':''}`} onClick={()=>setNotifTab('System')}>System</button>
-            </div>
-            <div style={{background:'#0b0e11'}}>
-              {NOTIFS.map((n, i) => (
-                <div key={i} className="notif-item">
-                  <span style={{fontSize:'20px', flexShrink:0}}>{n.icon}</span>
-                  <div style={{flex:1, minWidth:0}}>
-                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'2px'}}>
-                      <h4 style={{fontSize:'13px', fontWeight:700, color:'#fff'}}>{n.title}</h4>
-                      <span style={{color:'#5e6673', fontSize:'11px', flexShrink:0}}>{n.time}</span>
-                    </div>
-                    <p style={{fontSize:'12px', color:'#848e9c', lineHeight:'1.4', wordBreak:'break-word'}}>{n.body}</p>
-                  </div>
-                </div>
-              ))}
+  const FeedSection = () => (
+    <>
+      {/* Composer */}
+      <div style={{ padding: '14px 18px', borderBottom: '1px solid #1e2329' }}>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <div className="avatar" style={{ width: 42, height: 42, fontSize: 15, flexShrink: 0 }}>
+            {user?.name?.[0] || 'U'}
+          </div>
+          <div style={{ flex: 1 }}>
+            <textarea className="post-input" placeholder="What's happening in crypto?" value={newPost}
+              onChange={e => setNewPost(e.target.value)} rows={3}
+              onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) submitPost(); }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+              <div style={{ display: 'flex', gap: 14, color: '#f0b90b' }}>
+                <FileText size={17} style={{ cursor: 'pointer' }} title="Attach" />
+                <Hash size={17} style={{ cursor: 'pointer' }} title="Tag" />
+                <TrendingUp size={17} style={{ cursor: 'pointer' }} title="Chart" />
+              </div>
+              <button onClick={submitPost} disabled={!newPost.trim() || posting}
+                style={{ padding: '7px 20px', background: newPost.trim() && !posting ? '#f0b90b' : '#2b3139', border: 'none', borderRadius: 20, color: newPost.trim() && !posting ? '#0b0e11' : '#5e6673', fontWeight: 700, fontSize: 13, cursor: newPost.trim() ? 'pointer' : 'not-allowed', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>
+                {posting ? <Loader2 size={14} className="spin" /> : null}
+                Post
+              </button>
             </div>
           </div>
-        )}
-
-        {/* Profile and Bookmarks Empty Screen fallback */}
-        {(section === 'Bookmarks' || section === 'Profile') && (
-          <div style={{textAlign:'center', padding:'80px 20px', color:'#5e6673', background:'#0b0e11'}}>
-            <Clock size={40} style={{margin:'0 auto 12px', opacity:0.4}}/>
-            <p style={{fontSize:'14px'}}>No entries found under {section} section.</p>
-          </div>
-        )}
+        </div>
       </div>
 
-      {/* Desktop Right Trends Bar Widgets */}
-      <div className="sq-right">
-        <div className="sq-search" style={{marginBottom:'20px'}}>
-          <Search size={16} style={{color:'#5e6673'}}/>
-          <input type="text" placeholder="Search Square topics..." value={searchQ} onChange={e=>setSearchQ(e.target.value)}/>
+      {/* Tag filter */}
+      <div style={{ display: 'flex', gap: 6, padding: '10px 18px', borderBottom: '1px solid #1e2329', overflowX: 'auto', scrollbarWidth: 'none' }}>
+        {TAGS.map(t => (
+          <button key={t} className={tag-chip${activeTag === t ? ' on' : ''}} onClick={() => setActiveTag(t)}>{t}</button>
+        ))}
+      </div>
+
+      {filteredPosts.length === 0 && (
+        <div style={{ textAlign: 'center', padding: 60, color: '#5e6673' }}>
+          <FileText size={40} style={{ opacity: .15, marginBottom: 12, display: 'block', margin: '0 auto 12px' }} />
+          <p style={{ fontSize: 14 }}>No posts yet. Be the first!</p>
         </div>
-        <div style={{background:'#161a1e', borderRadius:'16px', padding:'16px', marginBottom:'20px', border:'1px solid #2b3139'}}>
-          <h3 style={{fontSize:'14px', fontWeight:800, color:'#fff', marginBottom:'12px', textTransform:'uppercase'}}>Trending Today</h3>
-          {TRENDING.map((t, i) => (
-            <div key={i} className="trending-item">
-              <p style={{fontSize:'11px', color:'#5e6673'}}>#{i+1} · Trending</p>
-              <h4 className="trend-title" style={{fontSize:'13px', fontWeight:700, color:'#eaecef', margin:'2px 0 4px', transition:'all 0.1s'}}>#{t.tag}</h4>
-              <p style={{fontSize:'11px', color:'#848e9c'}}>{t.views} · {t.count}</p>
-            </div>
+      )}
+      {filteredPosts.map(post => <PostCard key={post._id} post={post} />)}
+    </>
+  );
+
+  const NotificationSection = () => (
+    <>
+      <div style={{ padding: '14px 18px', borderBottom: '1px solid #1e2329' }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#eaecef', marginBottom: 12 }}>Notifications</h2>
+        <div style={{ display: 'flex', gap: 0, overflowX: 'auto', scrollbarWidth: 'none' }}>
+          {['All', 'Trades', 'System'].map(t => (
+            <button key={t} onClick={() => setNotifTab(t)}
+              style={{ padding: '8px 14px', background: 'transparent', border: 'none', cursor: 'pointer', color: notifTab === t ? '#eaecef' : '#848e9c', borderBottom: notifTab === t ? '2px solid #f0b90b' : '2px solid transparent', fontWeight: notifTab === t ? 700 : 500, fontSize: 13, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+              {t}
+            </button>
           ))}
         </div>
       </div>
+      {NOTIFS.map((n, i) => (
+        <div key={i} className="notif-item">
+          <div style={{ width: 42, height: 42, borderRadius: '50%', background: '#1e2329', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 18 }}>
+            {n.icon}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+              <span style={{ fontWeight: 700, fontSize: 13, color: '#eaecef' }}>{n.title}</span>
+              <span style={{ fontSize: 11, color: '#5e6673', flexShrink: 0, marginLeft: 8 }}>{n.time}</span>
+            </div>
+            <p style={{ fontSize: 13, color: '#848e9c', lineHeight: 1.5 }}>{n.body}</p>
+          </div>
+        </div>
+      ))}
+    </>
+  );
+
+  const ProfileSection = () => (
+    <div style={{ padding: 18 }}>
+      {/* Back button mobile */}
+      <button onClick={() => setSection('Feed')}
+        style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: '#848e9c', cursor: 'pointer', marginBottom: 16, fontFamily: 'inherit', fontSize: 13 }}>
+        <ChevronLeft size={16} /> Back
+      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20, flexWrap: 'wrap' }}>
+        <div className="avatar" style={{ width: 64, height: 64, fontSize: 24, background: '#f0b90b', color: '#0b0e11' }}>
+          {user?.name?.[0] || 'U'}
+        </div>
+        <div>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: '#eaecef' }}>{user?.name || 'Guest'}</h2>
+          <p style={{ color: '#848e9c', fontSize: 13 }}>@{user?.email?.split('@')[0] || 'user'}</p>
+          <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: 13, color: '#848e9c' }}>
+            <span><span style={{ color: '#eaecef', fontWeight: 700 }}>{followed.length}</span> Following</span>
+            <span><span style={{ color: '#eaecef', fontWeight: 700 }}>0</span> Followers</span>
+          </div>
+        </div>
+        <button onClick={() => navigate('/profile')}
+          style={{ marginLeft: 'auto', padding: '8px 18px', border: '1px solid #2b3139', borderRadius: 20, background: 'transparent', color: '#eaecef', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+          Edit Profile
+        </button>
+      </div>
+      <div style={{ background: '#161a1e', borderRadius: 12, padding: 16, marginBottom: 16, border: '1px solid #1e2329' }}>
+        <p style={{ color: '#848e9c', fontSize: 13 }}>Balance: <span style={{ color: '#f0b90b', fontWeight: 700 }}>${(user?.balance || 0).toFixed(2)} USDT</span></p>
+      </div>
+      <div style={{ textAlign: 'center', padding: '40px 0', color: '#5e6673' }}>
+        <FileText size={40} style={{ opacity: .15, margin: '0 auto 12px', display: 'block' }} />
+        <p style={{ fontSize: 14 }}>No posts yet</p>
+        <button onClick={() => setSection('Feed')}
+          style={{ marginTop: 12, padding: '8px 24px', background: '#f0b90b', border: 'none', borderRadius: 20, color: '#0b0e11', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+          Start Posting
+        </button>
+      </div>
     </div>
+  );
+
+  const BookmarksSection = () => (
+    <>
+      <div style={{ padding: '14px 18px', borderBottom: '1px solid #1e2329', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <button onClick={() => setSection('Feed')} style={{ background: 'none', border: 'none', color: '#848e9c', cursor: 'pointer', display: 'flex' }}>
+          <ChevronLeft size={20} />
+        </button>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#eaecef' }}>Bookmarks</h2>
+      </div>
+      {filteredPosts.length === 0
+        ? <div style={{ textAlign: 'center', padding: 60, color: '#5e6673' }}>
+            <Bookmark size={40} style={{ opacity: .15, margin: '0 auto 12px', display: 'block' }} />
+            <p>No bookmarks yet</p>
+          </div>
+        : filteredPosts.map(p => <PostCard key={p._id} post={p} />)
+      }
+    </>
+  );
+
+  const navItems = [
+    { icon: <Home size={20} />, label: 'Feed', key: 'Feed' },
+    { icon: <Bell size={20} />, label: 'Notifications', key: 'Notification', badge: NOTIFS.length },
+    { icon: <Users size={20} />, label: 'Profile', key: 'Profile' },
+    { icon: <Bookmark size={20} />, label: 'Bookmarks', key: 'Bookmarks' },
+    { icon: <MessageCircle size={20} />, label: 'Chats', key: 'Chats' },
+    { icon: <Compass size={20} />, label: 'Explore', key: 'Explore' },
+    { icon: <Settings size={20} />, label: 'Settings', key: 'Settings' },
+  ];
+
+  return (
+    <>
+      <style>{css}</style>
+      <div className="sq">
+        {/* Sidebar */}
+        <div className="sq-sidebar">
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#f0b90b', padding: '0 14px 16px', letterSpacing: 1 }}>VINANCE SQUARE</div>
+          {navItems.map(item => (
+            <button key={item.key} className={sq-nav-item${section === item.key ? ' on' : ''}} onClick={() => setSection(item.key)}>
+              <div style={{ position: 'relative' }}>
+                {item.icon}
+                {item.badge && (
+                  <span style={{ position: 'absolute', top: -6, right: -6, width: 16, height: 16, background: '#f6465d', borderRadius: '50%', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #0b0e11', color: '#fff' }}>
+                    {item.badge}
+                  </span>
+                )}
+              </div>
+              <span>{item.label}</span>
+            </button>
+          ))}
+          <div style={{ marginTop: 'auto', borderTop: '1px solid #1e2329', paddingTop: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px' }}>
+              <div className="avatar" style={{ width: 38, height: 38, fontSize: 14, background: '#f0b90b', color: '#0b0e11' }}>
+                {user?.name?.[0] || 'U'}
+              </div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontWeight: 700, fontSize: 13, color: '#eaecef', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name || 'Guest'}</div>
+                <div style={{ fontSize: 11, color: '#5e6673', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>@{user?.email?.split('@')[0] || 'user'}</div>
+              </div>
+              <button onClick={() => navigate('/dashboard')} style={{ background: 'none', border: 'none', color: '#848e9c', cursor: 'pointer', padding: 4 }} title="Back to Dashboard">
+                <ArrowLeft size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Main */}
+        <div className="sq-main">
+          {/* Mobile Header */}
+          <div style={{ position: 'sticky', top: 0, background: 'rgba(11,14,17,.95)', backdropFilter: 'blur(8px)', borderBottom: '1px solid #1e2329', padding: '12px 16px', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: '#848e9c', cursor: 'pointer', display: 'none' }} className="mobile-back">
+                <ChevronLeft size={20} />
+              </button>
+              <h2 style={{ fontSize: 17, fontWeight: 700, color: '#eaecef' }}>
+                {section === 'Feed' ? 'Square' : section}
+              </h2>
+            </div>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              {section === 'Feed' && (
+                <div className="sq-search" style={{ padding: '7px 12px' }}>
+                  <Search size={14} style={{ color: '#5e6673' }} />
+                  <input placeholder="Search posts..." value={searchQ} onChange={e => setSearchQ(e.target.value)} />
+                </div>
+              )}
+              <Edit3 size={18} style={{ color: '#848e9c', cursor: 'pointer' }} onClick={() => setSection('Feed')} />
+            </div>
+          </div>
+
+          {/* Mobile Nav Tabs */}
+          <div style={{ display: 'none', overflowX: 'auto', scrollbarWidth: 'none', borderBottom: '1px solid #1e2329', padding: '0 4px' }} className="mobile-nav-tabs">
+            {navItems.slice(0, 5).map(item => (
+              <button key={item.key} onClick={() => setSection(item.key)}
+                style={{ padding: '10px 16px', background: 'transparent', border: 'none', color: section === item.key ? '#f0b90b' : '#848e9c', borderBottom: section === item.key ? '2px solid #f0b90b' : '2px solid transparent', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>
+                {item.icon} {item.label}
+              </button>
+            ))}
+          </div>
+
+          {section === 'Feed' && <FeedSection />}
+          {section === 'Notification' && <NotificationSection />}
+          {section === 'Profile' && <ProfileSection />}
+          {section === 'Bookmarks' && <BookmarksSection />}
+          {!['Feed', 'Notification', 'Profile', 'Bookmarks'].includes(section) && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 80, color: '#5e6673' }}>
+              <Compass size={48} style={{ opacity: .15, marginBottom: 16 }} />
+              <p style={{ fontSize: 14 }}>{section} — Coming Soon</p>
+              <button onClick={() => setSection('Feed')} style={{ marginTop: 16, padding: '8px 20px', background: '#f0b90b', border: 'none', borderRadius: 20, color: '#0b0e11', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+                Back to Feed
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Right Panel */}
+        <div className="sq-right">
+          <div className="sq-search" style={{ marginBottom: 16 }}>
+            <Search size={14} style={{ color: '#5e6673' }} />
+            <input placeholder="Search Square..." value={searchQ} onChange={e => setSearchQ(e.target.value)} />
+          </div>
+
+          {/* Trending */}
+          <div style={{ background: '#161a1e', borderRadius: 14, padding: 16, marginBottom: 16, border: '1px solid #1e2329' }}>
+            <h3 style={{ fontWeight: 700, fontSize: 14, color: '#eaecef', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+              🔥 Trending Topics
+            </h3>
+            {TRENDING.map((t, i) => (
+              <div key={i} className="trending-item" style={{ paddingBottom: 8, marginBottom: 8 }} onClick={() => setSearchQ(t.tag)}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                  <Hash size={12} style={{ color: '#f0b90b', marginTop: 3, flexShrink: 0 }} />
+                  <div>
+                    <div className="trend-title" style={{ fontWeight: 700, fontSize: 12, color: '#eaecef', marginBottom: 2, transition: 'color .15s' }}>
+                      {t.tag}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#5e6673' }}>{t.views} · {t.count}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Suggested */}
+          <div style={{ background: '#161a1e', borderRadius: 14, padding: 16, border: '1px solid #1e2329' }}>
+            <h3 style={{ fontWeight: 700, fontSize: 14, color: '#eaecef', marginBottom: 12 }}>Suggested Creators</h3>
+            {SUGGESTED.map((c, i) => (
+              <div key={i} className="creator-card" style={{ borderBottom: i === SUGGESTED.length - 1 ? 'none' : undefined }}>
+                <div className="avatar" style={{ width: 38, height: 38, background: hsl(${i * 80 + 30},55%,40%), fontSize: 13 }}>
+                  {c.name[0]}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ fontWeight: 700, fontSize: 13, color: '#eaecef' }}>{c.name}</span>
+                    {c.verified && <span style={{ color: '#f0b90b', fontSize: 11 }}>✓</span>}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#848e9c' }}>{c.bio}</div>
+                </div>
+                <button className={follow-btn${followed.includes(c.handle) ? ' on' : ''}}
+                  onClick={() => setFollowed(f => f.includes(c.handle) ? f.filter(h => h !== c.handle) : [...f, c.handle])}>
+                  {followed.includes(c.handle) ? 'Following' : 'Follow'}
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ padding: '14px 0', fontSize: 11, color: '#5e6673', lineHeight: 2 }}>
+            <span style={{ cursor: 'pointer', marginRight: 8 }}>Terms</span>
+            <span style={{ cursor: 'pointer', marginRight: 8 }}>Privacy</span>
+            <span style={{ cursor: 'pointer' }}>Cookies</span>
+          </div>
+        </div>
+      </div>
+      <style>{`
+        @media(max-width:768px){
+          .mobile-back{display:flex!important;}
+          .mobile-nav-tabs{display:flex!important;}
+          .sq-search{display:none;}
+        }
+      `}</style>
+    </>
   );
 }
