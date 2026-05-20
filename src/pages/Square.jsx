@@ -85,14 +85,14 @@ const NOTIFS = [
   { icon: '🚀', title: 'Platform Update', body: 'New features added: Advanced charting, stop-loss automation, and more.', time: 'May 6' },
 ];
 
-const fmtNum = n => n >= 1000 ? ${(n / 1000).toFixed(1)}K : n;
+const fmtNum = n => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : n;
 const fmtTime = ts => {
   const d = new Date(ts);
   const now = new Date();
   const diff = (now - d) / 1000;
   if (diff < 60) return 'just now';
-  if (diff < 3600) return ${Math.floor(diff / 60)}m;
-  if (diff < 86400) return ${Math.floor(diff / 3600)}h;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
   return d.toLocaleDateString();
 };
 
@@ -196,7 +196,7 @@ export default function Square() {
     return (
       <div className="post-card" style={{ animation: 'fadeIn .3s' }}>
         <div style={{ display: 'flex', gap: 12 }}>
-          <div className="avatar" style={{ width: 44, height: 44, background: hsl(${post._id.charCodeAt(0) * 40},55%,40%), fontSize: 16, flexShrink: 0 }}>
+          <div className="avatar" style={{ width: 44, height: 44, background: `hsl(${post._id.charCodeAt(0) * 40},55%,40%)`, fontSize: 16, flexShrink: 0 }}>
             {post.author[0]}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -215,7 +215,7 @@ export default function Square() {
 
             {/* Action buttons */}
             <div style={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-              <button className={post-btn${liked ? ' liked' : ''}} onClick={() => likePost(post._id)}>
+              <button className={`post-btn${liked ? ' liked' : ''}`} onClick={() => likePost(post._id)}>
                 <Heart size={15} style={liked ? { fill: '#f6465d', color: '#f6465d' } : {}} />
                 <span>{fmtNum(post.likes.length)}</span>
               </button>
@@ -227,7 +227,7 @@ export default function Square() {
                 <Repeat2 size={15} />
                 <span>{fmtNum(post.shares)}</span>
               </button>
-              <button className={post-btn${isBookmarked ? ' bookmarked' : ''}} onClick={() => bookmarkPost(post._id)}>
+              <button className={`post-btn${isBookmarked ? ' bookmarked' : ''}`} onClick={() => bookmarkPost(post._id)}>
                 <Bookmark size={15} style={isBookmarked ? { fill: '#f0b90b', color: '#f0b90b' } : {}} />
               </button>
               <button className="post-btn" onClick={() => {
@@ -312,7 +312,7 @@ export default function Square() {
       {/* Tag filter */}
       <div style={{ display: 'flex', gap: 6, padding: '10px 18px', borderBottom: '1px solid #1e2329', overflowX: 'auto', scrollbarWidth: 'none' }}>
         {TAGS.map(t => (
-          <button key={t} className={tag-chip${activeTag === t ? ' on' : ''}} onClick={() => setActiveTag(t)}>{t}</button>
+          <button key={t} className={`tag-chip${activeTag === t ? ' on' : ''}`} onClick={() => setActiveTag(t)}>{t}</button>
         ))}
       </div>
 
@@ -430,7 +430,7 @@ export default function Square() {
         <div className="sq-sidebar">
           <div style={{ fontSize: 14, fontWeight: 800, color: '#f0b90b', padding: '0 14px 16px', letterSpacing: 1 }}>VINANCE SQUARE</div>
           {navItems.map(item => (
-            <button key={item.key} className={sq-nav-item${section === item.key ? ' on' : ''}} onClick={() => setSection(item.key)}>
+            <button key={item.key} className={`sq-nav-item${section === item.key ? ' on' : ''}`} onClick={() => setSection(item.key)}>
               <div style={{ position: 'relative' }}>
                 {item.icon}
                 {item.badge && (
@@ -538,7 +538,7 @@ export default function Square() {
             <h3 style={{ fontWeight: 700, fontSize: 14, color: '#eaecef', marginBottom: 12 }}>Suggested Creators</h3>
             {SUGGESTED.map((c, i) => (
               <div key={i} className="creator-card" style={{ borderBottom: i === SUGGESTED.length - 1 ? 'none' : undefined }}>
-                <div className="avatar" style={{ width: 38, height: 38, background: hsl(${i * 80 + 30},55%,40%), fontSize: 13 }}>
+                <div className="avatar" style={{ width: 38, height: 38, background: `hsl(${i * 80 + 30},55%,40%)`, fontSize: 13 }}>
                   {c.name[0]}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -548,7 +548,7 @@ export default function Square() {
                   </div>
                   <div style={{ fontSize: 11, color: '#848e9c' }}>{c.bio}</div>
                 </div>
-                <button className={follow-btn${followed.includes(c.handle) ? ' on' : ''}}
+                <button className={`follow-btn${followed.includes(c.handle) ? ' on' : ''}`}
                   onClick={() => setFollowed(f => f.includes(c.handle) ? f.filter(h => h !== c.handle) : [...f, c.handle])}>
                   {followed.includes(c.handle) ? 'Following' : 'Follow'}
                 </button>
