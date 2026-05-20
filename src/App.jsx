@@ -13,13 +13,13 @@ import {
 import { UserProvider, UserContext } from './context/UserContext';
 import NotificationSystem from './components/NotificationSystem';
 
-import Home          from './pages/Home';
+import Home         from './pages/Home';
 import BecomeTrader  from './pages/BecomeTrader';
 import Profile       from './pages/Profile';
 import Deposit       from './pages/Deposit';
 import Withdraw      from './pages/Withdraw';
 import WalletPage    from './pages/Wallet';
-import Investment    from './pages/Investment';
+import Investment   from './pages/Investment';
 import MyInvestments from './pages/MyInvestments';
 import TraderProfile from './pages/TraderProfile';
 import Futures       from './pages/Futures';
@@ -218,10 +218,10 @@ const Dashboard = ({ cryptoData }) => {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Market',     icon: '📊', path: '/market'      },
+          { label: 'Market',     icon: '📊', path: '/market'       },
           { label: 'Futures',    icon: '⚡', path: '/futures/btc' },
           { label: 'Copy Trade', icon: '📋', path: '/copy-trade'  },
-          { label: 'Square',     icon: '🌐', path: '/square'      },
+          { label: 'Square',     icon: '🌐', path: '/square'       },
         ].map(item => (
           <div key={item.label} onClick={() => navigate(item.path)}
             className="bg-[#161a1e] border border-[#1e2329] rounded-2xl p-5 cursor-pointer hover:border-[#f0b90b]/50 text-center">
@@ -258,7 +258,7 @@ const AppContent = ({ cryptoData }) => {
     { to: '/dashboard',                               icon: <LayoutDashboard size={22} />, label: 'Home'       },
     { to: '/market',                                  icon: <BarChart3 size={22} />,       label: 'Market'     },
     { to: '/futures/btc',                             icon: <Gavel size={22} />,           label: 'Futures'    },
-    { to: `/trade/${cryptoData[0]?.symbol || 'btc'}`, icon: <TrendingUp size={22} />,     label: 'Spot'       },
+    { to: `/trade/${cryptoData[0]?.symbol || 'btc'}`, icon: <TrendingUp size={22} />,     label: 'Spot'        },
     { to: '/copy-trade',                              icon: <Copy size={22} />,            label: 'Copy Trade' },
     { to: '/square',                                  icon: <MessageSquare size={22} />,   label: 'Square'     },
     { to: '/invest',                                  icon: <PieChart size={22} />,        label: 'Invest'     },
@@ -337,19 +337,26 @@ const AppContent = ({ cryptoData }) => {
 
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
         {token && !isHomePage && (
-          <header className="h-14 border-b border-[#1e2329] bg-[#161a1e] flex items-center justify-between px-6 sticky top-0 z-30">
-            <div className="font-black text-[9px] uppercase tracking-widest text-[#f0b90b]">
-              Hi, {user?.name || 'User'} 👋
+          <header className="h-16 md:h-14 border-b border-[#1e2329] bg-[#161a1e] flex items-center justify-between px-4 md:px-6 sticky top-0 z-50">
+            <div className="flex flex-col text-left justify-center">
+              <div className="font-black text-[10px] md:text-[9px] uppercase tracking-widest text-[#f0b90b]">
+                Hi, {user?.name || 'User'} 👋
+              </div>
+              <span className="text-[10px] text-gray-400 sm:hidden block mt-0.5">
+                Balance: <span className="text-[#0ecb81] font-bold">${(user?.balance || 0).toFixed(2)}</span>
+              </span>
             </div>
             <div className="flex items-center gap-4">
               <span className="text-xs text-gray-400 hidden sm:block">
                 Balance: <span className="text-[#f0b90b] font-bold">${(user?.balance || 0).toFixed(2)}</span>
               </span>
-              <NotificationSystem />
+              <div className="relative flex items-center justify-center min-w-[32px] min-h-[32px]">
+                <NotificationSystem />
+              </div>
             </div>
           </header>
         )}
-        <div className={`flex-1 overflow-y-auto ${token && !isHomePage ? 'pb-24 md:pb-8' : ''}`}>
+        <div className={`flex-1 overflow-y-auto ${token && !isHomePage ? 'pb-20 md:pb-8' : ''}`}>
           {allRoutes}
         </div>
       </main>
@@ -357,29 +364,29 @@ const AppContent = ({ cryptoData }) => {
       {token && !isHomePage && (
         <>
           {showMoreMenu && (
-            <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[100] p-8 flex flex-col overflow-y-auto">
-              <div className="flex justify-between items-center mb-10">
-                <h2 className="text-[#f0b90b] font-black text-xl uppercase italic">Services</h2>
+            <div className="fixed inset-0 bg-[#0b0e11]/98 backdrop-blur-2xl z-[999] p-6 flex flex-col overflow-y-auto">
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-[#f0b90b] font-black text-xl uppercase italic tracking-wider">Services</h2>
                 <button onClick={() => setShowMoreMenu(false)}
-                  className="bg-white/10 p-2 rounded-full text-gray-400">X</button>
+                  className="bg-white/10 w-9 h-9 flex items-center justify-center rounded-full text-gray-400 font-bold">✕</button>
               </div>
-              <div className="grid grid-cols-3 gap-y-8 gap-x-4 mb-10 text-center">
+              <div className="grid grid-cols-3 gap-y-6 gap-x-3 mb-8 text-center">
                 {userPages.map(page => (
                   <Link key={page.to} to={page.to} onClick={() => setShowMoreMenu(false)}
                     className="flex flex-col items-center gap-2 text-gray-400">
-                    <div className="p-4 bg-white/5 rounded-2xl border border-white/5">{page.icon}</div>
-                    <span className="text-[9px] font-black uppercase leading-tight">{page.label}</span>
+                    <div className="w-14 h-14 flex items-center justify-center bg-white/5 rounded-2xl border border-white/5 text-white">{page.icon}</div>
+                    <span className="text-[9px] font-black uppercase leading-tight tracking-tight max-w-[80px] break-words">{page.label}</span>
                   </Link>
                 ))}
               </div>
               {user?.role === 'admin' && (
-                <div className="mb-10">
-                  <h3 className="text-[#f0b90b] font-black text-[10px] uppercase tracking-widest mb-6 opacity-50">Admin Panel</h3>
-                  <div className="grid grid-cols-3 gap-y-8 gap-x-4 text-center">
+                <div className="mb-8 border-t border-gray-800 pt-6">
+                  <h3 className="text-[#f0b90b] font-black text-[10px] uppercase tracking-widest mb-4 opacity-50 italic">Admin Panel</h3>
+                  <div className="grid grid-cols-3 gap-y-6 gap-x-3 text-center">
                     {adminPages.map(page => (
                       <Link key={page.to} to={page.to} onClick={() => setShowMoreMenu(false)}
                         className="flex flex-col items-center gap-2 text-yellow-500/80">
-                        <div className="p-4 bg-yellow-500/5 rounded-2xl border border-yellow-500/10">{page.icon}</div>
+                        <div className="w-14 h-14 flex items-center justify-center bg-yellow-500/5 rounded-2xl border border-yellow-500/10">{page.icon}</div>
                         <span className="text-[9px] font-black uppercase leading-tight">{page.label}</span>
                       </Link>
                     ))}
@@ -387,30 +394,30 @@ const AppContent = ({ cryptoData }) => {
                 </div>
               )}
               <button onClick={logout}
-                className="flex items-center justify-center gap-2 text-red-500 font-black uppercase text-[10px] py-4 bg-red-500/5 rounded-2xl border border-red-500/10 mt-4">
+                className="w-full flex items-center justify-center gap-2 text-red-500 font-black uppercase text-[10px] py-4 bg-red-500/5 rounded-2xl border border-red-500/10 mt-auto">
                 <LogOut size={18} /> Logout Account
               </button>
             </div>
           )}
 
-          <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/95 backdrop-blur-md border-t border-gray-800 flex justify-around items-center py-3 md:hidden z-[80]">
+          <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/95 backdrop-blur-md border-t border-gray-800 flex justify-around items-center py-2.5 md:hidden z-[80] px-2 shadow-xl">
             <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'text-[#f0b90b]' : 'text-gray-400'}>
-              <LayoutDashboard size={22} />
+              <LayoutDashboard size={20} />
             </NavLink>
             <NavLink to="/market" className={({ isActive }) => isActive ? 'text-[#f0b90b]' : 'text-gray-400'}>
-              <BarChart3 size={22} />
+              <BarChart3 size={20} />
             </NavLink>
             <NavLink to="/futures/btc" className={({ isActive }) => isActive ? 'text-[#f0b90b]' : 'text-gray-400'}>
-              <Gavel size={22} />
+              <Gavel size={20} />
             </NavLink>
             <NavLink to="/invest" className={({ isActive }) => isActive ? 'text-[#f0b90b]' : 'text-gray-400'}>
-              <PieChart size={22} />
+              <PieChart size={20} />
             </NavLink>
             <NavLink to="/wallet" className={({ isActive }) => isActive ? 'text-[#f0b90b]' : 'text-gray-400'}>
-              <Wallet size={22} />
+              <Wallet size={20} />
             </NavLink>
             <button onClick={() => setShowMoreMenu(true)} className="text-gray-400 relative">
-              <LayoutGrid size={22} />
+              <LayoutGrid size={20} />
               {user?.role === 'admin' && (
                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#f0b90b] rounded-full animate-pulse" />
               )}
