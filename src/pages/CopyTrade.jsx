@@ -1,170 +1,54 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { UserContext } from '../context/UserContext';
 import {
-  X, ChevronDown, Zap, Star, TrendingUp, Users, Clock,
-  MoreHorizontal, Plus, ChevronRight, BarChart2, Shield,
-  Award, Copy, RefreshCw, Loader2, Eye, EyeOff,
-  ChevronUp, Edit, Trash2, Info
+  X, ChevronDown, ChevronUp, Zap, Star, Users, Clock,
+  MoreHorizontal, Plus, ChevronRight, Copy, Loader2,
+  Eye, EyeOff, Edit, Trash2, Info, ArrowLeft
 } from 'lucide-react';
 
-const API_URL = "https://vinance-backend-1.onrender.com";
-
-const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-  .ct{font-family:'Inter',sans-serif;background:#0b0e11;color:#eaecef;min-height:100vh;}
-  .ct *{box-sizing:border-box;}
-  .ct-tab{padding:10px 16px;font-size:13px;font-weight:600;background:transparent;border:none;color:#848e9c;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;font-family:inherit;}
-  .ct-tab.on{color:#eaecef;border-bottom-color:#f0b90b;}
-  .ct-tab:hover{color:#eaecef;}
-  .trader-card{background:#161a1e;border:1px solid #1e2329;border-radius:16px;padding:18px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
-  .trader-card:hover{border-color:#2b3139;transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4);}
-  .copy-btn{width:100%;padding:10px 0;background:#f0b90b;color:#0b0e11;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;}
-  .copy-btn:hover{background:#d4a30a;}
-  .stat-box{background:#0b0e11;border-radius:8px;padding:10px 12px;flex:1;}
-  .badge-master{background:rgba(240,185,11,.12);color:#f0b90b;border:1px solid rgba(240,185,11,.3);}
-  .badge-legend{background:rgba(14,203,129,.12);color:#0ecb81;border:1px solid rgba(14,203,129,.3);}
-  .badge-elite{background:rgba(155,88,240,.12);color:#9b58f0;border:1px solid rgba(155,88,240,.3);}
-  .ct-badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;}
-  .mini-sparkline{display:flex;align-items:flex-end;gap:2px;height:32px;}
-  .mini-bar{border-radius:1px;transition:all .3s;}
-  .faq-item{border-bottom:1px solid #1e2329;}
-  .faq-q{display:flex;align-items:center;gap:14px;padding:18px 0;cursor:pointer;transition:background .15s;}
-  .faq-q:hover .faq-text{color:#eaecef;}
-  .faq-num{width:32px;height:32px;border:1px solid #2b3139;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#848e9c;flex-shrink:0;}
-  .faq-text{font-size:15px;font-weight:500;color:#c6cad2;flex:1;}
-  .faq-ans{padding:0 0 18px 46px;font-size:13px;color:#848e9c;line-height:1.7;}
-  .balance-card{background:#161a1e;border:1px solid #1e2329;border-radius:16px;padding:24px;}
-  .promo-card{background:linear-gradient(135deg,#1e2329 0%,#2b3139 100%);border:1px solid #2b3139;border-radius:16px;padding:24px;cursor:pointer;position:relative;overflow:hidden;}
-  .promo-card::after{content:'';position:absolute;right:-20px;top:-20px;width:120px;height:120px;border-radius:50%;background:rgba(240,185,11,.05);}
-  .section-title{font-size:18px;font-weight:700;color:#eaecef;margin-bottom:4px;}
-  .view-more-btn{padding:6px 16px;background:transparent;border:1px solid #2b3139;border-radius:20px;color:#848e9c;font-size:12px;cursor:pointer;transition:all .15s;font-family:inherit;white-space:nowrap;}
-  .view-more-btn:hover{border-color:#f0b90b;color:#f0b90b;}
-  .admin-btn{padding:6px 12px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:inherit;transition:all .15s;}
-  @media(max-width:768px){
-    .grid-cols-4{grid-template-columns:1fr 1fr!important;}
-    .hide-mobile{display:none!important;}
-  }
-`;
+const API_URL = 'https://vinance-backend-1.onrender.com';
 
 const FAQ_ITEMS = [
-  { q:'What Is Copy Trading?', a:'Copy trading is a form of investing that allows you to replicate the trades of experienced traders automatically. When a lead trader opens or closes a position, the same action is executed proportionally in your account.' },
-  { q:'How does copy trading work?', a:'You select a lead trader and allocate funds to copy their trades. Every time they execute a trade, it\'s automatically replicated in your portfolio proportionally to the amount you\'ve allocated.' },
-  { q:'What is the portfolio maximum drawdown?', a:'Maximum drawdown measures the largest peak-to-trough decline in portfolio value over a specific period. A lower drawdown indicates better risk management by the lead trader.' },
-  { q:'What is Portfolio Sharpe Ratio?', a:'The Sharpe Ratio measures risk-adjusted return. A higher ratio indicates better returns relative to the risk taken. It\'s calculated as (portfolio return - risk-free rate) / portfolio standard deviation.' },
-  { q:'What is portfolio AUM?', a:'AUM stands for Assets Under Management — the total market value of all funds managed by a lead trader through copy trading relationships.' },
-  { q:'What\'s the benefit for lead traders?', a:'Lead traders earn a profit share commission from their copiers\' profits, typically 8–10%. The more followers they have and the better their performance, the more they earn.' },
+  { q: 'What Is Copy Trading?', a: 'Copy trading lets you replicate trades of experienced traders automatically. When a lead trader opens or closes a position, the same action is executed proportionally in your account.' },
+  { q: 'How does copy trading work?', a: "Select a lead trader and allocate funds. Every time they trade, it's automatically replicated in your portfolio proportionally to your allocated amount." },
+  { q: 'What is the portfolio maximum drawdown?', a: 'Maximum drawdown measures the largest peak-to-trough decline in portfolio value. A lower drawdown indicates better risk management by the lead trader.' },
+  { q: 'What is Portfolio Sharpe Ratio?', a: 'Sharpe Ratio measures risk-adjusted return. Higher = better returns relative to risk. Formula: (return − risk-free rate) / standard deviation.' },
+  { q: 'What is portfolio AUM?', a: 'AUM = Assets Under Management — total market value of all funds managed by a lead trader through copy trading.' },
+  { q: "What's the benefit for lead traders?", a: 'Lead traders earn profit-share commission from copiers, typically 8–10%. More followers + better performance = higher earnings.' },
 ];
 
-const TraderCard = ({ trader, user, onDelete, onCopy }) => {
-  const pnl    = trader.pnl || (Math.random() * 500 + 50).toFixed(2);
-  const roi    = trader.roi || (Math.random() * 80 + 10).toFixed(2);
-  const aum    = trader.aum || (Math.random() * 50000 + 5000).toFixed(0);
-  const days   = trader.days || Math.floor(Math.random() * 200 + 30);
-  const follow = trader.followers || Math.floor(Math.random() * 400 + 50);
-  const maxF   = trader.maxFollowers || 500;
-  const badges = ['Master','Legend','Elite'];
-  const badge  = badges[Math.floor(Math.random() * badges.length)];
-  const badgeCls = badge==='Master'?'badge-master':badge==='Legend'?'badge-legend':'badge-elite';
-  const sparkData = [30,50,40,70,55,80,60,90,75,95];
-
-  return (
-    <div className="trader-card">
-      {/* Admin buttons */}
-      {user?.role === 'admin' && (
-        <div style={{ position:'absolute', top:12, right:12, display:'flex', gap:6, zIndex:10 }}>
-          <button className="admin-btn" style={{ background:'#1976d2', color:'#fff' }}>
-            <Edit size={12}/> Edit
-          </button>
-          <button className="admin-btn" style={{ background:'#d32f2f', color:'#fff' }} onClick={() => onDelete(trader._id)}>
-            <Trash2 size={12}/> Delete
-          </button>
-        </div>
-      )}
-
-      {/* Header */}
-      <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
-        <div style={{ width:48, height:48, borderRadius:'50%', background:`hsl(${Math.random()*360},60%,45%)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, fontWeight:800, flexShrink:0, overflow:'hidden' }}>
-          {trader.avatar ? <img src={trader.avatar} alt={trader.name} style={{ width:'100%', height:'100%', objectFit:'cover' }}/> : trader.name?.[0]?.toUpperCase() || 'T'}
-        </div>
-        <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4 }}>
-            <span style={{ fontWeight:700, fontSize:14, color:'#eaecef' }}>{trader.name || 'Unknown Trader'}</span>
-            <span className={`ct-badge ${badgeCls}`}>{badge}</span>
-          </div>
-          <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:11, color:'#848e9c' }}>
-            <span style={{ display:'flex', alignItems:'center', gap:3 }}><Users size={10}/> {follow}/{maxF}</span>
-            <span style={{ display:'flex', alignItems:'center', gap:3 }}><Clock size={10}/> {days} days</span>
-            {trader.isApiEnabled && <span style={{ background:'rgba(14,203,129,.1)', color:'#0ecb81', padding:'1px 5px', borderRadius:3, fontSize:9, fontWeight:700 }}>API</span>}
-          </div>
-        </div>
-        <button onClick={() => { /* star */ }} style={{ background:'none', border:'none', cursor:'pointer', color:'#5e6673' }}>
-          <Star size={16}/>
-        </button>
-      </div>
-
-      {/* Stats */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:14 }}>
-        <div className="stat-box">
-          <div style={{ fontSize:10, color:'#848e9c', marginBottom:3 }}>30D PNL</div>
-          <div style={{ fontSize:14, fontWeight:700, color:'#0ecb81' }}>+${parseFloat(pnl).toFixed(2)}</div>
-        </div>
-        <div className="stat-box">
-          <div style={{ fontSize:10, color:'#848e9c', marginBottom:3 }}>ROI</div>
-          <div style={{ fontSize:14, fontWeight:700, color:'#0ecb81' }}>+{parseFloat(roi).toFixed(2)}%</div>
-        </div>
-        <div className="stat-box">
-          <div style={{ fontSize:10, color:'#848e9c', marginBottom:3 }}>AUM</div>
-          <div style={{ fontSize:14, fontWeight:700, color:'#eaecef' }}>${parseInt(aum).toLocaleString()}</div>
-        </div>
-      </div>
-
-      {/* Sparkline */}
-      <div style={{ marginBottom:14 }}>
-        <div style={{ fontSize:10, color:'#5e6673', marginBottom:6 }}>30 Days PNL (USD)</div>
-        <div className="mini-sparkline" style={{ width:'100%', height:36 }}>
-          {sparkData.map((h,i) => (
-            <div key={i} className="mini-bar" style={{ flex:1, height:`${h}%`, background:'#0ecb81', opacity:0.5+(i*0.05) }}/>
-          ))}
-        </div>
-      </div>
-
-      <button className="copy-btn" onClick={() => onCopy(trader)}>
-        <Copy size={14}/> Copy
-      </button>
-    </div>
-  );
-};
-
+/* ── Copy Modal ── */
 const CopyModal = ({ trader, user, onClose }) => {
-  const [amount, setAmount] = useState('');
+  const [amount,  setAmount]  = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleCopy = async () => {
     if (!amount || parseFloat(amount) <= 0) return alert('Enter a valid amount');
+    if (parseFloat(amount) < 10)             return alert('Minimum copy amount is $10');
     if (parseFloat(amount) > (user?.balance || 0)) return alert('Insufficient balance');
     setLoading(true);
     await new Promise(r => setTimeout(r, 1200));
     setLoading(false);
-    alert(`✅ Successfully copying ${trader.name}! $${amount} allocated.`);
+    alert(`Successfully copying ${trader.name}! $${amount} allocated.`);
     onClose();
   };
 
   return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.8)', zIndex:200, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}
-      onClick={e => e.target===e.currentTarget && onClose()}>
-      <div style={{ background:'#1e2329', border:'1px solid #2b3139', borderRadius:16, width:400, maxWidth:'95vw', padding:24 }}>
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.85)', zIndex:300, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}
+      onClick={e => e.target === e.currentTarget && onClose()}>
+      <div style={{ background:'#1e2329', border:'1px solid #2b3139', borderRadius:20, width:'100%', maxWidth:420, padding:24 }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
           <div>
             <h3 style={{ color:'#eaecef', fontWeight:700, fontSize:16 }}>Copy {trader.name}</h3>
             <p style={{ color:'#848e9c', fontSize:12, marginTop:2 }}>Set your copy amount</p>
           </div>
-          <button onClick={onClose} style={{ background:'none', border:'none', color:'#848e9c', cursor:'pointer' }}><X size={18}/></button>
+          <button onClick={onClose} style={{ background:'none', border:'none', color:'#848e9c', cursor:'pointer' }}><X size={20}/></button>
         </div>
 
-        <div style={{ background:'#0b0e11', borderRadius:10, padding:14, marginBottom:16 }}>
-          <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:8 }}>
+        <div style={{ background:'#0b0e11', borderRadius:10, padding:14, marginBottom:16, display:'flex', flexDirection:'column', gap:8 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', fontSize:12 }}>
             <span style={{ color:'#848e9c' }}>Available Balance</span>
             <span style={{ color:'#eaecef', fontWeight:700 }}>${(user?.balance||0).toFixed(2)} USDT</span>
           </div>
@@ -174,19 +58,19 @@ const CopyModal = ({ trader, user, onClose }) => {
           </div>
         </div>
 
-        <div style={{ marginBottom:16 }}>
-          <label style={{ fontSize:12, color:'#848e9c', display:'block', marginBottom:6 }}>Copy Amount (USDT)</label>
-          <div style={{ display:'flex', alignItems:'center', background:'#2b3139', borderRadius:8, padding:'10px 14px', border:'1px solid #2b3139' }}>
-            <input type="number" value={amount} onChange={e=>setAmount(e.target.value)} placeholder="Min $10"
-              style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'#eaecef', fontSize:15, fontWeight:700 }}/>
-            <span style={{ color:'#848e9c', fontWeight:600, fontSize:13 }}>USDT</span>
-          </div>
+        <label style={{ fontSize:12, color:'#848e9c', display:'block', marginBottom:6 }}>Copy Amount (USDT)</label>
+        <div style={{ display:'flex', alignItems:'center', background:'#0b0e11', border:'1px solid #2b3139', borderRadius:10, padding:'11px 14px', marginBottom:12 }}>
+          <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="Min $10"
+            style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'#eaecef', fontSize:16, fontWeight:700, fontFamily:'inherit' }}/>
+          <span style={{ color:'#848e9c', fontWeight:600, fontSize:13 }}>USDT</span>
         </div>
 
-        <div style={{ display:'flex', gap:8, marginBottom:16 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6, marginBottom:14 }}>
           {[25,50,75,100].map(pct => (
             <button key={pct} onClick={() => setAmount(((user?.balance||0)*(pct/100)).toFixed(2))}
-              style={{ flex:1, padding:'6px 0', background:'#2b3139', border:'none', borderRadius:6, color:'#848e9c', fontSize:12, cursor:'pointer' }}>
+              style={{ padding:'7px 0', background:'#2b3139', border:'none', borderRadius:8, color:'#848e9c', fontSize:12, cursor:'pointer', fontFamily:'inherit', transition:'all .15s' }}
+              onMouseEnter={e => e.target.style.color='#eaecef'}
+              onMouseLeave={e => e.target.style.color='#848e9c'}>
               {pct}%
             </button>
           ))}
@@ -198,43 +82,133 @@ const CopyModal = ({ trader, user, onClose }) => {
         </div>
 
         <button onClick={handleCopy} disabled={loading}
-          style={{ width:'100%', padding:'13px 0', background:loading?'#2b3139':'#f0b90b', border:'none', borderRadius:10, color:loading?'#5e6673':'#0b0e11', fontWeight:700, fontSize:14, cursor:loading?'not-allowed':'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
-          {loading ? <><Loader2 size={16} style={{ animation:'spin 1s linear infinite' }}/> Processing...</> : <><Copy size={16}/> Start Copying</>}
+          style={{ width:'100%', padding:'13px 0', background:loading?'#2b3139':'#f0b90b', border:'none', borderRadius:12, color:loading?'#5e6673':'#0b0e11', fontWeight:700, fontSize:14, cursor:loading?'not-allowed':'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all .15s', fontFamily:'inherit' }}>
+          {loading ? <><Loader2 size={16} style={{ animation:'spin 1s linear infinite' }}/> Processing...</> : <><Copy size={15}/> Start Copying</>}
         </button>
       </div>
     </div>
   );
 };
 
+/* ── Trader Card ── */
+const TraderCard = ({ trader, user, onDelete, onCopy }) => {
+  const pnl    = trader.pnl    || (Math.random()*500+50).toFixed(2);
+  const roi    = trader.roi    || (Math.random()*80+10).toFixed(2);
+  const aum    = trader.aum    || (Math.random()*50000+5000).toFixed(0);
+  const days   = trader.days   || Math.floor(Math.random()*200+30);
+  const follow = trader.followers    || Math.floor(Math.random()*400+50);
+  const maxF   = trader.maxFollowers || 500;
+  const badges = ['Master','Legend','Elite'];
+  const badge  = badges[trader.name?.charCodeAt(0)%3 || 0];
+  const badgeStyle = {
+    Master: { bg:'rgba(240,185,11,.12)', color:'#f0b90b', border:'1px solid rgba(240,185,11,.3)' },
+    Legend: { bg:'rgba(14,203,129,.12)', color:'#0ecb81', border:'1px solid rgba(14,203,129,.3)' },
+    Elite:  { bg:'rgba(155,88,240,.12)', color:'#9b58f0', border:'1px solid rgba(155,88,240,.3)' },
+  }[badge];
+  const sparkData = [30,50,40,70,55,80,60,90,75,95];
+
+  return (
+    <div style={{ background:'#161a1e', border:'1px solid #1e2329', borderRadius:16, padding:16, position:'relative', transition:'all .2s', cursor:'default' }}
+      onMouseEnter={e => e.currentTarget.style.borderColor='#2b3139'}
+      onMouseLeave={e => e.currentTarget.style.borderColor='#1e2329'}>
+
+      {/* Admin buttons */}
+      {user?.role === 'admin' && (
+        <div style={{ position:'absolute', top:10, right:10, display:'flex', gap:6, zIndex:10 }}>
+          <button onClick={() => {}} style={{ padding:'5px 10px', background:'rgba(99,126,234,.1)', border:'1px solid rgba(99,126,234,.3)', borderRadius:8, color:'#627eea', fontSize:11, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontFamily:'inherit' }}>
+            <Edit size={11}/> Edit
+          </button>
+          <button onClick={() => onDelete(trader._id)} style={{ padding:'5px 10px', background:'rgba(246,70,93,.1)', border:'1px solid rgba(246,70,93,.3)', borderRadius:8, color:'#f6465d', fontSize:11, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:4, fontFamily:'inherit' }}>
+            <Trash2 size={11}/> Del
+          </button>
+        </div>
+      )}
+
+      {/* Header */}
+      <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
+        <div style={{ width:46, height:46, borderRadius:'50%', background:`hsl(${trader.name?.charCodeAt(0)*30||0},55%,42%)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:17, fontWeight:800, flexShrink:0, overflow:'hidden', border:'2px solid #2b3139' }}>
+          {trader.image||trader.img||trader.avatar
+            ? <img src={trader.image||trader.img||trader.avatar} alt={trader.name} style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
+            : trader.name?.[0]?.toUpperCase()||'T'}
+        </div>
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:3, flexWrap:'wrap' }}>
+            <span style={{ fontWeight:700, fontSize:14, color:'#eaecef', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{trader.name||'Unknown'}</span>
+            <span style={{ padding:'2px 8px', borderRadius:4, fontSize:10, fontWeight:700, background:badgeStyle.bg, color:badgeStyle.color, border:badgeStyle.border, flexShrink:0 }}>{badge}</span>
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:11, color:'#848e9c', flexWrap:'wrap' }}>
+            <span style={{ display:'flex', alignItems:'center', gap:3 }}><Users size={10}/> {follow}/{maxF}</span>
+            <span style={{ display:'flex', alignItems:'center', gap:3 }}><Clock size={10}/> {days}d</span>
+            {trader.isApiEnabled !== false && <span style={{ background:'rgba(14,203,129,.1)', color:'#0ecb81', padding:'1px 5px', borderRadius:3, fontSize:9, fontWeight:700 }}>API</span>}
+          </div>
+        </div>
+        <button style={{ background:'none', border:'none', cursor:'pointer', color:'#5e6673', flexShrink:0, padding:2 }}>
+          <Star size={15}/>
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:6, marginBottom:12 }}>
+        {[
+          { label:'30D PNL', value:`+$${parseFloat(pnl).toFixed(2)}`, color:'#0ecb81' },
+          { label:'ROI',     value:`+${parseFloat(roi).toFixed(1)}%`, color:'#0ecb81' },
+          { label:'AUM',     value:`$${(parseInt(aum)/1000).toFixed(0)}K`, color:'#eaecef' },
+        ].map(s => (
+          <div key={s.label} style={{ background:'#0b0e11', borderRadius:8, padding:'8px 10px' }}>
+            <div style={{ fontSize:9, color:'#848e9c', marginBottom:3, textTransform:'uppercase' }}>{s.label}</div>
+            <div style={{ fontSize:13, fontWeight:700, color:s.color }}>{s.value}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Sparkline */}
+      <div style={{ marginBottom:12 }}>
+        <div style={{ fontSize:10, color:'#5e6673', marginBottom:5 }}>30 Days PNL Trend</div>
+        <div style={{ display:'flex', alignItems:'flex-end', gap:2, height:30 }}>
+          {sparkData.map((h,i) => (
+            <div key={i} style={{ flex:1, borderRadius:1, background:'#0ecb81', opacity:0.4+(i*0.06), height:`${h}%` }}/>
+          ))}
+        </div>
+      </div>
+
+      <button onClick={() => onCopy(trader)}
+        style={{ width:'100%', padding:'10px 0', background:'#f0b90b', color:'#0b0e11', border:'none', borderRadius:10, fontWeight:700, fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6, fontFamily:'inherit', transition:'background .15s' }}
+        onMouseEnter={e => e.currentTarget.style.background='#d4a30a'}
+        onMouseLeave={e => e.currentTarget.style.background='#f0b90b'}>
+        <Copy size={14}/> Copy
+      </button>
+    </div>
+  );
+};
+
+/* ══════════════════════════════════
+   MAIN CopyTrade PAGE
+══════════════════════════════════ */
 export default function CopyTrade() {
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
   const { user, token } = useContext(UserContext);
+
   const [traders,   setTraders]   = useState([]);
   const [loading,   setLoading]   = useState(true);
   const [activeTab, setActiveTab] = useState('Recommended');
-  const [showBanner, setShowBanner] = useState(true);
-  const [copyTarget, setCopyTarget] = useState(null);
-  const [balanceHidden, setBalanceHidden] = useState(false);
-  const [openFaq, setOpenFaq] = useState(null);
-  const [promoIdx, setPromoIdx] = useState(0);
-  const [spotOpen, setSpotOpen] = useState(false);
+  const [copyTarget,setCopyTarget]= useState(null);
+  const [balHidden, setBalHidden] = useState(false);
+  const [openFaq,   setOpenFaq]   = useState(null);
+  const [promoIdx,  setPromoIdx]  = useState(0);
+  const [spotOpen,  setSpotOpen]  = useState(false);
 
   const promos = [
-    { title:'Copy Trading Lead Trader Growth Plan', sub:'Join Now', icon:'📈' },
+    { title:'Copy Trading Lead Trader Growth Plan', sub:'Join Now',   icon:'📈' },
     { title:'Earn Up to 10% Commission on Profits', sub:'Learn More', icon:'💰' },
-    { title:'Elite Trader Program — Apply Now',     sub:'Apply',     icon:'⭐' },
+    { title:'Elite Trader Program — Apply Now',     sub:'Apply',      icon:'⭐' },
     { title:'Daily Picks — Best Performers Today',  sub:'View Picks', icon:'🎯' },
   ];
 
   useEffect(() => {
-    const fetchTraders = async () => {
-      try {
-        const res = await axios.get(`${API_URL}/api/traders`);
-        setTraders(Array.isArray(res.data) ? res.data : []);
-      } catch { setTraders([]); }
-      finally { setLoading(false); }
-    };
-    fetchTraders();
+    axios.get(`${API_URL}/api/traders`)
+      .then(r => setTraders(Array.isArray(r.data) ? r.data : []))
+      .catch(() => setTraders([]))
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -243,19 +217,41 @@ export default function CopyTrade() {
   }, []);
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this trader?')) return;
+    if (!confirm('Delete this trader?')) return;
     try {
       await axios.delete(`${API_URL}/api/admin/delete-trader/${id}`, { headers:{ Authorization:`Bearer ${token}` } });
       setTraders(p => p.filter(t => t._id !== id));
     } catch { alert('Failed to delete'); }
   };
 
-  const sections = {
-    'Recommended': traders,
-    'All Portfolios': traders,
-    'My Favorites': [],
-  };
-  const displayTraders = sections[activeTab] || [];
+  const displayTraders = activeTab === 'My Favorites' ? [] : traders;
+
+  const css = `
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    .ct{ font-family:'Inter',sans-serif; background:#0b0e11; color:#eaecef; min-height:100vh; }
+    .ct *{ box-sizing:border-box; }
+    @keyframes spin{ to{ transform:rotate(360deg); } }
+    @keyframes fadeIn{ from{ opacity:0; transform:translateY(-5px); } to{ opacity:1; transform:none; } }
+    .ct-tab{ padding:10px 14px; font-size:13px; font-weight:600; background:transparent; border:none; color:#848e9c; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; transition:all .15s; font-family:inherit; }
+    .ct-tab.on{ color:#eaecef; border-bottom-color:#f0b90b; }
+    .ct-tab:hover{ color:#eaecef; }
+    .faq-item{ border-bottom:1px solid #1e2329; }
+
+    /* Mobile responsive */
+    @media(max-width:640px){
+      .ct-header-btns .be-trader-text{ display:none; }
+      .ct-balance-grid{ grid-template-columns:1fr!important; }
+      .ct-tab{ padding:8px 10px; font-size:12px; }
+      .ct-header-title{ font-size:14px!important; }
+      .faq-q-text{ font-size:13px!important; }
+      .faq-ans{ padding:0 16px 14px 48px!important; }
+      .become-banner{ flex-direction:column!important; align-items:flex-start!important; gap:12px!important; }
+      .become-banner h3{ font-size:16px!important; }
+    }
+    @media(max-width:400px){
+      .ct-tab{ padding:7px 8px; font-size:11px; }
+    }
+  `;
 
   return (
     <>
@@ -264,23 +260,24 @@ export default function CopyTrade() {
 
       <div className="ct">
 
-        {/* HEADER */}
-        <div style={{ padding:'0 24px', borderBottom:'1px solid #1e2329', display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, background:'#0b0e11', zIndex:50 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:0 }}>
-            {/* Spot Copy dropdown */}
+        {/* ── HEADER ── */}
+        <div style={{ padding:'0 16px', borderBottom:'1px solid #1e2329', display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, background:'#0b0e11', zIndex:50, gap:8 }}>
+          {/* Left: title + dropdown */}
+          <div style={{ display:'flex', alignItems:'center', gap:0, minWidth:0 }}>
             <div style={{ position:'relative' }}>
               <button onClick={() => setSpotOpen(v=>!v)}
-                style={{ display:'flex', alignItems:'center', gap:6, padding:'14px 16px 14px 0', background:'none', border:'none', color:'#eaecef', fontWeight:700, fontSize:16, cursor:'pointer', fontFamily:'inherit' }}>
-                Spot Copy <ChevronDown size={16} style={{ transform:spotOpen?'rotate(180deg)':'none', transition:'transform .2s' }}/>
+                style={{ display:'flex', alignItems:'center', gap:5, padding:'13px 12px 13px 0', background:'none', border:'none', color:'#eaecef', fontWeight:700, fontSize:15, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }}
+                className="ct-header-title">
+                Spot Copy <ChevronDown size={15} style={{ transform:spotOpen?'rotate(180deg)':'none', transition:'transform .2s', flexShrink:0 }}/>
               </button>
               {spotOpen && (
                 <>
                   <div style={{ position:'fixed', inset:0, zIndex:98 }} onClick={() => setSpotOpen(false)}/>
-                  <div style={{ position:'absolute', top:'100%', left:0, background:'#1e2329', border:'1px solid #2b3139', borderRadius:10, padding:8, zIndex:99, minWidth:160, boxShadow:'0 8px 24px rgba(0,0,0,.6)' }}>
+                  <div style={{ position:'absolute', top:'100%', left:0, background:'#1e2329', border:'1px solid #2b3139', borderRadius:12, padding:8, zIndex:99, minWidth:160, boxShadow:'0 8px 24px rgba(0,0,0,.6)' }}>
                     {['Spot Copy','Futures Copy','Strategy Copy'].map(o => (
-                      <div key={o} style={{ padding:'10px 14px', cursor:'pointer', borderRadius:6, fontSize:13, color:'#848e9c', transition:'all .15s' }}
-                        onMouseEnter={e=>e.target.style.background='#2b3139'}
-                        onMouseLeave={e=>e.target.style.background='transparent'}
+                      <div key={o} style={{ padding:'10px 14px', cursor:'pointer', borderRadius:8, fontSize:13, color:'#848e9c', transition:'background .15s' }}
+                        onMouseEnter={e => e.currentTarget.style.background='#2b3139'}
+                        onMouseLeave={e => e.currentTarget.style.background='transparent'}
                         onClick={() => setSpotOpen(false)}>
                         {o}
                       </div>
@@ -289,131 +286,139 @@ export default function CopyTrade() {
                 </>
               )}
             </div>
-            <span style={{ color:'#2b3139', margin:'0 4px' }}>|</span>
-            <span style={{ color:'#848e9c', fontSize:14, cursor:'pointer' }}>Futures</span>
+            <span style={{ color:'#2b3139', margin:'0 4px', flexShrink:0 }}>|</span>
+            <span style={{ color:'#848e9c', fontSize:13, cursor:'pointer', whiteSpace:'nowrap' }}>Futures</span>
           </div>
 
-          <div style={{ display:'flex', alignItems:'center', gap:16, color:'#848e9c' }}>
-            <button style={{ display:'flex', alignItems:'center', gap:6, background:'#f0b90b', border:'none', borderRadius:8, padding:'8px 16px', color:'#0b0e11', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}
-              onClick={() => navigate('/become-trader')}>
-              <Users size={14}/> Be a Lead Trader
+          {/* Right: buttons */}
+          <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }} className="ct-header-btns">
+            <button onClick={() => navigate('/become-trader')}
+              style={{ display:'flex', alignItems:'center', gap:5, background:'#f0b90b', border:'none', borderRadius:8, padding:'7px 14px', color:'#0b0e11', fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }}>
+              <Users size={13}/>
+              <span className="be-trader-text">Be a Lead Trader</span>
             </button>
-            <MoreHorizontal size={20} style={{ cursor:'pointer' }}/>
-            <X size={20} style={{ cursor:'pointer' }} onClick={() => navigate(-1)}/>
+            <button onClick={() => navigate(-1)} style={{ background:'none', border:'none', color:'#848e9c', cursor:'pointer', display:'flex', padding:4 }}>
+              <ArrowLeft size={18}/>
+            </button>
           </div>
         </div>
 
-        <div style={{ padding:'24px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:20, maxWidth:1200, margin:'0 auto' }}>
+        {/* ── BALANCE + PROMO ── */}
+        <div style={{ padding:'16px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, maxWidth:1100, margin:'0 auto' }} className="ct-balance-grid">
 
-          {/* BALANCE CARD */}
-          <div className="balance-card">
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
-              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                <span style={{ fontSize:13, color:'#848e9c' }}>Total Copying Balance (USDT)</span>
-                <button onClick={() => setBalanceHidden(v=>!v)} style={{ background:'none', border:'none', color:'#848e9c', cursor:'pointer' }}>
-                  {balanceHidden ? <EyeOff size={14}/> : <Eye size={14}/>}
-                </button>
-              </div>
+          {/* Balance card */}
+          <div style={{ background:'#161a1e', border:'1px solid #1e2329', borderRadius:16, padding:'18px 20px' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:6 }}>
+              <span style={{ fontSize:12, color:'#848e9c' }}>Total Copying Balance (USDT)</span>
+              <button onClick={() => setBalHidden(v=>!v)} style={{ background:'none', border:'none', color:'#848e9c', cursor:'pointer', display:'flex', padding:0 }}>
+                {balHidden ? <EyeOff size={13}/> : <Eye size={13}/>}
+              </button>
             </div>
-            <div style={{ fontSize:36, fontWeight:700, color:'#eaecef', marginBottom:6 }}>
-              {balanceHidden ? '••••' : '0.00'}
+            <div style={{ fontSize:32, fontWeight:700, color:'#eaecef', marginBottom:4 }}>
+              {balHidden ? '••••' : '0.00'}
             </div>
-            <div style={{ fontSize:13, color:'#848e9c', marginBottom:20 }}>
-              Total Unrealized PnL (USDT) <span style={{ color:'#848e9c' }}>--</span>
+            <div style={{ fontSize:12, color:'#848e9c', marginBottom:16 }}>
+              Unrealized PnL: <span style={{ color:'#848e9c' }}>--</span>
             </div>
-            <button style={{ padding:'9px 20px', background:'#f0b90b', border:'none', borderRadius:8, color:'#0b0e11', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>
+            <button style={{ padding:'8px 18px', background:'#f0b90b', border:'none', borderRadius:8, color:'#0b0e11', fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit' }}>
               Copy Overview
             </button>
           </div>
 
-          {/* PROMO CARD */}
-          <div className="promo-card" style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <div style={{ flex:1 }}>
-              <h3 style={{ fontWeight:700, fontSize:16, color:'#eaecef', marginBottom:8 }}>{promos[promoIdx].title}</h3>
-              <span style={{ color:'#f0b90b', fontWeight:700, fontSize:13, cursor:'pointer' }}>{promos[promoIdx].sub} →</span>
+          {/* Promo card */}
+          <div style={{ background:'linear-gradient(135deg,#1e2329,#2b3139)', border:'1px solid #2b3139', borderRadius:16, padding:'18px 20px', cursor:'pointer', position:'relative', overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            <div style={{ flex:1, minWidth:0 }}>
+              <h3 style={{ fontWeight:700, fontSize:14, color:'#eaecef', marginBottom:8, lineHeight:1.4 }}>{promos[promoIdx].title}</h3>
+              <span style={{ color:'#f0b90b', fontWeight:700, fontSize:12, cursor:'pointer' }}>{promos[promoIdx].sub} →</span>
             </div>
-            <div style={{ fontSize:48, marginLeft:16 }}>{promos[promoIdx].icon}</div>
-            <div style={{ position:'absolute', bottom:12, right:12, display:'flex', gap:4 }}>
+            <div style={{ fontSize:40, marginLeft:12, flexShrink:0 }}>{promos[promoIdx].icon}</div>
+            {/* Dots */}
+            <div style={{ position:'absolute', bottom:10, right:10, display:'flex', gap:4 }}>
               {promos.map((_,i) => (
-                <div key={i} onClick={() => setPromoIdx(i)} style={{ width: i===promoIdx?16:6, height:6, borderRadius:3, background:i===promoIdx?'#f0b90b':'#2b3139', cursor:'pointer', transition:'all .3s' }}/>
+                <div key={i} onClick={() => setPromoIdx(i)}
+                  style={{ width:i===promoIdx?14:5, height:5, borderRadius:3, background:i===promoIdx?'#f0b90b':'#2b3139', cursor:'pointer', transition:'all .3s' }}/>
               ))}
             </div>
           </div>
         </div>
 
-        <div style={{ padding:'0 24px 24px', maxWidth:1200, margin:'0 auto' }}>
+        {/* ── TABS + CONTENT ── */}
+        <div style={{ padding:'0 16px 16px', maxWidth:1100, margin:'0 auto' }}>
 
-          {/* TABS */}
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', borderBottom:'1px solid #1e2329', marginBottom:24 }}>
-            <div style={{ display:'flex', gap:0 }}>
+          {/* Tabs */}
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', borderBottom:'1px solid #1e2329', marginBottom:20, overflowX:'auto', scrollbarWidth:'none' }}>
+            <div style={{ display:'flex', flexShrink:0 }}>
               {['Recommended','All Portfolios','My Favorites'].map(t => (
                 <button key={t} className={`ct-tab${activeTab===t?' on':''}`} onClick={() => setActiveTab(t)}>{t}</button>
               ))}
             </div>
-            <button style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 14px', background:'#2b3139', border:'none', borderRadius:20, color:'#f0b90b', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+            <button style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 12px', background:'#2b3139', border:'none', borderRadius:20, color:'#f0b90b', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit', flexShrink:0, marginLeft:8 }}>
               <Zap size={11} style={{ fill:'#f0b90b' }}/> Daily Picks
             </button>
           </div>
 
-          {/* HIGH PNL */}
-          <div style={{ marginBottom:32 }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-              <h2 className="section-title">High PNL</h2>
-              <button className="view-more-btn">More <ChevronRight size={12} style={{ display:'inline' }}/></button>
-            </div>
-
-            {loading ? (
-              <div style={{ display:'flex', justifyContent:'center', padding:40 }}>
-                <Loader2 size={32} style={{ color:'#f0b90b', animation:'spin 1s linear infinite' }}/>
-              </div>
-            ) : displayTraders.length === 0 ? (
-              <div style={{ textAlign:'center', padding:60, color:'#5e6673', fontSize:13 }}>
-                <Users size={40} style={{ opacity:.2, margin:'0 auto 12px', display:'block' }}/>
-                <p>No traders available yet.</p>
-                {user?.role === 'admin' && (
-                  <button onClick={() => navigate('/admin')} style={{ marginTop:12, padding:'8px 20px', background:'#f0b90b', border:'none', borderRadius:8, color:'#0b0e11', fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
-                    Add Traders from Admin
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:16 }}>
-                {displayTraders.map(t => (
-                  <TraderCard key={t._id} trader={t} user={user} onDelete={handleDelete} onCopy={setCopyTarget}/>
-                ))}
-              </div>
-            )}
+          {/* Section title */}
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+            <h2 style={{ fontSize:17, fontWeight:700, color:'#eaecef' }}>High PNL Traders</h2>
+            <button style={{ padding:'5px 14px', background:'transparent', border:'1px solid #2b3139', borderRadius:20, color:'#848e9c', fontSize:12, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:4 }}>
+              More <ChevronRight size={12}/>
+            </button>
           </div>
 
-          {/* BECOME MASTER TRADER */}
-          <div style={{ background:'linear-gradient(135deg,#161a1e,#1e2329)', border:'1px solid #2b3139', borderRadius:16, padding:24, marginBottom:40, display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:16 }}>
+          {/* Traders grid */}
+          {loading ? (
+            <div style={{ display:'flex', justifyContent:'center', alignItems:'center', padding:60 }}>
+              <Loader2 size={36} style={{ color:'#f0b90b', animation:'spin 1s linear infinite' }}/>
+            </div>
+          ) : displayTraders.length === 0 ? (
+            <div style={{ textAlign:'center', padding:60, color:'#5e6673' }}>
+              <Users size={44} style={{ opacity:.15, margin:'0 auto 14px', display:'block' }}/>
+              <p style={{ fontSize:14, marginBottom:8 }}>No traders available yet.</p>
+              {user?.role === 'admin' && (
+                <button onClick={() => navigate('/admin')}
+                  style={{ padding:'9px 22px', background:'#f0b90b', border:'none', borderRadius:10, color:'#0b0e11', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>
+                  Add Traders from Admin
+                </button>
+              )}
+            </div>
+          ) : (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:14, marginBottom:32 }}>
+              {displayTraders.map(t => (
+                <TraderCard key={t._id} trader={t} user={user} onDelete={handleDelete} onCopy={setCopyTarget}/>
+              ))}
+            </div>
+          )}
+
+          {/* Become Master Trader Banner */}
+          <div style={{ background:'linear-gradient(135deg,#161a1e,#1e2329)', border:'1px solid #2b3139', borderRadius:16, padding:'20px 24px', marginBottom:40, display:'flex', alignItems:'center', justifyContent:'space-between', gap:16 }} className="become-banner">
             <div>
               <h3 style={{ color:'#eaecef', fontWeight:700, fontSize:18, marginBottom:6 }}>Become a Master Trader</h3>
-              <p style={{ color:'#848e9c', fontSize:13 }}>Share your expertise, grow your followers, and earn up to 10% commission.</p>
+              <p style={{ color:'#848e9c', fontSize:13 }}>Share expertise, grow followers, earn up to 10% commission.</p>
             </div>
             <button onClick={() => navigate('/become-trader')}
-              style={{ padding:'12px 28px', background:'#f0b90b', border:'none', borderRadius:10, color:'#0b0e11', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:8, whiteSpace:'nowrap' }}>
-              <Zap size={16} style={{ fill:'#0b0e11' }}/> Apply Now
+              style={{ padding:'11px 24px', background:'#f0b90b', border:'none', borderRadius:12, color:'#0b0e11', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:8, whiteSpace:'nowrap', flexShrink:0 }}>
+              <Zap size={15} style={{ fill:'#0b0e11' }}/> Apply Now
             </button>
           </div>
 
           {/* FAQ */}
-          <div style={{ maxWidth:800, margin:'0 auto 60px' }}>
-            <h2 style={{ textAlign:'center', fontSize:32, fontWeight:800, color:'#eaecef', marginBottom:32 }}>FAQ</h2>
+          <div style={{ maxWidth:780, margin:'0 auto 60px' }}>
+            <h2 style={{ textAlign:'center', fontSize:28, fontWeight:800, color:'#eaecef', marginBottom:28 }}>FAQ</h2>
             <div style={{ background:'#161a1e', borderRadius:16, overflow:'hidden', border:'1px solid #1e2329' }}>
               {FAQ_ITEMS.map((item, i) => (
                 <div key={i} className="faq-item">
-                  <div className="faq-q" style={{ padding:'18px 24px' }} onClick={() => setOpenFaq(openFaq===i?null:i)}>
-                    <div className="faq-num" style={{ background: openFaq===i?'rgba(240,185,11,.1)':'transparent', borderColor:openFaq===i?'rgba(240,185,11,.3)':'#2b3139', color:openFaq===i?'#f0b90b':'#848e9c' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:12, padding:'16px 20px', cursor:'pointer' }}
+                    onClick={() => setOpenFaq(openFaq===i?null:i)}>
+                    <div style={{ width:30, height:30, border:`1px solid ${openFaq===i?'rgba(240,185,11,.3)':'#2b3139'}`, borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, color:openFaq===i?'#f0b90b':'#848e9c', flexShrink:0, background:openFaq===i?'rgba(240,185,11,.08)':'transparent', transition:'all .15s' }}>
                       {i+1}
                     </div>
-                    <span className="faq-text" style={{ color:openFaq===i?'#eaecef':'#c6cad2' }}>{item.q}</span>
+                    <span className="faq-q-text" style={{ fontSize:14, fontWeight:500, color:openFaq===i?'#eaecef':'#c6cad2', flex:1, lineHeight:1.4 }}>{item.q}</span>
                     <div style={{ color:'#848e9c', flexShrink:0 }}>
-                      {openFaq===i ? <ChevronUp size={18}/> : <Plus size={18}/>}
+                      {openFaq===i ? <ChevronUp size={17}/> : <Plus size={17}/>}
                     </div>
                   </div>
                   {openFaq===i && (
-                    <div className="faq-ans" style={{ padding:'0 24px 18px 78px', animation:'fadeIn .2s' }}>
+                    <div className="faq-ans" style={{ padding:'0 20px 16px 62px', fontSize:13, color:'#848e9c', lineHeight:1.7, animation:'fadeIn .2s' }}>
                       {item.a}
                     </div>
                   )}
@@ -424,10 +429,6 @@ export default function CopyTrade() {
 
         </div>
       </div>
-      <style>{`
-        @keyframes spin{to{transform:rotate(360deg);}}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-      `}</style>
     </>
   );
 }
