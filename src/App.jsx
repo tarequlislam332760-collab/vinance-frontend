@@ -36,7 +36,7 @@ import TradingBots    from './pages/TradingBots';
 import Alpha          from './pages/Alpha';
 import CapitalConnect from './pages/CapitalConnect';
 import SquareCreator  from './pages/SquareCreator';   /* file: src/pages/SquareCreator.jsx */
-import ApiManagement  from './pages/ApiManagement';   /* file: src/pages/ApiManagement.jsx */
+import Apimanagement  from './pages/Apimanagement';   /* file: src/pages/ApiManagement.jsx */
 
 /* ── Admin ── */
 import AdminPanel  from './admin/AdminPanel';
