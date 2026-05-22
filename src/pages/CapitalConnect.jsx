@@ -1,49 +1,119 @@
-/* CapitalConnect.jsx */
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
-import { Globe, TrendingUp, Shield, Users, ChevronRight, Star, ExternalLink } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import {
+  Globe, TrendingUp, Shield, Users, ChevronRight,
+  Star, CheckCircle, AlertCircle, ArrowLeft, Loader2
+} from 'lucide-react';
 
-const css = `
+const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-  .cc{font-family:'Inter',sans-serif;background:#0b0e11;color:#eaecef;min-height:100vh;}
-  .cc *{box-sizing:border-box;}
-  .cc-card{background:#161a1e;border:1px solid #1e2329;border-radius:16px;padding:24px;transition:all .2s;}
-  .cc-card:hover{border-color:#f0b90b30;}
-  .cc-btn{padding:10px 24px;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s;}
+  .cc { font-family:'Inter',sans-serif; background:#0b0e11; color:#eaecef; min-height:100vh; }
+  .cc * { box-sizing:border-box; margin:0; padding:0; }
+  .cc ::-webkit-scrollbar { width:4px; }
+  .cc ::-webkit-scrollbar-thumb { background:#2b3139; border-radius:4px; }
+  .cc-card { background:#161a1e; border:1px solid #1e2329; border-radius:16px; padding:22px; transition:border .2s; }
+  .cc-card:hover { border-color:rgba(240,185,11,.25); }
+  .cc-btn { display:inline-flex; align-items:center; gap:6px; padding:10px 22px; border:none; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap; }
+  .cc-btn.gold { background:#f0b90b; color:#0b0e11; }
+  .cc-btn.gold:hover { background:#d4a30a; }
+  .cc-btn.outline { background:transparent; color:#f0b90b; border:1px solid rgba(240,185,11,.4); }
+  .cc-btn.outline:hover { background:rgba(240,185,11,.08); }
+  .cc-btn.gray { background:#1e2329; color:#848e9c; border:1px solid #2b3139; }
+  .cc-tab { padding:10px 18px; font-size:13px; font-weight:600; background:transparent; border:none; color:#848e9c; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; font-family:inherit; transition:all .15s; }
+  .cc-tab.on { color:#eaecef; border-bottom-color:#f0b90b; }
+  .cc-tab:hover { color:#eaecef; }
+  .cc-input { width:100%; background:#0b0e11; border:1px solid #2b3139; border-radius:10px; padding:10px 14px; color:#eaecef; font-size:13px; outline:none; font-family:inherit; transition:border .15s; }
+  .cc-input:focus { border-color:#f0b90b; }
+  .cc-input::placeholder { color:#5e6673; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .fade { animation:fadeUp .25s; }
+  .spin { animation:spin .8s linear infinite; }
+  @media(max-width:768px) {
+    .cc-grid { grid-template-columns:1fr!important; }
+    .cc-stats { gap:12px!important; }
+  }
 `;
 
 const FUNDS = [
-  { name:'Vinance Growth Fund',    aum:'$124M',  return:'+34.2%', risk:'Medium', min:'$1,000',  investors:2840, rating:4.8 },
-  { name:'Crypto Blue Chip Fund',  aum:'$89M',   return:'+22.8%', risk:'Low',    min:'$500',    investors:5120, rating:4.9 },
-  { name:'DeFi Alpha Fund',        aum:'$45M',   return:'+67.4%', risk:'High',   min:'$2,500',  investors:890,  rating:4.6 },
-  { name:'BNB Ecosystem Fund',     aum:'$67M',   return:'+41.3%', risk:'Medium', min:'$1,000',  investors:1560, rating:4.7 },
+  { name:'Vinance Growth Fund',    aum:'$124M',  returns:'+34.2%', risk:'Medium', min:'$1,000', investors:2840, rating:4.8, color:'#627eea' },
+  { name:'Crypto Blue Chip Fund',  aum:'$89M',   returns:'+22.8%', risk:'Low',    min:'$500',   investors:5120, rating:4.9, color:'#0ecb81' },
+  { name:'DeFi Alpha Fund',        aum:'$45M',   returns:'+67.4%', risk:'High',   min:'$2,500', investors:890,  rating:4.6, color:'#f6465d' },
+  { name:'BNB Ecosystem Fund',     aum:'$67M',   returns:'+41.3%', risk:'Medium', min:'$1,000', investors:1560, rating:4.7, color:'#f0b90b' },
 ];
 
-const CapitalConnect = () => {
-  const { user, token } = useContext(UserContext);
-  const [tab, setTab] = useState('funds');
+const VC_LIST = [
+  { name:'Binance Labs',     focus:'DeFi, Infrastructure', stage:'Seed – Series A', portfolio:320, logo:'🔶' },
+  { name:'Vinance Ventures', focus:'Gaming, NFT, Web3',    stage:'Pre-seed – Seed', portfolio:85,  logo:'💎' },
+  { name:'BSC Accelerator',  focus:'BSC Ecosystem',        stage:'Accelerator',     portfolio:210, logo:'⚡' },
+  { name:'Crypto Capital',   focus:'Trading, Exchanges',   stage:'Series A – B',    portfolio:60,  logo:'🏦' },
+];
 
-  const apply = (fund) => toast.success(`Application sent for ${fund.name}`);
+export default function CapitalConnect() {
+  const navigate = useNavigate();
+  const { user, token } = useContext(UserContext);
+
+  const [tab,       setTab]       = useState('funds');
+  const [toast,     setToast]     = useState(null);
+  const [applying,  setApplying]  = useState(null);
+  const [formData,  setFormData]  = useState({ fundName:'', website:'', aum:'', strategy:'' });
+
+  const showToast = (msg, type='ok') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  const handleApply = async (name) => {
+    setApplying(name);
+    await new Promise(r => setTimeout(r, 1200));
+    setApplying(null);
+    showToast(`Application submitted for ${name}!`);
+  };
+
+  const handleFundRegister = async () => {
+    if (!formData.fundName.trim()) return showToast('Fund name is required', 'err');
+    await new Promise(r => setTimeout(r, 800));
+    showToast('Fund registration submitted for review!');
+    setFormData({ fundName:'', website:'', aum:'', strategy:'' });
+  };
+
+  const RISK_COLOR = { Low:'#0ecb81', Medium:'#f0b90b', High:'#f6465d' };
 
   return (
     <>
-      <style>{css}</style>
+      <style>{CSS}</style>
+
+      {/* Toast */}
+      {toast && (
+        <div style={{ position:'fixed', top:16, right:16, zIndex:9999, background:toast.type==='err'?'#f6465d':'#0ecb81', color:'#fff', padding:'11px 18px', borderRadius:12, fontWeight:700, fontSize:13, display:'flex', alignItems:'center', gap:8, boxShadow:'0 8px 32px rgba(0,0,0,.5)', animation:'fadeUp .3s', maxWidth:320 }}>
+          {toast.type==='err' ? <AlertCircle size={15}/> : <CheckCircle size={15}/>} {toast.msg}
+        </div>
+      )}
+
       <div className="cc">
-        {/* Hero */}
-        <div style={{ background:'linear-gradient(135deg,#161a1e,#1e2329)', padding:'48px 24px', borderBottom:'1px solid #1e2329', textAlign:'center' }}>
-          <div style={{ display:'flex', justifyContent:'center', marginBottom:12 }}>
-            <div style={{ width:56, height:56, background:'rgba(240,185,11,.12)', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <Globe size={28} style={{ color:'#f0b90b' }}/>
+        {/* Header */}
+        <div style={{ background:'#0b0e11', borderBottom:'1px solid #1e2329', padding:'13px 20px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, position:'sticky', top:0, zIndex:50, flexWrap:'wrap' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <button onClick={() => navigate(-1)} style={{ background:'none', border:'none', color:'#848e9c', cursor:'pointer', display:'flex' }}><ArrowLeft size={18}/></button>
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <Globe size={18} style={{ color:'#f0b90b' }}/>
+              <h1 style={{ fontSize:18, fontWeight:800, color:'#eaecef' }}>Capital Connect</h1>
             </div>
           </div>
-          <h1 style={{ fontSize:32, fontWeight:800, color:'#eaecef', marginBottom:8 }}>Capital Connect</h1>
-          <p style={{ color:'#848e9c', fontSize:15, maxWidth:500, margin:'0 auto 20px' }}>
-            Connect with institutional investors and professional fund managers
+        </div>
+
+        {/* Hero */}
+        <div style={{ background:'linear-gradient(135deg,#161a1e 0%,#1e2329 50%,#0d1117 100%)', padding:'40px 20px', borderBottom:'1px solid #1e2329', textAlign:'center' }}>
+          <div style={{ width:56, height:56, background:'rgba(240,185,11,.12)', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px', border:'1px solid rgba(240,185,11,.2)' }}>
+            <Globe size={28} style={{ color:'#f0b90b' }}/>
+          </div>
+          <h2 style={{ fontSize:28, fontWeight:800, color:'#eaecef', marginBottom:8 }}>Connect with Institutional Capital</h2>
+          <p style={{ color:'#848e9c', fontSize:14, maxWidth:500, margin:'0 auto 24px', lineHeight:1.7 }}>
+            Access professional fund managers, venture capital networks, and institutional-grade investment opportunities.
           </p>
-          <div style={{ display:'flex', justifyContent:'center', gap:16, flexWrap:'wrap' }}>
-            {[['$2.4B+','Total AUM'],['12,000+','Investors'],['180+','Countries'],['4.8★','Rating']].map(([v,l]) => (
+          <div style={{ display:'flex', justifyContent:'center', gap:24, flexWrap:'wrap' }} className="cc-stats">
+            {[['$2.4B+','Total AUM'],['12,000+','Investors'],['180+','Countries'],['4.8★','Avg Rating']].map(([v,l]) => (
               <div key={l} style={{ textAlign:'center' }}>
                 <div style={{ fontSize:22, fontWeight:800, color:'#f0b90b' }}>{v}</div>
                 <div style={{ fontSize:11, color:'#5e6673' }}>{l}</div>
@@ -52,67 +122,131 @@ const CapitalConnect = () => {
           </div>
         </div>
 
-        <div style={{ maxWidth:1100, margin:'0 auto', padding:'24px' }}>
+        <div style={{ maxWidth:1100, margin:'0 auto', padding:'20px' }}>
           {/* Tabs */}
-          <div style={{ display:'flex', borderBottom:'1px solid #1e2329', marginBottom:24 }}>
-            {[{k:'funds',l:'Investment Funds'},{k:'vc',l:'Venture Capital'},{k:'apply',l:'Apply as Fund'}].map(t => (
-              <button key={t.k} onClick={()=>setTab(t.k)}
-                style={{ padding:'9px 16px', fontSize:12, fontWeight:600, background:'transparent', border:'none', cursor:'pointer', color:tab===t.k?'#eaecef':'#848e9c', borderBottom:tab===t.k?'2px solid #f0b90b':'2px solid transparent', fontFamily:'inherit', whiteSpace:'nowrap' }}>{t.l}
-              </button>
+          <div style={{ display:'flex', borderBottom:'1px solid #1e2329', marginBottom:24, overflowX:'auto', scrollbarWidth:'none' }}>
+            {[
+              { k:'funds', l:'Investment Funds' },
+              { k:'vc',    l:'Venture Capital'  },
+              { k:'apply', l:'Register Fund'    },
+            ].map(t => (
+              <button key={t.k} className={`cc-tab${tab===t.k?' on':''}`} onClick={() => setTab(t.k)}>{t.l}</button>
             ))}
           </div>
 
-          {tab==='funds' && (
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:16 }}>
+          {/* ── FUNDS ── */}
+          {tab === 'funds' && (
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:16 }} className="cc-grid">
               {FUNDS.map((fund, i) => (
-                <div key={i} className="cc-card">
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}>
+                <div key={i} className="cc-card fade">
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:14 }}>
                     <div>
                       <h3 style={{ color:'#eaecef', fontWeight:700, fontSize:14, marginBottom:4 }}>{fund.name}</h3>
-                      <div style={{ display:'flex', alignItems:'center', gap:4, fontSize:10, color:'#f0b90b' }}>
-                        {Array(5).fill(0).map((_,i) => <Star key={i} size={10} style={{ fill: i < Math.floor(fund.rating) ? '#f0b90b' : 'none' }}/>)}
-                        <span style={{ color:'#848e9c', marginLeft:2 }}>{fund.rating}</span>
+                      <div style={{ display:'flex', alignItems:'center', gap:3, fontSize:10, color:'#f0b90b' }}>
+                        {Array(5).fill(0).map((_,j) => (
+                          <Star key={j} size={10} style={{ fill:j < Math.floor(fund.rating)?'#f0b90b':'none', color:j < Math.floor(fund.rating)?'#f0b90b':'#2b3139' }}/>
+                        ))}
+                        <span style={{ color:'#848e9c', marginLeft:3, fontSize:11 }}>{fund.rating}</span>
                       </div>
                     </div>
-                    <span style={{ background:fund.risk==='Low'?'rgba(14,203,129,.1)':fund.risk==='High'?'rgba(246,70,93,.1)':'rgba(240,185,11,.1)', color:fund.risk==='Low'?'#0ecb81':fund.risk==='High'?'#f6465d':'#f0b90b', padding:'2px 8px', borderRadius:10, fontSize:10, fontWeight:700 }}>
+                    <span style={{ background:`${RISK_COLOR[fund.risk]}18`, color:RISK_COLOR[fund.risk], border:`1px solid ${RISK_COLOR[fund.risk]}30`, padding:'2px 9px', borderRadius:10, fontSize:10, fontWeight:700 }}>
                       {fund.risk}
                     </span>
                   </div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:14 }}>
-                    {[['AUM',fund.aum,'#eaecef'],['Annual Return',fund.return,'#0ecb81'],['Min Investment',fund.min,'#eaecef'],['Investors',fund.investors.toLocaleString(),'#eaecef']].map(([l,v,c]) => (
-                      <div key={l} style={{ background:'#0b0e11', borderRadius:6, padding:'8px 10px' }}>
-                        <div style={{ fontSize:9, color:'#5e6673', marginBottom:2 }}>{l}</div>
-                        <div style={{ fontSize:12, fontWeight:700, color:c }}>{v}</div>
+                    {[
+                      { l:'AUM',            v:fund.aum,                    c:'#eaecef' },
+                      { l:'Annual Return',  v:fund.returns,                c:'#0ecb81' },
+                      { l:'Min Investment', v:fund.min,                    c:'#eaecef' },
+                      { l:'Investors',      v:fund.investors.toLocaleString(), c:'#eaecef' },
+                    ].map(s => (
+                      <div key={s.l} style={{ background:'#0b0e11', borderRadius:8, padding:'9px 11px', border:'1px solid #2b3139' }}>
+                        <div style={{ fontSize:9, color:'#5e6673', marginBottom:3, textTransform:'uppercase', fontWeight:600 }}>{s.l}</div>
+                        <div style={{ fontSize:13, fontWeight:700, color:s.c }}>{s.v}</div>
                       </div>
                     ))}
                   </div>
-                  <button className="cc-btn" onClick={()=>apply(fund)} style={{ width:'100%', background:'rgba(240,185,11,.1)', color:'#f0b90b', border:'1px solid rgba(240,185,11,.3)' }}>
-                    Apply to Invest →
+                  <button className="cc-btn outline" style={{ width:'100%', justifyContent:'center' }}
+                    onClick={() => handleApply(fund.name)} disabled={applying===fund.name}>
+                    {applying===fund.name ? <><Loader2 size={13} className="spin"/> Applying...</> : <>Apply to Invest <ChevronRight size={13}/></>}
                   </button>
                 </div>
               ))}
             </div>
           )}
 
-          {tab==='vc' && (
-            <div style={{ textAlign:'center', padding:'60px 0', color:'#5e6673' }}>
-              <Globe size={48} style={{ opacity:.15, margin:'0 auto 12px', display:'block' }}/>
-              <h3 style={{ color:'#eaecef', fontSize:18, fontWeight:700, marginBottom:8 }}>Venture Capital Network</h3>
-              <p style={{ fontSize:13, marginBottom:20 }}>Connect with top-tier crypto VCs for your project</p>
-              <button className="cc-btn" onClick={()=>toast.success('VC network application submitted!')} style={{ background:'#f0b90b', color:'#0b0e11' }}>Apply Now</button>
+          {/* ── VC ── */}
+          {tab === 'vc' && (
+            <div>
+              <div style={{ marginBottom:20 }}>
+                <h2 style={{ fontSize:18, fontWeight:800, color:'#eaecef', marginBottom:6 }}>Venture Capital Network</h2>
+                <p style={{ fontSize:13, color:'#848e9c' }}>Connect with top-tier crypto VCs for funding, partnerships, and growth support.</p>
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:16 }} className="cc-grid">
+                {VC_LIST.map((vc,i) => (
+                  <div key={i} className="cc-card fade">
+                    <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:14 }}>
+                      <div style={{ width:46, height:46, borderRadius:12, background:'rgba(240,185,11,.1)', border:'1px solid rgba(240,185,11,.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, flexShrink:0 }}>
+                        {vc.logo}
+                      </div>
+                      <div>
+                        <p style={{ fontWeight:700, fontSize:14, color:'#eaecef', marginBottom:2 }}>{vc.name}</p>
+                        <p style={{ fontSize:11, color:'#848e9c' }}>{vc.focus}</p>
+                      </div>
+                    </div>
+                    <div style={{ display:'flex', gap:8, marginBottom:14, flexWrap:'wrap' }}>
+                      {[
+                        { l:'Stage',     v:vc.stage },
+                        { l:'Portfolio', v:`${vc.portfolio}+ projects` },
+                      ].map(s => (
+                        <div key={s.l} style={{ background:'#0b0e11', borderRadius:8, padding:'8px 12px', border:'1px solid #2b3139', flex:1, minWidth:100 }}>
+                          <div style={{ fontSize:9, color:'#5e6673', marginBottom:2, textTransform:'uppercase', fontWeight:600 }}>{s.l}</div>
+                          <div style={{ fontSize:12, fontWeight:700, color:'#eaecef' }}>{s.v}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <button className="cc-btn gold" style={{ width:'100%', justifyContent:'center' }}
+                      onClick={() => showToast(`Application sent to ${vc.name}!`)}>
+                      Apply for Funding
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
-          {tab==='apply' && (
-            <div style={{ maxWidth:500, margin:'0 auto' }}>
-              <h3 style={{ color:'#eaecef', fontSize:18, fontWeight:700, marginBottom:16 }}>Register Your Fund</h3>
-              {['Fund Name','Fund Website','AUM (USD)','Strategy Type'].map(label => (
-                <div key={label} style={{ marginBottom:12 }}>
-                  <label style={{ fontSize:11, color:'#848e9c', display:'block', marginBottom:4 }}>{label}</label>
-                  <input style={{ width:'100%', background:'#2b3139', border:'1px solid #2b3139', borderRadius:6, padding:'10px 12px', color:'#eaecef', fontSize:13, outline:'none', boxSizing:'border-box' }} placeholder={`Enter ${label}`}/>
+          {/* ── REGISTER FUND ── */}
+          {tab === 'apply' && (
+            <div style={{ maxWidth:520, margin:'0 auto' }}>
+              <h2 style={{ fontSize:18, fontWeight:800, color:'#eaecef', marginBottom:6 }}>Register Your Fund</h2>
+              <p style={{ fontSize:13, color:'#848e9c', marginBottom:24, lineHeight:1.6 }}>
+                List your fund on Vinance Capital Connect to reach thousands of qualified investors.
+              </p>
+              <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+                {[
+                  { k:'fundName',  l:'Fund Name *',       p:'e.g. Alpha Growth Fund',     t:'text'   },
+                  { k:'website',   l:'Fund Website',      p:'https://yourfund.com',       t:'url'    },
+                  { k:'aum',       l:'Current AUM (USD)', p:'e.g. $50,000,000',           t:'text'   },
+                  { k:'strategy',  l:'Investment Strategy', p:'e.g. DeFi, BTC, Multi-asset', t:'text' },
+                ].map(f => (
+                  <div key={f.k}>
+                    <label style={{ fontSize:11, color:'#848e9c', fontWeight:700, textTransform:'uppercase', marginBottom:6, display:'block' }}>{f.l}</label>
+                    <input className="cc-input" type={f.t} placeholder={f.p}
+                      value={formData[f.k]} onChange={e => setFormData(p => ({...p,[f.k]:e.target.value}))}/>
+                  </div>
+                ))}
+                <div>
+                  <label style={{ fontSize:11, color:'#848e9c', fontWeight:700, textTransform:'uppercase', marginBottom:6, display:'block' }}>Description</label>
+                  <textarea className="cc-input" rows={4} placeholder="Describe your fund's mission, strategy, and target returns..."
+                    style={{ resize:'vertical', minHeight:100 }}/>
                 </div>
-              ))}
-              <button className="cc-btn" onClick={()=>toast.success('Fund registration submitted for review!')} style={{ width:'100%', background:'#f0b90b', color:'#0b0e11', marginTop:8 }}>
+              </div>
+              <div style={{ background:'rgba(240,185,11,.05)', border:'1px solid rgba(240,185,11,.15)', borderRadius:10, padding:14, margin:'20px 0', display:'flex', gap:10 }}>
+                <Shield size={15} style={{ color:'#f0b90b', flexShrink:0, marginTop:1 }}/>
+                <p style={{ fontSize:12, color:'#848e9c', lineHeight:1.6 }}>All fund applications are reviewed by the Vinance compliance team within 3–5 business days. KYC/AML verification required.</p>
+              </div>
+              <button className="cc-btn gold" style={{ width:'100%', justifyContent:'center', padding:'13px 0', fontSize:14 }}
+                onClick={handleFundRegister}>
                 Submit Application
               </button>
             </div>
@@ -121,6 +255,4 @@ const CapitalConnect = () => {
       </div>
     </>
   );
-};
-
-export default CapitalConnect;
+}
