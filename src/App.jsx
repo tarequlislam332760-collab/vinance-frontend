@@ -35,8 +35,8 @@ import HistoryPage   from './pages/History';
 import TradingBots    from './pages/TradingBots';
 import Alpha          from './pages/Alpha';
 import CapitalConnect from './pages/CapitalConnect';
-import SquareCreator  from './pages/SquareCreator';   /* file: src/pages/SquareCreator.jsx */
-import Apimanagement  from './pages/Apimanagement';   /* file: src/pages/ApiManagement.jsx */
+import SquareCreator  from './pages/Squarecreator'; // আপনার ফাইল অনুযায়ী 'c' ছোট হাতের হলে এমন হবে
+import Apimanagement  from './pages/Apimanagement';
 
 /* ── Admin ── */
 import AdminPanel  from './admin/AdminPanel';
