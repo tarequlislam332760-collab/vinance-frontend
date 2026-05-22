@@ -31,11 +31,11 @@ import CopyTrade     from './pages/CopyTrade';
 import Square        from './pages/Square';
 import HistoryPage   from './pages/History';
 
-/* ── New Pages (file names must match exactly) ── */
+/* ── New Pages ── */
 import TradingBots    from './pages/TradingBots';
 import Alpha          from './pages/Alpha';
 import CapitalConnect from './pages/CapitalConnect';
-import SquareCreator  from './pages/Squarecreator'; // আপনার ফাইল অনুযায়ী 'c' ছোট হাতের হলে এমন হবে
+import SquareCreator  from './pages/Squarecreator'; 
 import Apimanagement  from './pages/Apimanagement';
 
 /* ── Admin ── */
@@ -224,10 +224,10 @@ const Dashboard = ({ cryptoData }) => {
       {/* Quick Nav */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label:'Market',    icon:'📊', path:'/market'         },
+          { label:'Market',    icon:'📊', path:'/market'          },
           { label:'Futures',   icon:'⚡', path:'/futures/btc'    },
           { label:'Copy Trade',icon:'📋', path:'/copy-trade'     },
-          { label:'Square',    icon:'🌐', path:'/square'         },
+          { label:'Square',    icon:'🌐', path:'/square'          },
           { label:'Bots',      icon:'🤖', path:'/trading-bots'   },
           { label:'Alpha',     icon:'🔥', path:'/alpha'          },
           { label:'Capital',   icon:'💎', path:'/capital-connect'},
@@ -303,7 +303,7 @@ const AppContent = ({ cryptoData }) => {
       <Route path="/trading-bots"        element={<TradingBots/>}/>
       <Route path="/alpha"               element={<Alpha/>}/>
       <Route path="/capital-connect"     element={<CapitalConnect/>}/>
-      <Route path="/creator-center"      element={<Squarecreator/>}/>   {/* SquareCreator.jsx */}
+      <Route path="/creator-center"      element={<SquareCreator/>}/>  {/* এখানে SquareCreator ঠিক করা হয়েছে */}
       <Route path="/api-management"      element={<Apimanagement/>}/>
 
       {/* ── User ── */}
@@ -353,7 +353,7 @@ const AppContent = ({ cryptoData }) => {
       {/* Main */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
         {token && !isHomePage && (
-          <header className="h-14 border-b border-[#1e2329] bg-[#161a1e] flex items-center justify-between px-6 sticky top:0 z-30">
+          <header className="h-14 border-b border-[#1e2329] bg-[#161a1e] flex items-center justify-between px-6 sticky top-0 z-30"> {/* এখানে top-0 ঠিক করা হয়েছে */}
             <div className="font-black text-[9px] uppercase tracking-widest text-[#f0b90b]">
               Hi, {user?.name||'User'} 👋
             </div>
