@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../context/UserContext';
 import {
-  Globe, TrendingUp, Shield, Users, ChevronRight,
+  Globe, Shield, Users, ChevronRight,
   Star, CheckCircle, AlertCircle, ArrowLeft, Loader2
 } from 'lucide-react';
 
@@ -19,7 +19,6 @@ const CSS = `
   .cc-btn.gold:hover { background:#d4a30a; }
   .cc-btn.outline { background:transparent; color:#f0b90b; border:1px solid rgba(240,185,11,.4); }
   .cc-btn.outline:hover { background:rgba(240,185,11,.08); }
-  .cc-btn.gray { background:#1e2329; color:#848e9c; border:1px solid #2b3139; }
   .cc-tab { padding:10px 18px; font-size:13px; font-weight:600; background:transparent; border:none; color:#848e9c; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; font-family:inherit; transition:all .15s; }
   .cc-tab.on { color:#eaecef; border-bottom-color:#f0b90b; }
   .cc-tab:hover { color:#eaecef; }
@@ -32,7 +31,6 @@ const CSS = `
   .spin { animation:spin .8s linear infinite; }
   @media(max-width:768px) {
     .cc-grid { grid-template-columns:1fr!important; }
-    .cc-stats { gap:12px!important; }
   }
 `;
 
@@ -50,16 +48,18 @@ const VC_LIST = [
   { name:'Crypto Capital',   focus:'Trading, Exchanges',   stage:'Series A – B',    portfolio:60,  logo:'🏦' },
 ];
 
+const RISK_COLOR = { Low:'#0ecb81', Medium:'#f0b90b', High:'#f6465d' };
+
 export default function CapitalConnect() {
   const navigate = useNavigate();
-  const { user, token } = useContext(UserContext);
+  const { user }  = useContext(UserContext);
 
   const [tab,       setTab]       = useState('funds');
   const [toast,     setToast]     = useState(null);
   const [applying,  setApplying]  = useState(null);
   const [formData,  setFormData]  = useState({ fundName:'', website:'', aum:'', strategy:'' });
 
-  const showToast = (msg, type='ok') => {
+  const showToast = (msg, type = 'ok') => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3500);
   };
@@ -78,42 +78,40 @@ export default function CapitalConnect() {
     setFormData({ fundName:'', website:'', aum:'', strategy:'' });
   };
 
-  const RISK_COLOR = { Low:'#0ecb81', Medium:'#f0b90b', High:'#f6465d' };
-
   return (
     <>
       <style>{CSS}</style>
 
       {/* Toast */}
       {toast && (
-        <div style={{ position:'fixed', top:16, right:16, zIndex:9999, background:toast.type==='err'?'#f6465d':'#0ecb81', color:'#fff', padding:'11px 18px', borderRadius:12, fontWeight:700, fontSize:13, display:'flex', alignItems:'center', gap:8, boxShadow:'0 8px 32px rgba(0,0,0,.5)', animation:'fadeUp .3s', maxWidth:320 }}>
-          {toast.type==='err' ? <AlertCircle size={15}/> : <CheckCircle size={15}/>} {toast.msg}
+        <div style={{ position:'fixed', top:16, right:16, zIndex:9999, background:toast.type === 'err' ? '#f6465d' : '#0ecb81', color:'#fff', padding:'11px 18px', borderRadius:12, fontWeight:700, fontSize:13, display:'flex', alignItems:'center', gap:8, boxShadow:'0 8px 32px rgba(0,0,0,.5)', animation:'fadeUp .3s', maxWidth:320 }}>
+          {toast.type === 'err' ? <AlertCircle size={15} /> : <CheckCircle size={15} />} {toast.msg}
         </div>
       )}
 
       <div className="cc">
         {/* Header */}
-        <div style={{ background:'#0b0e11', borderBottom:'1px solid #1e2329', padding:'13px 20px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, position:'sticky', top:0, zIndex:50, flexWrap:'wrap' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-            <button onClick={() => navigate(-1)} style={{ background:'none', border:'none', color:'#848e9c', cursor:'pointer', display:'flex' }}><ArrowLeft size={18}/></button>
-            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-              <Globe size={18} style={{ color:'#f0b90b' }}/>
-              <h1 style={{ fontSize:18, fontWeight:800, color:'#eaecef' }}>Capital Connect</h1>
-            </div>
+        <div style={{ background:'#0b0e11', borderBottom:'1px solid #1e2329', padding:'13px 20px', display:'flex', alignItems:'center', gap:12, position:'sticky', top:0, zIndex:50 }}>
+          <button onClick={() => navigate(-1)} style={{ background:'none', border:'none', color:'#848e9c', cursor:'pointer', display:'flex' }}>
+            <ArrowLeft size={18} />
+          </button>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <Globe size={18} style={{ color:'#f0b90b' }} />
+            <h1 style={{ fontSize:18, fontWeight:800, color:'#eaecef' }}>Capital Connect</h1>
           </div>
         </div>
 
         {/* Hero */}
-        <div style={{ background:'linear-gradient(135deg,#161a1e 0%,#1e2329 50%,#0d1117 100%)', padding:'40px 20px', borderBottom:'1px solid #1e2329', textAlign:'center' }}>
+        <div style={{ background:'linear-gradient(135deg,#161a1e,#1e2329)', padding:'40px 20px', borderBottom:'1px solid #1e2329', textAlign:'center' }}>
           <div style={{ width:56, height:56, background:'rgba(240,185,11,.12)', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px', border:'1px solid rgba(240,185,11,.2)' }}>
-            <Globe size={28} style={{ color:'#f0b90b' }}/>
+            <Globe size={28} style={{ color:'#f0b90b' }} />
           </div>
-          <h2 style={{ fontSize:28, fontWeight:800, color:'#eaecef', marginBottom:8 }}>Connect with Institutional Capital</h2>
-          <p style={{ color:'#848e9c', fontSize:14, maxWidth:500, margin:'0 auto 24px', lineHeight:1.7 }}>
+          <h2 style={{ fontSize:26, fontWeight:800, color:'#eaecef', marginBottom:8 }}>Connect with Institutional Capital</h2>
+          <p style={{ color:'#848e9c', fontSize:14, maxWidth:480, margin:'0 auto 24px', lineHeight:1.7 }}>
             Access professional fund managers, venture capital networks, and institutional-grade investment opportunities.
           </p>
-          <div style={{ display:'flex', justifyContent:'center', gap:24, flexWrap:'wrap' }} className="cc-stats">
-            {[['$2.4B+','Total AUM'],['12,000+','Investors'],['180+','Countries'],['4.8★','Avg Rating']].map(([v,l]) => (
+          <div style={{ display:'flex', justifyContent:'center', gap:24, flexWrap:'wrap' }}>
+            {[['$2.4B+','Total AUM'],['12,000+','Investors'],['180+','Countries'],['4.8★','Avg Rating']].map(([v, l]) => (
               <div key={l} style={{ textAlign:'center' }}>
                 <div style={{ fontSize:22, fontWeight:800, color:'#f0b90b' }}>{v}</div>
                 <div style={{ fontSize:11, color:'#5e6673' }}>{l}</div>
@@ -130,11 +128,11 @@ export default function CapitalConnect() {
               { k:'vc',    l:'Venture Capital'  },
               { k:'apply', l:'Register Fund'    },
             ].map(t => (
-              <button key={t.k} className={`cc-tab${tab===t.k?' on':''}`} onClick={() => setTab(t.k)}>{t.l}</button>
+              <button key={t.k} className={`cc-tab${tab === t.k ? ' on' : ''}`} onClick={() => setTab(t.k)}>{t.l}</button>
             ))}
           </div>
 
-          {/* ── FUNDS ── */}
+          {/* Funds */}
           {tab === 'funds' && (
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:16 }} className="cc-grid">
               {FUNDS.map((fund, i) => (
@@ -143,8 +141,8 @@ export default function CapitalConnect() {
                     <div>
                       <h3 style={{ color:'#eaecef', fontWeight:700, fontSize:14, marginBottom:4 }}>{fund.name}</h3>
                       <div style={{ display:'flex', alignItems:'center', gap:3, fontSize:10, color:'#f0b90b' }}>
-                        {Array(5).fill(0).map((_,j) => (
-                          <Star key={j} size={10} style={{ fill:j < Math.floor(fund.rating)?'#f0b90b':'none', color:j < Math.floor(fund.rating)?'#f0b90b':'#2b3139' }}/>
+                        {Array(5).fill(0).map((_, j) => (
+                          <Star key={j} size={10} style={{ fill: j < Math.floor(fund.rating) ? '#f0b90b' : 'none', color: j < Math.floor(fund.rating) ? '#f0b90b' : '#2b3139' }} />
                         ))}
                         <span style={{ color:'#848e9c', marginLeft:3, fontSize:11 }}>{fund.rating}</span>
                       </div>
@@ -155,9 +153,9 @@ export default function CapitalConnect() {
                   </div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:14 }}>
                     {[
-                      { l:'AUM',            v:fund.aum,                    c:'#eaecef' },
-                      { l:'Annual Return',  v:fund.returns,                c:'#0ecb81' },
-                      { l:'Min Investment', v:fund.min,                    c:'#eaecef' },
+                      { l:'AUM',            v:fund.aum,                       c:'#eaecef' },
+                      { l:'Annual Return',  v:fund.returns,                   c:'#0ecb81' },
+                      { l:'Min Investment', v:fund.min,                       c:'#eaecef' },
                       { l:'Investors',      v:fund.investors.toLocaleString(), c:'#eaecef' },
                     ].map(s => (
                       <div key={s.l} style={{ background:'#0b0e11', borderRadius:8, padding:'9px 11px', border:'1px solid #2b3139' }}>
@@ -167,15 +165,17 @@ export default function CapitalConnect() {
                     ))}
                   </div>
                   <button className="cc-btn outline" style={{ width:'100%', justifyContent:'center' }}
-                    onClick={() => handleApply(fund.name)} disabled={applying===fund.name}>
-                    {applying===fund.name ? <><Loader2 size={13} className="spin"/> Applying...</> : <>Apply to Invest <ChevronRight size={13}/></>}
+                    onClick={() => handleApply(fund.name)} disabled={applying === fund.name}>
+                    {applying === fund.name
+                      ? <><Loader2 size={13} className="spin" /> Applying...</>
+                      : <>Apply to Invest <ChevronRight size={13} /></>}
                   </button>
                 </div>
               ))}
             </div>
           )}
 
-          {/* ── VC ── */}
+          {/* VC */}
           {tab === 'vc' && (
             <div>
               <div style={{ marginBottom:20 }}>
@@ -183,7 +183,7 @@ export default function CapitalConnect() {
                 <p style={{ fontSize:13, color:'#848e9c' }}>Connect with top-tier crypto VCs for funding, partnerships, and growth support.</p>
               </div>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:16 }} className="cc-grid">
-                {VC_LIST.map((vc,i) => (
+                {VC_LIST.map((vc, i) => (
                   <div key={i} className="cc-card fade">
                     <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:14 }}>
                       <div style={{ width:46, height:46, borderRadius:12, background:'rgba(240,185,11,.1)', border:'1px solid rgba(240,185,11,.2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, flexShrink:0 }}>
@@ -215,7 +215,7 @@ export default function CapitalConnect() {
             </div>
           )}
 
-          {/* ── REGISTER FUND ── */}
+          {/* Register Fund */}
           {tab === 'apply' && (
             <div style={{ maxWidth:520, margin:'0 auto' }}>
               <h2 style={{ fontSize:18, fontWeight:800, color:'#eaecef', marginBottom:6 }}>Register Your Fund</h2>
@@ -224,26 +224,28 @@ export default function CapitalConnect() {
               </p>
               <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
                 {[
-                  { k:'fundName',  l:'Fund Name *',       p:'e.g. Alpha Growth Fund',     t:'text'   },
-                  { k:'website',   l:'Fund Website',      p:'https://yourfund.com',       t:'url'    },
-                  { k:'aum',       l:'Current AUM (USD)', p:'e.g. $50,000,000',           t:'text'   },
-                  { k:'strategy',  l:'Investment Strategy', p:'e.g. DeFi, BTC, Multi-asset', t:'text' },
+                  { k:'fundName', l:'Fund Name *',        p:'e.g. Alpha Growth Fund',       t:'text' },
+                  { k:'website',  l:'Fund Website',       p:'https://yourfund.com',         t:'url'  },
+                  { k:'aum',      l:'Current AUM (USD)',  p:'e.g. $50,000,000',             t:'text' },
+                  { k:'strategy', l:'Investment Strategy',p:'e.g. DeFi, BTC, Multi-asset',  t:'text' },
                 ].map(f => (
                   <div key={f.k}>
                     <label style={{ fontSize:11, color:'#848e9c', fontWeight:700, textTransform:'uppercase', marginBottom:6, display:'block' }}>{f.l}</label>
                     <input className="cc-input" type={f.t} placeholder={f.p}
-                      value={formData[f.k]} onChange={e => setFormData(p => ({...p,[f.k]:e.target.value}))}/>
+                      value={formData[f.k]} onChange={e => setFormData(p => ({ ...p, [f.k]: e.target.value }))} />
                   </div>
                 ))}
                 <div>
                   <label style={{ fontSize:11, color:'#848e9c', fontWeight:700, textTransform:'uppercase', marginBottom:6, display:'block' }}>Description</label>
                   <textarea className="cc-input" rows={4} placeholder="Describe your fund's mission, strategy, and target returns..."
-                    style={{ resize:'vertical', minHeight:100 }}/>
+                    style={{ resize:'vertical', minHeight:100 }} />
                 </div>
               </div>
               <div style={{ background:'rgba(240,185,11,.05)', border:'1px solid rgba(240,185,11,.15)', borderRadius:10, padding:14, margin:'20px 0', display:'flex', gap:10 }}>
-                <Shield size={15} style={{ color:'#f0b90b', flexShrink:0, marginTop:1 }}/>
-                <p style={{ fontSize:12, color:'#848e9c', lineHeight:1.6 }}>All fund applications are reviewed by the Vinance compliance team within 3–5 business days. KYC/AML verification required.</p>
+                <Shield size={15} style={{ color:'#f0b90b', flexShrink:0, marginTop:1 }} />
+                <p style={{ fontSize:12, color:'#848e9c', lineHeight:1.6 }}>
+                  All fund applications are reviewed by the Vinance compliance team within 3-5 business days. KYC/AML verification required.
+                </p>
               </div>
               <button className="cc-btn gold" style={{ width:'100%', justifyContent:'center', padding:'13px 0', fontSize:14 }}
                 onClick={handleFundRegister}>
