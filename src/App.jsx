@@ -11,20 +11,17 @@ import {
   MessageSquare, Bot, Globe, Key
 } from 'lucide-react';
 
-/* ── React Hot Toast Integration ── */
-import toast, { Toaster } from 'react-hot-toast';
-
 import { UserProvider, UserContext } from './context/UserContext';
 import NotificationSystem from './components/NotificationSystem';
 
 /* ── Existing Pages ── */
-import Home         from './pages/Home';
+import Home          from './pages/Home';
 import BecomeTrader  from './pages/BecomeTrader';
 import Profile       from './pages/Profile';
 import Deposit       from './pages/Deposit';
 import Withdraw      from './pages/Withdraw';
 import WalletPage    from './pages/Wallet';
-import Investment   from './pages/Investment';
+import Investment    from './pages/Investment';
 import MyInvestments from './pages/MyInvestments';
 import TraderProfile from './pages/TraderProfile';
 import Futures       from './pages/Futures';
@@ -67,18 +64,12 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    // লোডিং টোস্ট স্টার্ট
-    const loadingToast = toast.loading('Signing in to Vinance...');
     try {
       const res = await axios.post(`${API_URL}/api/login`, { email, password });
       login(res.data.token, res.data.user || res.data);
-      
-      // সাকসেস টোস্ট
-      toast.success('Login Successful! Welcome back.', { id: loadingToast });
       navigate('/dashboard');
     } catch (err) {
-      // এরর টোস্ট
-      toast.error(err.response?.data?.message || 'Login Failed. Please check credentials.', { id: loadingToast });
+      alert(err.response?.data?.message || 'Login Failed');
     }
   };
 
@@ -114,13 +105,12 @@ const Register = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    const loadingToast = toast.loading('Creating your account...');
     try {
       await axios.post(`${API_URL}/api/register`, formData);
-      toast.success('Registration Successful! Please Login.', { id: loadingToast });
+      alert('Registration Successful! Please Login.');
       navigate('/login');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Registration Failed. Try again.', { id: loadingToast });
+      alert(err.response?.data?.message || 'Registration Failed');
     }
   };
 
@@ -228,14 +218,14 @@ const Dashboard = ({ cryptoData }) => {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label:'Market',      icon:'📊', path:'/market'          },
-          { label:'Futures',     icon:'⚡', path:'/futures/btc'     },
-          { label:'Copy Trade',  icon:'📋', path:'/copy-trade'      },
-          { label:'Square',      icon:'🌐', path:'/square'          },
-          { label:'Bots',        icon:'🤖', path:'/trading-bots'    },
-          { label:'Alpha',       icon:'🔥', path:'/alpha'           },
-          { label:'Capital',     icon:'💎', path:'/capital-connect' },
-          { label:'API',         icon:'🔑', path:'/api-management'  },
+          { label:'Market',     icon:'📊', path:'/market'          },
+          { label:'Futures',    icon:'⚡', path:'/futures/btc'     },
+          { label:'Copy Trade', icon:'📋', path:'/copy-trade'      },
+          { label:'Square',     icon:'🌐', path:'/square'          },
+          { label:'Bots',       icon:'🤖', path:'/trading-bots'    },
+          { label:'Alpha',      icon:'🔥', path:'/alpha'           },
+          { label:'Capital',    icon:'💎', path:'/capital-connect' },
+          { label:'API',        icon:'🔑', path:'/api-management'  },
         ].map(item => (
           <div key={item.label} onClick={() => navigate(item.path)}
             className="bg-[#161a1e] border border-[#1e2329] rounded-2xl p-5 cursor-pointer hover:border-[#f0b90b]/50 text-center transition-all">
@@ -268,20 +258,20 @@ const AppContent = ({ cryptoData }) => {
   if (!token && !isAuthPage && !isHomePage) return <Navigate to="/login" replace />;
 
   const userPages = [
-    { to:'/dashboard',                               icon:<LayoutDashboard size={22}/>, label:'Home'       },
-    { to:'/market',                                  icon:<BarChart3 size={22}/>,       label:'Market'     },
-    { to:'/futures/btc',                             icon:<Gavel size={22}/>,           label:'Futures'    },
-    { to:`/trade/${cryptoData[0]?.symbol||'btc'}`,   icon:<TrendingUp size={22}/>,      label:'Spot'       },
-    { to:'/copy-trade',                              icon:<Copy size={22}/>,            label:'Copy Trade' },
-    { to:'/trading-bots',                            icon:<Bot size={22}/>,             label:'Bots'       },
-    { to:'/square',                                  icon:<MessageSquare size={22}/>,   label:'Square'     },
-    { to:'/alpha',                                   icon:<Zap size={22}/>,             label:'Alpha'      },
-    { to:'/capital-connect',                         icon:<Globe size={22}/>,           label:'Capital'    },
-    { to:'/creator-center',                          icon:<MessageSquare size={22}/>,   label:'Creator'    },
-    { to:'/api-management',                          icon:<Key size={22}/>,             label:'API'        },
-    { to:'/invest',                                  icon:<PieChart size={22}/>,        label:'Invest'     },
-    { to:'/history',                                 icon:<History size={22}/>,         label:'History'    },
-    { to:'/wallet',                                  icon:<Wallet size={22}/>,          label:'Wallet'     },
+    { to:'/dashboard',                              icon:<LayoutDashboard size={22}/>, label:'Home'       },
+    { to:'/market',                                 icon:<BarChart3 size={22}/>,       label:'Market'     },
+    { to:'/futures/btc',                            icon:<Gavel size={22}/>,           label:'Futures'    },
+    { to:`/trade/${cryptoData[0]?.symbol||'btc'}`,  icon:<TrendingUp size={22}/>,      label:'Spot'       },
+    { to:'/copy-trade',                             icon:<Copy size={22}/>,            label:'Copy Trade' },
+    { to:'/trading-bots',                           icon:<Bot size={22}/>,             label:'Bots'       },
+    { to:'/square',                                 icon:<MessageSquare size={22}/>,   label:'Square'     },
+    { to:'/alpha',                                  icon:<Zap size={22}/>,             label:'Alpha'      },
+    { to:'/capital-connect',                        icon:<Globe size={22}/>,           label:'Capital'    },
+    { to:'/creator-center',                         icon:<MessageSquare size={22}/>,   label:'Creator'    },
+    { to:'/api-management',                         icon:<Key size={22}/>,             label:'API'        },
+    { to:'/invest',                                 icon:<PieChart size={22}/>,        label:'Invest'     },
+    { to:'/history',                                icon:<History size={22}/>,         label:'History'    },
+    { to:'/wallet',                                 icon:<Wallet size={22}/>,          label:'Wallet'     },
   ];
 
   const adminPages = [
@@ -291,7 +281,7 @@ const AppContent = ({ cryptoData }) => {
 
   const allRoutes = (
     <Routes>
-      <Route path="/"          element={<Home />} />
+      <Route path="/"         element={<Home />} />
       <Route path="/login"    element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/dashboard"           element={<Dashboard cryptoData={cryptoData} />} />
@@ -416,7 +406,7 @@ const AppContent = ({ cryptoData }) => {
               {to:'/dashboard',   icon:<LayoutDashboard size={22}/>, label:'Home'    },
               {to:'/market',      icon:<BarChart3 size={22}/>,       label:'Market'  },
               {to:'/futures/btc', icon:<Gavel size={22}/>,           label:'Futures' },
-              {to:'/trading-bots',icon:<Bot size={22}/>,              label:'Bots'    },
+              {to:'/trading-bots',icon:<Bot size={22}/>,             label:'Bots'    },
               {to:'/wallet',      icon:<Wallet size={22}/>,          label:'Wallet'  },
             ].map(item => (
               <NavLink key={item.to} to={item.to}
@@ -470,8 +460,6 @@ export default function App() {
   return (
     <UserProvider>
       <BrowserRouter>
-        {/* টোস্টার গ্লোবাল কন্টেইনার এড করা হয়েছে */}
-        <Toaster position="top-center" reverseOrder={false} toastOptions={{ duration: 3000 }} />
         <AppContent cryptoData={cryptoData}/>
       </BrowserRouter>
     </UserProvider>
