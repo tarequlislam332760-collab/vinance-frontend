@@ -57,12 +57,12 @@ const LEVEL_TIERS = [
   { name:'Content Creator', min:100, color:'#627eea', next:'Rising Star',   icon:'✍️', perks:['Custom profile badge','Priority feed exposure'] },
   { name:'Rising Star', min:500, color:'#0ecb81', next:'Top Creator',      icon:'⭐', perks:['Monetization access','Exclusive events'] },
   { name:'Top Creator', min:2000, color:'#f0b90b', next:'Elite Creator',   icon:'🏆', perks:['Revenue sharing','Featured placement'] },
-  { name:'Elite Creator', min:5000, color:'#f6465d', next:null,             icon:'👑', perks:['Direct partnerships','Platform ambassador'] },
+  { name:'Elite Creator', min:5000, color:'#f6465d', next:null,              icon:'👑', perks:['Direct partnerships','Platform ambassador'] },
 ];
 
 const MOCK_POSTS = [
   { id:1, title:'BTC Technical Analysis — Weekly Outlook', type:'article', likes:234, views:4521, comments:18, time:'2d ago', status:'published' },
-  { id:2, title:'Why I'm Bullish on ETH This Quarter',     type:'article', likes:189, views:3210, comments:12, time:'4d ago', status:'published' },
+  { id:2, title: "Why I'm Bullish on ETH This Quarter",     type:'article', likes:189, views:3210, comments:12, time:'4d ago', status:'published' }, // Fixed line 65
   { id:3, title:'DeFi Yield Farming Guide 2024',           type:'video',   likes:421, views:8920, comments:34, time:'1w ago', status:'published' },
   { id:4, title:'SOL vs AVAX — Performance Comparison',   type:'article', likes:98,  views:1870, comments:7,  time:'2w ago', status:'draft'     },
 ];
@@ -83,7 +83,7 @@ export default function SquareCreator() {
 
   /* Simulated creator stats */
   const creatorStats = {
-    level:    'Content Creator',
+    level:    'Content Creator', 
     xp:       340,
     nextXp:   500,
     followers: 1240,
@@ -225,9 +225,9 @@ export default function SquareCreator() {
               {/* Stats */}
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(150px,1fr))', gap:12, marginBottom:24 }} className="sc-grid-4">
                 {[
-                  { label:'Total Views',  value:creatorStats.totalViews.toLocaleString(), icon:<Eye size={17}/>,           color:'#627eea' },
-                  { label:'Total Likes',  value:creatorStats.totalLikes.toLocaleString(), icon:<Heart size={17}/>,          color:'#f6465d' },
-                  { label:'Posts',        value:posts.length,                             icon:<FileText size={17}/>,       color:'#f0b90b' },
+                  { label:'Total Views',  value:creatorStats.totalViews.toLocaleString(), icon:<Eye size={17}/>,          color:'#627eea' },
+                  { label:'Total Likes',  value:creatorStats.totalLikes.toLocaleString(), icon:<Heart size={17}/>,         color:'#f6465d' },
+                  { label:'Posts',        value:posts.length,                                icon:<FileText size={17}/>,       color:'#f0b90b' },
                   { label:'Followers',    value:creatorStats.followers.toLocaleString(),  icon:<Users size={17}/>,           color:'#0ecb81' },
                 ].map(s => (
                   <div key={s.label} className="sc-card" style={{ borderTop:`2px solid ${s.color}`, textAlign:'center' }}>
@@ -433,36 +433,41 @@ export default function SquareCreator() {
           {/* ── ANALYTICS ── */}
           {tab === 'analytics' && (
             <div>
-              <h3 style={{ fontSize:16, fontWeight:700, color:'#eaecef', marginBottom:18 }}>Content Analytics</h3>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))', gap:12, marginBottom:24 }}>
-                {[
-                  { l:'Total Views',    v:creatorStats.totalViews.toLocaleString(), c:'#627eea' },
-                  { l:'Total Likes',    v:creatorStats.totalLikes.toLocaleString(), c:'#f6465d' },
-                  { l:'Comments',       v:posts.reduce((s,p)=>s+p.comments,0),     c:'#0ecb81' },
-                  { l:'Avg. Views/Post',v:Math.round(creatorStats.totalViews/Math.max(posts.length,1)).toLocaleString(), c:'#f0b90b' },
-                ].map(s => (
-                  <div key={s.l} style={{ background:'#161a1e', border:`1px solid #1e2329`, borderRadius:12, padding:'14px', textAlign:'center' }}>
-                    <div style={{ fontSize:20, fontWeight:800, color:s.c, marginBottom:4 }}>{s.v}</div>
-                    <div style={{ fontSize:10, color:'#848e9c', fontWeight:700, textTransform:'uppercase' }}>{s.l}</div>
+              {
+                /* Analytics Section */
+                <>
+                  <h3 style={{ fontSize:16, fontWeight:700, color:'#eaecef', marginBottom:18 }}>Content Analytics</h3>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))', gap:12, marginBottom:24 }}>
+                    {[
+                      { l:'Total Views',    v:creatorStats.totalViews.toLocaleString(), c:'#627eea' },
+                      { l:'Total Likes',    v:creatorStats.totalLikes.toLocaleString(), c:'#f6465d' },
+                      { l:'Comments',       v:posts.reduce((s,p)=>s+p.comments,0),     c:'#0ecb81' },
+                      { l:'Avg. Views/Post',v:Math.round(creatorStats.totalViews/Math.max(posts.length,1)).toLocaleString(), c:'#f0b90b' },
+                    ].map(s => (
+                      <div key={s.l} style={{ background:'#161a1e', border:`1px solid #1e2329`, borderRadius:12, padding:'14px', textAlign:'center' }}>
+                        <div style={{ fontSize:20, fontWeight:800, color:s.c, marginBottom:4 }}>{s.v}</div>
+                        <div style={{ fontSize:10, color:'#848e9c', fontWeight:700, textTransform:'uppercase' }}>{s.l}</div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
 
-              {/* Top posts */}
-              <div className="sc-card">
-                <h4 style={{ fontSize:14, fontWeight:700, color:'#eaecef', marginBottom:14 }}>Top Performing Posts</h4>
-                {[...posts].sort((a,b) => b.views-a.views).map(post => (
-                  <div key={post.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 0', borderBottom:'1px solid #1e232940' }}>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <p style={{ fontSize:13, fontWeight:600, color:'#eaecef', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{post.title}</p>
-                    </div>
-                    <div style={{ display:'flex', gap:14, fontSize:12, color:'#848e9c', flexShrink:0 }}>
-                      <span style={{ color:'#627eea', fontWeight:700 }}>{post.views.toLocaleString()} views</span>
-                      <span style={{ color:'#f6465d' }}>{post.likes} likes</span>
-                    </div>
+                  {/* Top posts */}
+                  <div className="sc-card">
+                    <h4 style={{ fontSize:14, fontWeight:700, color:'#eaecef', marginBottom:14 }}>Top Performing Posts</h4>
+                    {[...posts].sort((a,b) => b.views-a.views).map(post => (
+                      <div key={post.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 0', borderBottom:'1px solid #1e232940' }}>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <p style={{ fontSize:13, fontWeight:600, color:'#eaecef', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{post.title}</p>
+                        </div>
+                        <div style={{ display:'flex', gap:14, fontSize:12, color:'#848e9c', flexShrink:0 }}>
+                          <span style={{ color:'#627eea', fontWeight:700 }}>{post.views.toLocaleString()} views</span>
+                          <span style={{ color:'#f6465d' }}>{post.likes} likes</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </>
+              }
             </div>
           )}
 
@@ -486,77 +491,23 @@ export default function SquareCreator() {
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(250px,1fr))', gap:16 }}>
                 {[
                   { title:'Content Rewards',   icon:'✍️', desc:'Earn XP and future token rewards for high-quality posts that get likes, comments, and views.', unlocked:true,  badge:'Active'    },
-                  { title:'Revenue Sharing',   icon:'💰', desc:'Top creators receive a share of platform advertising revenue based on content performance.',    unlocked:false, badge:'Rising Star' },
-                  { title:'Exclusive Events',  icon:'🎤', desc:'Participate in live AMAs, webinars, and partner events with industry leaders.',                 unlocked:false, badge:'Rising Star' },
-                  { title:'Brand Partnerships',icon:'🤝', desc:'Direct partnership opportunities with crypto projects and DeFi protocols.',                    unlocked:false, badge:'Top Creator'  },
-                ].map((item,i) => (
-                  <div key={i} className="sc-card" style={{ opacity:item.unlocked?1:0.7 }}>
-                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-                      <span style={{ fontSize:28 }}>{item.icon}</span>
-                      <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:10, background:item.unlocked?'rgba(14,203,129,.1)':'rgba(132,142,156,.1)', color:item.unlocked?'#0ecb81':'#848e9c' }}>
-                        {item.unlocked ? 'Unlocked' : item.badge}
+                  { title:'Revenue Sharing',   icon:'💰', desc:'Top creators receive a share of platform advertising revenue based on content performance.', unlocked:false, badge:'Locked'    },
+                ].map((item, i) => (
+                  <div key={i} className="sc-card" style={{ opacity: item.unlocked ? 1 : 0.6 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                      <span style={{ fontSize: 24 }}>{item.icon}</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: item.unlocked ? 'rgba(14,203,129,.1)' : 'rgba(238,91,91,.1)', color: item.unlocked ? '#0ecb81' : '#f6465d' }}>
+                        {item.badge}
                       </span>
                     </div>
-                    <h4 style={{ fontSize:14, fontWeight:700, color:'#eaecef', marginBottom:6 }}>{item.title}</h4>
-                    <p style={{ fontSize:12, color:'#848e9c', lineHeight:1.6 }}>{item.desc}</p>
+                    <h4 style={{ fontSize: 15, fontWeight: 700, color: '#eaecef', marginBottom: 6 }}>{item.title}</h4>
+                    <p style={{ fontSize: 12, color: '#848e9c', lineHeight: 1.6 }}>{item.desc}</p>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* ── GUIDE ── */}
-          {tab === 'guide' && (
-            <div>
-              <h3 style={{ fontSize:16, fontWeight:700, color:'#eaecef', marginBottom:6 }}>Creator Guide</h3>
-              <p style={{ fontSize:13, color:'#848e9c', marginBottom:24 }}>Learn how to grow your presence on Vinance Square</p>
-
-              {/* XP Table */}
-              <div className="sc-card" style={{ marginBottom:20 }}>
-                <h4 style={{ fontSize:14, fontWeight:700, color:'#eaecef', marginBottom:14 }}>How to Earn XP</h4>
-                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                  {[
-                    { action:'Publish an article',        xp:'+5 XP',  color:'#627eea' },
-                    { action:'Post gets 10 likes',        xp:'+2 XP',  color:'#f6465d' },
-                    { action:'Post gets 100 views',       xp:'+3 XP',  color:'#848e9c' },
-                    { action:'Receive a comment',         xp:'+1 XP',  color:'#0ecb81' },
-                    { action:'Post gets shared',          xp:'+4 XP',  color:'#f0b90b' },
-                    { action:'Daily active posting',      xp:'+10 XP', color:'#9b58f0' },
-                    { action:'Publish a video',           xp:'+8 XP',  color:'#f6465d' },
-                    { action:'Reach 100 followers',       xp:'+20 XP', color:'#0ecb81' },
-                  ].map((item,i) => (
-                    <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 12px', background:'#0b0e11', borderRadius:8, border:'1px solid #2b3139' }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                        <div style={{ width:8, height:8, borderRadius:'50%', background:item.color, flexShrink:0 }}/>
-                        <span style={{ fontSize:13, color:'#c6cad2' }}>{item.action}</span>
-                      </div>
-                      <span style={{ fontSize:13, fontWeight:700, color:item.color }}>{item.xp}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Level tiers */}
-              <div className="sc-card">
-                <h4 style={{ fontSize:14, fontWeight:700, color:'#eaecef', marginBottom:14 }}>Level Tiers</h4>
-                <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                  {LEVEL_TIERS.map((tier,i) => (
-                    <div key={i} style={{ display:'flex', alignItems:'center', gap:14, padding:'12px 14px', background:creatorStats.level===tier.name?'rgba(240,185,11,.05)':'#0b0e11', border:`1px solid ${creatorStats.level===tier.name?'rgba(240,185,11,.3)':'#2b3139'}`, borderRadius:10 }}>
-                      <span style={{ fontSize:22 }}>{tier.icon}</span>
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:2 }}>
-                          <span style={{ fontWeight:700, fontSize:13, color:tier.color }}>{tier.name}</span>
-                          {creatorStats.level === tier.name && <span style={{ fontSize:10, fontWeight:700, background:'rgba(240,185,11,.1)', color:'#f0b90b', padding:'1px 7px', borderRadius:10 }}>Current</span>}
-                        </div>
-                        <span style={{ fontSize:11, color:'#5e6673' }}>{tier.min === 0 ? 'Starting level' : `${tier.min.toLocaleString()} XP`}</span>
-                      </div>
-                      <div style={{ fontSize:12, color:'#848e9c' }}>{tier.perks[0]}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </>
