@@ -31,21 +31,12 @@ import CopyTrade     from './pages/CopyTrade';
 import Square        from './pages/Square';
 import HistoryPage   from './pages/History';
 
-/*
-  ── NEW PAGES ──
-  IMPORTANT: These import names must match EXACTLY the file names on GitHub.
-  GitHub files:
-    src/pages/TradingBots.jsx      ← import TradingBots
-    src/pages/Alpha.jsx            ← import Alpha
-    src/pages/CapitalConnect.jsx   ← import CapitalConnect
-    src/pages/Squarecreator.jsx    ← import Squarecreator  (lowercase 'c')
-    src/pages/Apimanagement.jsx    ← import Apimanagement  (lowercase 'm')
-*/
+/* ── New Pages (exact GitHub file names) ── */
 import TradingBots    from './pages/TradingBots';
 import Alpha          from './pages/Alpha';
 import CapitalConnect from './pages/CapitalConnect';
-import Squarecreator  from './pages/Squarecreator';   /* GitHub: Squarecreator.jsx */
-import Apimanagement  from './pages/Apimanagement';   /* GitHub: Apimanagement.jsx */
+import Squarecreator  from './pages/Squarecreator';
+import Apimanagement  from './pages/Apimanagement';
 
 /* ── Admin ── */
 import AdminPanel  from './admin/AdminPanel';
@@ -167,8 +158,6 @@ const Dashboard = ({ cryptoData }) => {
 
   return (
     <div className="p-4 md:p-8 text-left space-y-6 bg-[#0b0e11] min-h-screen">
-
-      {/* Balance Card */}
       <div className="bg-gradient-to-br from-[#161a1e] to-[#0b0e11] p-6 rounded-[2.5rem] border border-[#1e2329] flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl">
         <div className="text-center md:text-left z-10">
           <p className="text-gray-500 text-[10px] uppercase tracking-[0.3em] font-black mb-2">Estimated Balance</p>
@@ -178,17 +167,12 @@ const Dashboard = ({ cryptoData }) => {
         </div>
         <div className="flex gap-3 w-full md:w-auto z-10">
           <button onClick={() => navigate('/deposit')}
-            className="flex-1 bg-[#f0b90b] text-black px-8 py-3.5 rounded-2xl font-black uppercase text-xs">
-            Deposit
-          </button>
+            className="flex-1 bg-[#f0b90b] text-black px-8 py-3.5 rounded-2xl font-black uppercase text-xs">Deposit</button>
           <button onClick={() => navigate('/withdraw')}
-            className="flex-1 bg-white/5 text-white px-8 py-3.5 rounded-2xl font-black border border-[#1e2329] uppercase text-xs">
-            Withdraw
-          </button>
+            className="flex-1 bg-white/5 text-white px-8 py-3.5 rounded-2xl font-black border border-[#1e2329] uppercase text-xs">Withdraw</button>
         </div>
       </div>
 
-      {/* Crypto + Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 grid grid-cols-2 gap-4">
           {cryptoData.slice(0, 4).map(coin => (
@@ -218,37 +202,30 @@ const Dashboard = ({ cryptoData }) => {
                   </span>
                   <div>
                     <p className="font-black text-[9px] text-white uppercase">{trx.type}</p>
-                    <p className="text-[8px] text-gray-500">
-                      {new Date(trx.createdAt || trx.date).toLocaleDateString()}
-                    </p>
+                    <p className="text-[8px] text-gray-500">{new Date(trx.createdAt || trx.date).toLocaleDateString()}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="font-mono font-bold text-xs text-white">${trx.amount}</p>
-                  <p className={`text-[8px] font-black uppercase ${
-                    trx.status === 'approved' || trx.status === 'completed' ? 'text-[#00c076]' : 'text-[#f0b90b]'
-                  }`}>{trx.status}</p>
+                  <p className={`text-[8px] font-black uppercase ${trx.status === 'approved' || trx.status === 'completed' ? 'text-[#00c076]' : 'text-[#f0b90b]'}`}>{trx.status}</p>
                 </div>
               </div>
             ))}
-            {!transactions.length && (
-              <p className="text-gray-600 text-xs text-center py-6">No transactions yet</p>
-            )}
+            {!transactions.length && <p className="text-gray-600 text-xs text-center py-6">No transactions yet</p>}
           </div>
         </div>
       </div>
 
-      {/* Quick Nav — all 8 features */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Market',     icon: '📊', path: '/market'         },
-          { label: 'Futures',    icon: '⚡', path: '/futures/btc'    },
-          { label: 'Copy Trade', icon: '📋', path: '/copy-trade'     },
-          { label: 'Square',     icon: '🌐', path: '/square'         },
-          { label: 'Bots',       icon: '🤖', path: '/trading-bots'   },
-          { label: 'Alpha',      icon: '🔥', path: '/alpha'          },
-          { label: 'Capital',    icon: '💎', path: '/capital-connect' },
-          { label: 'API',        icon: '🔑', path: '/api-management'  },
+          { label:'Market',     icon:'📊', path:'/market'          },
+          { label:'Futures',    icon:'⚡', path:'/futures/btc'     },
+          { label:'Copy Trade', icon:'📋', path:'/copy-trade'      },
+          { label:'Square',     icon:'🌐', path:'/square'          },
+          { label:'Bots',       icon:'🤖', path:'/trading-bots'    },
+          { label:'Alpha',      icon:'🔥', path:'/alpha'           },
+          { label:'Capital',    icon:'💎', path:'/capital-connect' },
+          { label:'API',        icon:'🔑', path:'/api-management'  },
         ].map(item => (
           <div key={item.label} onClick={() => navigate(item.path)}
             className="bg-[#161a1e] border border-[#1e2329] rounded-2xl p-5 cursor-pointer hover:border-[#f0b90b]/50 text-center transition-all">
@@ -276,129 +253,107 @@ const AppContent = ({ cryptoData }) => {
 
   const isAuthPage = ['/login', '/register'].includes(location.pathname);
   const isHomePage = location.pathname === '/';
-  const isFullPage = location.pathname.startsWith('/square') ||
-                     location.pathname.startsWith('/market');
+  const isFullPage = location.pathname.startsWith('/square') || location.pathname.startsWith('/market');
 
   if (!token && !isAuthPage && !isHomePage) return <Navigate to="/login" replace />;
 
-  /* sidebar nav pages */
   const userPages = [
-    { to: '/dashboard',                               icon: <LayoutDashboard size={22} />, label: 'Home'       },
-    { to: '/market',                                  icon: <BarChart3 size={22} />,       label: 'Market'     },
-    { to: '/futures/btc',                             icon: <Gavel size={22} />,           label: 'Futures'    },
-    { to: `/trade/${cryptoData[0]?.symbol || 'btc'}`, icon: <TrendingUp size={22} />,      label: 'Spot'       },
-    { to: '/copy-trade',                              icon: <Copy size={22} />,            label: 'Copy Trade' },
-    { to: '/trading-bots',                            icon: <Bot size={22} />,             label: 'Bots'       },
-    { to: '/square',                                  icon: <MessageSquare size={22} />,   label: 'Square'     },
-    { to: '/alpha',                                   icon: <Zap size={22} />,             label: 'Alpha'      },
-    { to: '/capital-connect',                         icon: <Globe size={22} />,           label: 'Capital'    },
-    { to: '/creator-center',                          icon: <MessageSquare size={22} />,   label: 'Creator'    },
-    { to: '/api-management',                          icon: <Key size={22} />,             label: 'API'        },
-    { to: '/invest',                                  icon: <PieChart size={22} />,        label: 'Invest'     },
-    { to: '/history',                                 icon: <History size={22} />,         label: 'History'    },
-    { to: '/wallet',                                  icon: <Wallet size={22} />,          label: 'Wallet'     },
+    { to:'/dashboard',                              icon:<LayoutDashboard size={22}/>, label:'Home'       },
+    { to:'/market',                                 icon:<BarChart3 size={22}/>,       label:'Market'     },
+    { to:'/futures/btc',                            icon:<Gavel size={22}/>,           label:'Futures'    },
+    { to:`/trade/${cryptoData[0]?.symbol||'btc'}`,  icon:<TrendingUp size={22}/>,      label:'Spot'       },
+    { to:'/copy-trade',                             icon:<Copy size={22}/>,            label:'Copy Trade' },
+    { to:'/trading-bots',                           icon:<Bot size={22}/>,             label:'Bots'       },
+    { to:'/square',                                 icon:<MessageSquare size={22}/>,   label:'Square'     },
+    { to:'/alpha',                                  icon:<Zap size={22}/>,             label:'Alpha'      },
+    { to:'/capital-connect',                        icon:<Globe size={22}/>,           label:'Capital'    },
+    { to:'/creator-center',                         icon:<MessageSquare size={22}/>,   label:'Creator'    },
+    { to:'/api-management',                         icon:<Key size={22}/>,             label:'API'        },
+    { to:'/invest',                                 icon:<PieChart size={22}/>,        label:'Invest'     },
+    { to:'/history',                                icon:<History size={22}/>,         label:'History'    },
+    { to:'/wallet',                                 icon:<Wallet size={22}/>,          label:'Wallet'     },
   ];
 
   const adminPages = [
-    { to: '/admin',              icon: <ShieldCheck size={22} />, label: 'Admin' },
-    { to: '/admin/manage-plans', icon: <LayoutGrid size={22} />,  label: 'Plans' },
+    { to:'/admin',              icon:<ShieldCheck size={22}/>, label:'Admin' },
+    { to:'/admin/manage-plans', icon:<LayoutGrid size={22}/>,  label:'Plans' },
   ];
 
   const allRoutes = (
     <Routes>
-      {/* Auth */}
       <Route path="/"         element={<Home />} />
       <Route path="/login"    element={<Login />} />
       <Route path="/register" element={<Register />} />
-
-      {/* Main */}
       <Route path="/dashboard"           element={<Dashboard cryptoData={cryptoData} />} />
       <Route path="/market"              element={<Market />} />
       <Route path="/copy-trade"          element={<CopyTrade />} />
       <Route path="/square"              element={<Square />} />
       <Route path="/history"             element={<HistoryPage />} />
-
-      {/* Trading */}
       <Route path="/futures"             element={<Navigate to="/futures/btc" replace />} />
       <Route path="/futures/:coinSymbol" element={<Futures />} />
       <Route path="/trade/:coinSymbol"   element={<Trade />} />
 
-      {/* New Pages — component names match the import names above */}
-      <Route path="/trading-bots"        element={<TradingBots />} />
-      <Route path="/alpha"               element={<Alpha />} />
-      <Route path="/capital-connect"     element={<CapitalConnect />} />
-      <Route path="/creator-center"      element={<Squarecreator />} />
-      <Route path="/api-management"      element={<Apimanagement />} />
+      {/* New Pages */}
+      <Route path="/trading-bots"    element={<TradingBots />} />
+      <Route path="/alpha"           element={<Alpha />} />
+      <Route path="/capital-connect" element={<CapitalConnect />} />
+      <Route path="/creator-center"  element={<Squarecreator />} />
+      <Route path="/api-management"  element={<Apimanagement />} />
 
       {/* User */}
-      <Route path="/deposit"             element={<Deposit />} />
-      <Route path="/withdraw"            element={<Withdraw />} />
-      <Route path="/wallet"              element={<WalletPage />} />
-      <Route path="/invest"              element={<Investment />} />
-      <Route path="/my-investments"      element={<MyInvestments />} />
-      <Route path="/trader-profile"      element={<TraderProfile />} />
-      <Route path="/profile"             element={<Profile />} />
-      <Route path="/become-trader"       element={<BecomeTrader />} />
+      <Route path="/deposit"        element={<Deposit />} />
+      <Route path="/withdraw"       element={<Withdraw />} />
+      <Route path="/wallet"         element={<WalletPage />} />
+      <Route path="/invest"         element={<Investment />} />
+      <Route path="/my-investments" element={<MyInvestments />} />
+      <Route path="/trader-profile" element={<TraderProfile />} />
+      <Route path="/profile"        element={<Profile />} />
+      <Route path="/become-trader"  element={<BecomeTrader />} />
 
       {/* Admin */}
       <Route path="/admin"
-        element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/dashboard" />} />
+        element={user?.role==='admin' ? <AdminPanel/> : <Navigate to="/dashboard"/>} />
       <Route path="/admin/manage-plans"
-        element={user?.role === 'admin' ? <ManagePlans /> : <Navigate to="/dashboard" />} />
+        element={user?.role==='admin' ? <ManagePlans/> : <Navigate to="/dashboard"/>} />
     </Routes>
   );
 
-  if (isFullPage) return (
-    <div className="min-h-screen bg-[#0b0e11] text-white">{allRoutes}</div>
-  );
+  if (isFullPage) return <div className="min-h-screen bg-[#0b0e11] text-white">{allRoutes}</div>;
 
   return (
     <div className="min-h-screen bg-[#0b0e11] text-white flex flex-col md:flex-row overflow-hidden text-left font-sans">
 
-      {/* ── Desktop Sidebar ── */}
+      {/* Sidebar */}
       {token && !isHomePage && (
         <aside className="w-20 lg:w-64 bg-[#161a1e] border-r border-[#1e2329] hidden md:flex flex-col p-4 h-screen sticky top-0 z-40">
-          <div className="mb-8 px-4 py-2 text-2xl font-black text-[#f0b90b] italic uppercase tracking-tighter hidden lg:block">
-            VINANCE
-          </div>
-          <div className="mb-6 flex justify-center lg:hidden">
-            <span className="text-[#f0b90b] font-black text-xl">V</span>
-          </div>
-          <nav className="space-y-1 flex-1 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
-            {userPages.map(page => (
-              <NavItem key={page.to} to={page.to} icon={page.icon} label={page.label} />
-            ))}
+          <div className="mb-8 px-4 py-2 text-2xl font-black text-[#f0b90b] italic uppercase tracking-tighter hidden lg:block">VINANCE</div>
+          <div className="mb-6 flex justify-center lg:hidden"><span className="text-[#f0b90b] font-black text-xl">V</span></div>
+          <nav className="space-y-1 flex-1 overflow-y-auto" style={{scrollbarWidth:'none'}}>
+            {userPages.map(page => <NavItem key={page.to} to={page.to} icon={page.icon} label={page.label}/>)}
           </nav>
-          {user?.role === 'admin' && (
+          {user?.role==='admin' && (
             <div className="mt-auto pt-4 border-t border-gray-800 space-y-1 mb-4">
-              <div className="px-4 py-1 text-[9px] font-black text-[#f0b90b] uppercase tracking-widest opacity-50 hidden lg:block">
-                Admin
-              </div>
-              {adminPages.map(page => (
-                <NavItem key={page.to} to={page.to} icon={page.icon} label={page.label} />
-              ))}
+              <div className="px-4 py-1 text-[9px] font-black text-[#f0b90b] uppercase tracking-widest opacity-50 hidden lg:block">Admin</div>
+              {adminPages.map(page => <NavItem key={page.to} to={page.to} icon={page.icon} label={page.label}/>)}
             </div>
           )}
-          <button onClick={logout}
-            className="p-4 text-gray-500 hover:text-red-500 flex items-center gap-4 font-bold border-t border-gray-800 transition-colors">
-            <LogOut size={20} />
+          <button onClick={logout} className="p-4 text-gray-500 hover:text-red-500 flex items-center gap-4 font-bold border-t border-gray-800 transition-colors">
+            <LogOut size={20}/>
             <span className="hidden lg:inline text-[10px] font-black uppercase">Sign Out</span>
           </button>
         </aside>
       )}
 
-      {/* ── Main Content ── */}
+      {/* Main */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
         {token && !isHomePage && (
           <header className="h-14 border-b border-[#1e2329] bg-[#161a1e] flex items-center justify-between px-6 sticky top-0 z-30">
-            <div className="font-black text-[9px] uppercase tracking-widest text-[#f0b90b]">
-              Hi, {user?.name || 'User'} 👋
-            </div>
+            <div className="font-black text-[9px] uppercase tracking-widest text-[#f0b90b]">Hi, {user?.name||'User'} 👋</div>
             <div className="flex items-center gap-4">
               <span className="text-xs text-gray-400 hidden sm:block">
-                Balance: <span className="text-[#f0b90b] font-bold">${(user?.balance || 0).toFixed(2)}</span>
+                Balance: <span className="text-[#f0b90b] font-bold">${(user?.balance||0).toFixed(2)}</span>
               </span>
-              <NotificationSystem />
+              <NotificationSystem/>
             </div>
           </header>
         )}
@@ -407,49 +362,31 @@ const AppContent = ({ cryptoData }) => {
         </div>
       </main>
 
-      {/* ── Mobile Bottom Nav ── */}
+      {/* Mobile Bottom Nav */}
       {token && !isHomePage && (
         <>
-          {/* Full menu overlay */}
           {showMoreMenu && (
             <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[100] flex flex-col overflow-y-auto">
               <div className="flex justify-between items-center px-6 py-5">
                 <h2 className="text-[#f0b90b] font-black text-xl uppercase italic">Menu</h2>
-                <button
-                  onClick={() => setShowMoreMenu(false)}
-                  className="bg-white/10 w-9 h-9 rounded-full text-gray-300 flex items-center justify-center hover:bg-white/20">
-                  &#x2715;
-                </button>
+                <button onClick={()=>setShowMoreMenu(false)} className="bg-white/10 w-9 h-9 rounded-full text-gray-300 flex items-center justify-center">✕</button>
               </div>
               <div className="grid grid-cols-3 gap-y-6 gap-x-3 px-6 pb-6">
                 {userPages.map(page => (
-                  <Link
-                    key={page.to}
-                    to={page.to}
-                    onClick={() => setShowMoreMenu(false)}
+                  <Link key={page.to} to={page.to} onClick={()=>setShowMoreMenu(false)}
                     className="flex flex-col items-center gap-2 text-gray-400 hover:text-white">
-                    <div className="p-3 bg-white/5 rounded-2xl border border-white/5 w-12 h-12 flex items-center justify-center">
-                      {page.icon}
-                    </div>
-                    <span className="text-[9px] font-black uppercase text-center leading-tight">
-                      {page.label}
-                    </span>
+                    <div className="p-3 bg-white/5 rounded-2xl border border-white/5 w-12 h-12 flex items-center justify-center">{page.icon}</div>
+                    <span className="text-[9px] font-black uppercase text-center leading-tight">{page.label}</span>
                   </Link>
                 ))}
               </div>
-              {user?.role === 'admin' && (
+              {user?.role==='admin' && (
                 <div className="px-6 pb-6">
                   <p className="text-[#f0b90b] text-[9px] font-black uppercase tracking-widest mb-4 opacity-60">Admin</p>
                   <div className="grid grid-cols-3 gap-4">
                     {adminPages.map(page => (
-                      <Link
-                        key={page.to}
-                        to={page.to}
-                        onClick={() => setShowMoreMenu(false)}
-                        className="flex flex-col items-center gap-2 text-yellow-500/80">
-                        <div className="p-3 bg-yellow-500/5 rounded-2xl border border-yellow-500/10 w-12 h-12 flex items-center justify-center">
-                          {page.icon}
-                        </div>
+                      <Link key={page.to} to={page.to} onClick={()=>setShowMoreMenu(false)} className="flex flex-col items-center gap-2 text-yellow-500/80">
+                        <div className="p-3 bg-yellow-500/5 rounded-2xl border border-yellow-500/10 w-12 h-12 flex items-center justify-center">{page.icon}</div>
                         <span className="text-[9px] font-black uppercase text-center">{page.label}</span>
                       </Link>
                     ))}
@@ -457,42 +394,31 @@ const AppContent = ({ cryptoData }) => {
                 </div>
               )}
               <div className="px-6 pb-8 mt-auto">
-                <button
-                  onClick={() => { logout(); setShowMoreMenu(false); }}
+                <button onClick={()=>{logout();setShowMoreMenu(false);}}
                   className="w-full flex items-center justify-center gap-2 text-red-500 font-black uppercase text-[10px] py-4 bg-red-500/5 rounded-2xl border border-red-500/10">
-                  <LogOut size={16} /> Sign Out
+                  <LogOut size={16}/> Sign Out
                 </button>
               </div>
             </div>
           )}
-
-          {/* Bottom tab bar */}
           <nav className="fixed bottom-0 left-0 right-0 bg-[#161a1e]/95 backdrop-blur-md border-t border-gray-800 flex justify-around items-center py-2 md:hidden z-[80]">
             {[
-              { to: '/dashboard',   icon: <LayoutDashboard size={22} />, label: 'Home'    },
-              { to: '/market',      icon: <BarChart3 size={22} />,       label: 'Market'  },
-              { to: '/futures/btc', icon: <Gavel size={22} />,           label: 'Futures' },
-              { to: '/trading-bots',icon: <Bot size={22} />,             label: 'Bots'    },
-              { to: '/wallet',      icon: <Wallet size={22} />,          label: 'Wallet'  },
+              {to:'/dashboard',   icon:<LayoutDashboard size={22}/>, label:'Home'    },
+              {to:'/market',      icon:<BarChart3 size={22}/>,       label:'Market'  },
+              {to:'/futures/btc', icon:<Gavel size={22}/>,           label:'Futures' },
+              {to:'/trading-bots',icon:<Bot size={22}/>,             label:'Bots'    },
+              {to:'/wallet',      icon:<Wallet size={22}/>,          label:'Wallet'  },
             ].map(item => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `flex flex-col items-center gap-0.5 p-2 ${isActive ? 'text-[#f0b90b]' : 'text-gray-500'}`
-                }>
+              <NavLink key={item.to} to={item.to}
+                className={({isActive})=>`flex flex-col items-center gap-0.5 p-2 ${isActive?'text-[#f0b90b]':'text-gray-500'}`}>
                 {item.icon}
                 <span className="text-[8px] font-bold uppercase">{item.label}</span>
               </NavLink>
             ))}
-            <button
-              onClick={() => setShowMoreMenu(true)}
-              className="flex flex-col items-center gap-0.5 p-2 text-gray-500 relative">
-              <LayoutGrid size={22} />
+            <button onClick={()=>setShowMoreMenu(true)} className="flex flex-col items-center gap-0.5 p-2 text-gray-500 relative">
+              <LayoutGrid size={22}/>
               <span className="text-[8px] font-bold uppercase">More</span>
-              {user?.role === 'admin' && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-[#f0b90b] rounded-full animate-pulse" />
-              )}
+              {user?.role==='admin' && <span className="absolute top-1 right-1 w-2 h-2 bg-[#f0b90b] rounded-full animate-pulse"/>}
             </button>
           </nav>
         </>
@@ -504,27 +430,25 @@ const AppContent = ({ cryptoData }) => {
 /* ══ App Root ══ */
 export default function App() {
   const [cryptoData, setCryptoData] = useState([
-    { id: '1', name: 'Bitcoin',  symbol: 'btc', price: '0', change: '0', up: true },
-    { id: '2', name: 'Ethereum', symbol: 'eth', price: '0', change: '0', up: true },
-    { id: '3', name: 'Solana',   symbol: 'sol', price: '0', change: '0', up: true },
-    { id: '4', name: 'BNB',      symbol: 'bnb', price: '0', change: '0', up: true },
+    { id:'1', name:'Bitcoin',  symbol:'btc', price:'0', change:'0', up:true },
+    { id:'2', name:'Ethereum', symbol:'eth', price:'0', change:'0', up:true },
+    { id:'3', name:'Solana',   symbol:'sol', price:'0', change:'0', up:true },
+    { id:'4', name:'BNB',      symbol:'bnb', price:'0', change:'0', up:true },
   ]);
 
   const fetchPrices = async () => {
     try {
-      const syms    = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT'];
-      const results = await Promise.all(
-        syms.map(s => axios.get(`https://api.binance.com/api/v3/ticker/24hr?symbol=${s}`))
-      );
-      setCryptoData(results.map((res, i) => ({
-        id:     String(i + 1),
-        name:   res.data.symbol.replace('USDT', ''),
-        symbol: res.data.symbol.replace('USDT', '').toLowerCase(),
-        price:  parseFloat(res.data.lastPrice).toLocaleString(undefined, { minimumFractionDigits: 2 }),
+      const syms    = ['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT'];
+      const results = await Promise.all(syms.map(s => axios.get(`https://api.binance.com/api/v3/ticker/24hr?symbol=${s}`)));
+      setCryptoData(results.map((res,i) => ({
+        id:     String(i+1),
+        name:   res.data.symbol.replace('USDT',''),
+        symbol: res.data.symbol.replace('USDT','').toLowerCase(),
+        price:  parseFloat(res.data.lastPrice).toLocaleString(undefined,{minimumFractionDigits:2}),
         change: parseFloat(res.data.priceChangePercent).toFixed(2),
-        up:     parseFloat(res.data.priceChangePercent) > 0,
+        up:     parseFloat(res.data.priceChangePercent)>0,
       })));
-    } catch (_e) {}
+    } catch {}
   };
 
   useEffect(() => {
@@ -536,7 +460,7 @@ export default function App() {
   return (
     <UserProvider>
       <BrowserRouter>
-        <AppContent cryptoData={cryptoData} />
+        <AppContent cryptoData={cryptoData}/>
       </BrowserRouter>
     </UserProvider>
   );
