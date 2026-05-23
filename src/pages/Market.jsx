@@ -39,6 +39,9 @@ const css = `
   /* New badge */
   .tag-new{background:rgba(240,185,11,.18);color:#f0b90b;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:4px;vertical-align:middle;}
 
+  /* Table Container for Responsiveness */
+  .mk-table-container{width:100%;overflow-x:auto;scrollbar-width:thin;-webkit-overflow-scrolling:touch;}
+
   /* Table */
   .mk-table{width:100%;border-collapse:collapse;}
   .mk-table th{padding:10px 16px;color:#848e9c;font-size:11px;font-weight:700;text-align:left;border-bottom:1px solid #1e2329;cursor:pointer;white-space:nowrap;user-select:none;text-transform:uppercase;letter-spacing:.04em;}
@@ -168,7 +171,7 @@ const fmtMC = v => {
   if (v >= 1e12) return `$${(v/1e12).toFixed(2)}T`;
   if (v >= 1e9)  return `$${(v/1e9).toFixed(2)}B`;
   if (v >= 1e6)  return `$${(v/1e6).toFixed(2)}M`;
-  return `$${v.toFixed(0)}`;
+  return `$v.toFixed(0)`;
 };
 
 /* ── Mini Sparkline ── */
@@ -360,7 +363,7 @@ const QuickCard = ({ title, coins, icon, prices, navigate }) => (
 );
 
 /* ════════════════════════════════════
-   MAIN COMPONENT
+    MAIN COMPONENT
 ════════════════════════════════════ */
 export default function Market() {
   const navigate = useNavigate();
@@ -639,146 +642,101 @@ export default function Market() {
               <div style={{ display:'flex', alignItems:'center', padding:'0 16px', gap:8, flexWrap:'wrap' }}>
                 <div className="mk-sub-tabs" style={{ flex:'none' }}>
                   {['Favorites','Cryptos','Spot','Futures','Alpha','New','Zones'].map(t => (
-                    <button key={t} className={`mk-sub-tab${subTab===t?' on':''}`} onClick={() => { setSubTab(t); setCatTab('All'); }}>
-                      {t}
-                      {t === 'Alpha' && <span className="tag-new">New</span>}
-                    </button>
+                    <button key={t} className={`mk-sub-tab${subTab===t?' on':''}`} onClick={() => { setSubTab(t); if(t!=='Cryptos') setCatTab('All'); }}>{t}</button>
                   ))}
                 </div>
               </div>
-              {/* Category chips — only in Cryptos */}
-              {subTab === 'Cryptos' && (
-                <div style={{ display:'flex', gap:6, padding:'8px 16px', overflowX:'auto', scrollbarWidth:'none' }}>
-                  {Object.keys(CAT_FILTER).map(c => (
-                    <button key={c} className={`cat-btn${catTab===c?' on':''}`} onClick={() => setCatTab(c)}>
-                      {c}
-                      {c === 'Solana' && <span className="tag-new">New</span>}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
 
-            {/* Table header info */}
-            <div style={{ padding:'14px 16px 8px', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
-              <div>
-                <h3 style={{ fontSize:15, fontWeight:700, color:'#eaecef', marginBottom:2 }}>
-                  {subTab === 'Favorites' ? 'My Favorites' :
-                   subTab === 'Alpha'     ? 'Alpha Tokens'  :
-                   catTab  !== 'All'      ? `${catTab} Tokens` :
-                   'Top Tokens by Market Cap'}
-                </h3>
-                <p style={{ fontSize:11, color:'#848e9c' }}>
-                  Real-time via Binance WebSocket ·{' '}
-                  <span style={{ color: wsStatus==='connected'?'#0ecb81':'#f0b90b' }}>
-                    {wsStatus==='connected' ? `${filtered.length} coins live` : wsStatus}
-                  </span>
-                </p>
+            {/* Category horizontal scroll bar (Only when subTab is Cryptos) */}
+            {subTab === 'Cryptos' && (
+              <div style={{ display:'flex', gap:8, padding:'12px 16px', overflowX:'auto', scrollbarWidth:'none' }} className="mk-sub-tabs">
+                {Object.keys(CAT_FILTER).map(c => (
+                  <button key={c} className={`cat-btn${catTab===c?' on':''}`} onClick={() => setCatTab(c)}>{c}</button>
+                ))}
               </div>
-              <button onClick={connectWS}
-                style={{ display:'flex', alignItems:'center', gap:5, background:'#1e2329', border:'1px solid #2b3139', borderRadius:8, padding:'6px 12px', color:'#848e9c', cursor:'pointer', fontSize:12, fontFamily:'inherit' }}>
-                <RefreshCw size={12}/> Reconnect
-              </button>
-            </div>
+            )}
 
-            {/* TABLE */}
-            <div style={{ padding:'0 16px 80px', overflowX:'auto' }}>
-              <div style={{ background:'#161a1e', borderRadius:12, overflow:'hidden', border:'1px solid #1e2329', minWidth:420 }}>
+            {/* RESPONSIVE COIN TABLE CONTAINER */}
+            <div style={{ padding:'8px 16px 60px' }}>
+              <div className="mk-table-container">
                 <table className="mk-table">
                   <thead>
-                    <tr style={{ background:'#0b0e11' }}>
-                      <th style={{ width:36 }}></th>
+                    <tr>
+                      <th style={{ width:40 }}></th>
                       <th onClick={() => toggleSort('symbol')}>Name <SortIcon k="symbol"/></th>
-                      <th onClick={() => toggleSort('price')} style={{ textAlign:'right' }}>Price <SortIcon k="price"/></th>
-                      <th onClick={() => toggleSort('change')} style={{ textAlign:'right' }}>24h % <SortIcon k="change"/></th>
-                      <th style={{ textAlign:'right' }} className="hide-m">24h High</th>
-                      <th style={{ textAlign:'right' }} className="hide-m">24h Low</th>
-                      <th onClick={() => toggleSort('vol')} style={{ textAlign:'right' }} className="hide-lg">Volume <SortIcon k="vol"/></th>
-                      <th style={{ textAlign:'right', width:70 }} className="hide-lg">Trend</th>
-                      <th style={{ textAlign:'right' }}>Action</th>
+                      <th onClick={() => toggleSort('price')}>Price <SortIcon k="price"/></th>
+                      <th onClick={() => toggleSort('change')}>24h Change <SortIcon k="change"/></th>
+                      <th onClick={() => toggleSort('vol')} className="hide-m">24h Volume <SortIcon k="vol"/></th>
+                      <th onClick={() => toggleSort('mc')} className="hide-lg">Market Cap <SortIcon k="mc"/></th>
+                      <th className="hide-m" style={{ width:100 }}>Last 24h</th>
+                      <th style={{ width:90, textAlign:'right' }}>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {allCoins.length === 0 ? (
-                      <tr><td colSpan={9} style={{ textAlign:'center', padding:60, color:'#5e6673' }}>
-                        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12 }}>
-                          <div style={{ width:32, height:32, border:'3px solid #f0b90b', borderTopColor:'transparent', borderRadius:'50%', animation:'spin 1s linear infinite' }}/>
-                          <span style={{ fontSize:12 }}>
-                            {wsStatus === 'reconnecting' ? 'Reconnecting...' : 'Loading market data...'}
-                          </span>
-                        </div>
-                      </td></tr>
-                    ) : filtered.length === 0 ? (
-                      <tr><td colSpan={9} style={{ textAlign:'center', padding:40, color:'#5e6673', fontSize:13 }}>
-                        {subTab === 'Favorites' && favs.length === 0
-                          ? 'Star coins to add to favorites'
-                          : 'No coins found'}
-                      </td></tr>
-                    ) : filtered.map((c, idx) => (
-                      <tr key={c.symbol} style={{ cursor:'pointer' }} onClick={() => navigate(`/trade/${c.symbol.toLowerCase()}`)}>
-                        {/* Star */}
-                        <td onClick={e => e.stopPropagation()}>
-                          <button className={`star-btn${favs.includes(c.symbol)?' on':''}`} onClick={() => toggleFav(c.symbol)}>
-                            <Star size={14} style={favs.includes(c.symbol)?{fill:'#f0b90b'}:{}}/>
-                          </button>
-                        </td>
-                        {/* Name */}
-                        <td>
-                          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                            <div style={{ color:'#5e6673', fontSize:10, minWidth:18, textAlign:'right' }}>{idx+1}</div>
-                            <div style={{ width:30, height:30, borderRadius:'50%', background:COIN_COLORS[c.symbol]||'#2b3139', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:800, color:'#fff', flexShrink:0 }}>
-                              {c.symbol[0]}
-                            </div>
-                            <div>
-                              <div style={{ fontWeight:700, fontSize:13, color:'#eaecef' }}>{c.symbol}</div>
-                              <div style={{ fontSize:10, color:'#848e9c' }}>/USDT</div>
-                            </div>
-                          </div>
-                        </td>
-                        {/* Price */}
-                        <td style={{ textAlign:'right', fontWeight:700, color:'#eaecef', fontVariantNumeric:'tabular-nums' }}>
-                          ${fmtP(c.price)}
-                        </td>
-                        {/* Change */}
-                        <td style={{ textAlign:'right' }}>
-                          <span className={c.up ? 'badge-up' : 'badge-dn'}>
-                            {c.up ? '▲' : '▼'} {Math.abs(c.change).toFixed(2)}%
-                          </span>
-                        </td>
-                        {/* High */}
-                        <td style={{ textAlign:'right', color:'#0ecb81', fontSize:12 }} className="hide-m">
-                          ${fmtP(c.high)}
-                        </td>
-                        {/* Low */}
-                        <td style={{ textAlign:'right', color:'#f6465d', fontSize:12 }} className="hide-m">
-                          ${fmtP(c.low)}
-                        </td>
-                        {/* Volume */}
-                        <td style={{ textAlign:'right', color:'#848e9c', fontSize:12 }} className="hide-lg">
-                          {fmtV(c.vol)}
-                        </td>
-                        {/* Trend */}
-                        <td className="hide-lg">
-                          <div style={{ display:'flex', justifyContent:'flex-end' }}><MiniChart up={c.up}/></div>
-                        </td>
-                        {/* Actions */}
-                        <td style={{ textAlign:'right' }} onClick={e => e.stopPropagation()}>
-                          <div style={{ display:'flex', gap:5, justifyContent:'flex-end', alignItems:'center' }}>
-                            <button
-                              onClick={() => { setAlertCoin(c.symbol); setAlertPrice2(c.price); }}
-                              style={{ background:'none', border:'1px solid #2b3139', borderRadius:6, padding:'5px 7px', cursor:'pointer', color:'#848e9c', display:'flex', alignItems:'center', transition:'all .15s' }}
-                              onMouseEnter={e => { e.currentTarget.style.borderColor='#f0b90b'; e.currentTarget.style.color='#f0b90b'; }}
-                              onMouseLeave={e => { e.currentTarget.style.borderColor='#2b3139'; e.currentTarget.style.color='#848e9c'; }}
-                              title="Set Price Alert">
-                              <Bell size={12}/>
-                            </button>
-                            <button className="trade-btn" onClick={() => navigate(`/trade/${c.symbol.toLowerCase()}`)}>
-                              Trade
-                            </button>
-                          </div>
+                    {filtered.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} style={{ textAlign:'center', padding:40, color:'#5e6673' }}>
+                          No assets found matching criteria.
                         </td>
                       </tr>
-                    ))}
+                    ) : filtered.map(c => {
+                      const isFav = favs.includes(c.symbol);
+                      return (
+                        <tr key={c.symbol}>
+                          {/* Star */}
+                          <td>
+                            <button className={`star-btn${isFav?' on':''}`} onClick={() => toggleFav(c.symbol)}>
+                              <Star size={14} fill={isFav?'#f0b90b':'none'}/>
+                            </button>
+                          </td>
+                          {/* Name */}
+                          <td>
+                            <div style={{ display:'flex', alignItems:'center', gap:9 }}>
+                              <div style={{ width:24, height:24, borderRadius:'50%', background:COIN_COLORS[c.symbol]||'#2b3139', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:800, color:'#fff', flexShrink:0 }}>
+                                {c.symbol[0]}
+                              </div>
+                              <div>
+                                <span style={{ fontWeight:700, color:'#eaecef', marginRight:4 }}>{c.symbol}</span>
+                                <span style={{ color:'#5e6673', fontSize:11 }}>/USDT</span>
+                                {NEW_COINS.includes(c.symbol) && <span className="tag-new">New</span>}
+                              </div>
+                            </div>
+                          </td>
+                          {/* Price */}
+                          <font style={{ fontFamily:'monospace', fontWeight:700 }}>
+                            <td>${fmtP(c.price)}</td>
+                          </font>
+                          {/* Change */}
+                          <td>
+                            <span className={c.up ? 'badge-up' : 'badge-dn'}>
+                              {c.up ? <TrendingUp size={11}/> : <TrendingDown size={11}/>}
+                              {c.up ? '+' : ''}{c.change !== undefined ? c.change.toFixed(2) : '0.00'}%
+                            </span>
+                          </td>
+                          {/* Vol */}
+                          <td className="hide-m" style={{ color:'#eaecef', fontWeight:500 }}>{fmtV(c.vol)}</td>
+                          {/* Market Cap */}
+                          <td className="hide-lg" style={{ color:'#848e9c' }}>{fmtMC(c.mc)}</td>
+                          {/* Mini Chart */}
+                          <td className="hide-m">
+                            <MiniChart up={c.up}/>
+                          </td>
+                          {/* Actions */}
+                          <td style={{ textAlign:'right' }}>
+                            <div style={{ display:'flex', alignItems:'center', justifyContent:'flex-end', gap:8 }}>
+                              <button title="Set Alert" onClick={() => { setAlertCoin(c.symbol); setAlertPrice2(c.price); }}
+                                style={{ background:'none', border:'none', color:'#5e6673', cursor:'pointer', padding:4 }}>
+                                <Bell size={13}/>
+                              </button>
+                              <button className="trade-btn" onClick={() => navigate(`/trade/${c.symbol.toLowerCase()}`)}>
+                                Trade
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -788,184 +746,130 @@ export default function Market() {
 
         {/* ══ TRADING DATA ══ */}
         {topTab === 'Trading Data' && (
-          <div style={{ padding:'20px 16px 80px' }}>
-            <div style={{ marginBottom:20 }}>
-              <h2 style={{ fontSize:18, fontWeight:800, color:'#eaecef', marginBottom:4 }}>Trading Data</h2>
-              <p style={{ fontSize:12, color:'#848e9c' }}>Real-time market leaders and laggards</p>
-            </div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))', gap:16 }} className="info-grid">
-              {tradingDataCoins.map(({ label, coins }) => (
-                <div key={label} className="info-card">
-                  <h3 style={{ fontSize:14, fontWeight:700, color:'#eaecef', marginBottom:14, display:'flex', alignItems:'center', gap:8 }}>
-                    {label === 'Biggest Gainers' ? <TrendingUp size={15} style={{ color:'#0ecb81' }}/> :
-                     label === 'Biggest Losers'  ? <TrendingDown size={15} style={{ color:'#f6465d' }}/> :
-                     <BarChart2 size={15} style={{ color:'#627eea' }}/>}
-                    {label}
-                  </h3>
-                  {coins.map(c => (
-                    <div key={c.symbol} className="info-row" style={{ cursor:'pointer' }} onClick={() => navigate(`/trade/${c.symbol.toLowerCase()}`)}>
-                      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                        <div style={{ width:28, height:28, borderRadius:'50%', background:COIN_COLORS[c.symbol]||'#2b3139', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:800, color:'#fff' }}>
-                          {c.symbol[0]}
-                        </div>
-                        <div>
-                          <div style={{ fontWeight:700, fontSize:13, color:'#eaecef' }}>{c.symbol}</div>
-                          <div style={{ fontSize:11, color:'#5e6673' }}>{fmtV(c.vol)}</div>
-                        </div>
-                      </div>
-                      <div style={{ textAlign:'right' }}>
-                        <div style={{ fontWeight:700, fontSize:13, color:'#eaecef' }}>${fmtP(c.price)}</div>
-                        <div style={{ fontSize:12, fontWeight:700, color:c.up?'#0ecb81':'#f6465d' }}>
-                          {c.up?'+':''}{c.change.toFixed(2)}%
-                        </div>
+          <div style={{ padding:'20px 16px 60px', display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16 }} className="info-grid">
+            {tradingDataCoins.map((sect, idx) => (
+              <div key={idx} className="info-card">
+                <h3 style={{ fontSize:14, fontWeight:800, color:'#eaecef', marginBottom:14, display:'flex', alignItems:'center', gap:6 }}>
+                  {idx===0 ? <TrendingUp size={15} style={{color:'#0ecb81'}}/> : idx===1 ? <TrendingDown size={15} style={{color:'#f6465d'}}/> : <BarChart2 size={15} style={{color:'#f0b90b'}}/>}
+                  {sect.label}
+                </h3>
+                {sect.coins.map((c, i) => (
+                  <div key={c.symbol} className="info-row" onClick={() => navigate(`/trade/${c.symbol.toLowerCase()}`)} style={{ cursor:'pointer' }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                      <span style={{ fontSize:12, fontWeight:700, color:i===0?'#f0b90b':i===1?'#eaecef':i===2?'#96a0af':'#5e6673', width:12 }}>{i+1}</span>
+                      <span style={{ fontWeight:700, fontSize:13 }}>{c.symbol}</span>
+                    </div>
+                    <div style={{ textAlign:'right' }}>
+                      <div style={{ fontSize:12, fontWeight:600 }}>${fmtP(c.price)}</div>
+                      <div style={{ fontSize:11, fontWeight:700, color:idx===2?'#848e9c':c.up?'#0ecb81':'#f6465d' }}>
+                        {idx===2 ? fmtV(c.vol) : `${c.up?'+':''}${c.change.toFixed(2)}%`}
                       </div>
                     </div>
-                  ))}
-                </div>
-              ))}
-
-              {/* Market Overview Stats */}
-              <div className="info-card">
-                <h3 style={{ fontSize:14, fontWeight:700, color:'#eaecef', marginBottom:14, display:'flex', alignItems:'center', gap:8 }}>
-                  <Activity size={15} style={{ color:'#f0b90b' }}/> Market Overview
-                </h3>
-                {[
-                  { l:'Total Market Cap',  v: fmtMC(allCoins.reduce((s,c)=>s+(c.mc||0),0)) },
-                  { l:'24h Total Volume',  v: fmtV(allCoins.reduce((s,c)=>s+(c.vol||0),0)) },
-                  { l:'Gainers',           v: allCoins.filter(c=>c.up).length + ' / ' + allCoins.length },
-                  { l:'Avg. 24h Change',   v: (allCoins.reduce((s,c)=>s+c.change,0)/Math.max(allCoins.length,1)).toFixed(2)+'%' },
-                  { l:'Live Prices',       v: allCoins.length + ' coins' },
-                ].map(s => (
-                  <div key={s.l} className="info-row">
-                    <span style={{ fontSize:12, color:'#848e9c' }}>{s.l}</span>
-                    <span style={{ fontSize:13, fontWeight:700, color:'#eaecef' }}>{s.v}</span>
                   </div>
                 ))}
               </div>
-            </div>
+            ))}
           </div>
         )}
 
         {/* ══ AI SELECT ══ */}
         {topTab === 'AI Select' && (
-          <div style={{ padding:'20px 16px 80px' }}>
-            <div style={{ background:'linear-gradient(135deg,#161a1e,#1e2329)', border:'1px solid #2b3139', borderRadius:16, padding:'20px 24px', marginBottom:24, display:'flex', alignItems:'center', gap:16, flexWrap:'wrap' }}>
-              <div style={{ width:48, height:48, borderRadius:12, background:'rgba(240,185,11,.12)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                <Cpu size={24} style={{ color:'#f0b90b' }}/>
-              </div>
-              <div>
-                <h2 style={{ fontSize:17, fontWeight:800, color:'#eaecef', marginBottom:4 }}>AI Market Intelligence</h2>
-                <p style={{ fontSize:12, color:'#848e9c' }}>
-                  AI-scored tokens based on momentum, volume, and price action. Updated live.
-                </p>
-              </div>
+          <div style={{ padding:'20px 16px 60px' }}>
+            <div style={{ background:'linear-gradient(135deg, #1e1b4b 0%, #111827 100%)', border:'1px solid #312e81', borderRadius:14, padding:20, marginBottom:20 }}>
+              <h2 style={{ color:'#fff', fontWeight:800, fontSize:18, display:'flex', alignItems:'center', gap:8 }}>
+                <Cpu style={{ color:'#818cf8' }} size={20}/> Vinance AI Market Scanner
+              </h2>
+              <p style={{ color:'#9a3412', color:'#93c5fd', fontSize:12, marginTop:6, lineHeight:1.5 }}>
+                Real-time technical indicators, order book liquidity depth, and momentum calculations compiled every 5 seconds into machine learning alpha scores.
+              </p>
             </div>
-            <div style={{ background:'#161a1e', borderRadius:14, border:'1px solid #1e2329', overflow:'hidden' }}>
-              <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr 100px', padding:'10px 16px', background:'#0b0e11', fontSize:11, color:'#5e6673', fontWeight:700, textTransform:'uppercase', letterSpacing:'.05em' }}>
-                <span>Token</span>
-                <span style={{ textAlign:'right' }}>Price</span>
-                <span style={{ textAlign:'right' }}>24h</span>
-                <span style={{ textAlign:'right' }}>AI Score</span>
-                <span style={{ textAlign:'right' }}>Signal</span>
-              </div>
-              {aiCoins.map((c, i) => (
-                <div key={c.symbol}
-                  style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr 100px', padding:'13px 16px', borderBottom:'1px solid #1e232940', alignItems:'center', cursor:'pointer', transition:'background .15s' }}
-                  onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,.02)'}
-                  onMouseLeave={e => e.currentTarget.style.background='transparent'}
-                  onClick={() => navigate(`/trade/${c.symbol.toLowerCase()}`)}>
-                  <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                    <span style={{ color:'#5e6673', fontSize:11, minWidth:18 }}>#{i+1}</span>
-                    <div style={{ width:30, height:30, borderRadius:'50%', background:COIN_COLORS[c.symbol]||'#2b3139', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:800, color:'#fff' }}>
-                      {c.symbol[0]}
-                    </div>
-                    <span style={{ fontWeight:700, color:'#eaecef', fontSize:13 }}>{c.symbol}</span>
-                  </div>
-                  <span style={{ textAlign:'right', fontWeight:700, color:'#eaecef', fontSize:13 }}>${fmtP(c.price)}</span>
-                  <span style={{ textAlign:'right', fontWeight:700, color:c.up?'#0ecb81':'#f6465d', fontSize:13 }}>
-                    {c.up?'+':''}{c.change.toFixed(2)}%
-                  </span>
-                  <div style={{ textAlign:'right' }}>
-                    <div style={{ display:'inline-flex', alignItems:'center', gap:4 }}>
-                      <div style={{ width:40, height:5, background:'#2b3139', borderRadius:3, overflow:'hidden' }}>
-                        <div style={{ width:`${Math.min(c.score,100)}%`, height:'100%', background:'#f0b90b', borderRadius:3 }}/>
-                      </div>
-                      <span style={{ fontSize:12, fontWeight:700, color:'#f0b90b' }}>{c.score}</span>
-                    </div>
-                  </div>
-                  <div style={{ textAlign:'right' }}>
-                    <span style={{
-                      fontSize:11, fontWeight:700, padding:'3px 9px', borderRadius:20,
-                      background: c.signal === 'Strong Buy' ? 'rgba(14,203,129,.15)' :
-                                  c.signal === 'Buy'        ? 'rgba(14,203,129,.08)' :
-                                  c.signal === 'Sell'       ? 'rgba(246,70,93,.12)'  : 'rgba(132,142,156,.1)',
-                      color:      c.signal === 'Strong Buy' ? '#0ecb81' :
-                                  c.signal === 'Buy'        ? '#0ecb81' :
-                                  c.signal === 'Sell'       ? '#f6465d' : '#848e9c',
-                    }}>
-                      {c.signal}
-                    </span>
-                  </div>
-                </div>
-              ))}
+            <div className="mk-table-container">
+              <table className="mk-table">
+                <thead>
+                  <tr>
+                    <th>Asset</th>
+                    <th>Price</th>
+                    <th>AI Score</th>
+                    <th>Market Bias</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {aiCoins.map((c, idx) => (
+                    <tr key={c.symbol}>
+                      <td>
+                        <span style={{ fontWeight:700, color:'#eaecef' }}>{c.symbol}</span>
+                        <span style={{ color:'#5e6673', fontSize:11 }}>/USDT</span>
+                      </td>
+                      <td style={{ fontFamily:'monospace', fontWeight:600 }}>${fmtP(c.price)}</td>
+                      <td>
+                        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                          <div style={{ flex:1, height:5, background:'#2b3139', borderRadius:3, width:60, overflow:'hidden' }}>
+                            <div style={{ height:'100%', background:c.score>60?'#0ecb81':c.score>40?'#f0b90b':'#f6465d', width:`${c.score}%` }}/>
+                          </div>
+                          <span style={{ fontWeight:700, fontSize:12, color:c.score>60?'#0ecb81':c.score>40?'#f0b90b':'#f6465d' }}>{c.score}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <span style={{
+                          padding:'2px 8px', borderRadius:4, fontSize:11, fontWeight:700,
+                          background: c.signal==='Strong Buy'?'rgba(14,203,129,.15)':c.signal==='Buy'?'rgba(14,203,129,.06)':c.signal==='Sell'?'rgba(246,70,93,.12)':'rgba(255,255,255,.05)',
+                          color: c.signal.includes('Buy')?'#0ecb81':c.signal==='Sell'?'#f6465d':'#848e9c'
+                        }}>{c.signal}</span>
+                      </td>
+                      <td>
+                        <button className="trade-btn" onClick={() => navigate(`/trade/${c.symbol.toLowerCase()}`)}>Scan Chart</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
 
         {/* ══ TOKEN UNLOCK ══ */}
         {topTab === 'Token Unlock' && (
-          <div style={{ padding:'20px 16px 80px' }}>
-            <div style={{ marginBottom:20 }}>
-              <h2 style={{ fontSize:18, fontWeight:800, color:'#eaecef', marginBottom:4 }}>
-                <Lock size={18} style={{ color:'#f0b90b', verticalAlign:'middle', marginRight:8 }}/>
-                Token Unlock Schedule
-              </h2>
-              <p style={{ fontSize:12, color:'#848e9c' }}>Upcoming token unlocks that may impact price. High-supply releases can create sell pressure.</p>
+          <div style={{ padding:'20px 16px 60px' }}>
+            <div style={{ background:'#161a1e', border:'1px solid #1e2329', borderRadius:12, padding:16, marginBottom:20, display:'flex', alignItems:'center', gap:12 }}>
+              <Lock style={{ color:'#f0b90b' }} size={24}/>
+              <div>
+                <h4 style={{ color:'#eaecef', fontWeight:700, fontSize:13 }}>Vesting Multipliers & Dilution Risks</h4>
+                <p style={{ color:'#848e9c', fontSize:11, marginTop:2 }}>Track upcoming core team & seed round investor token distributions to defend positions against sudden supply shocks.</p>
+              </div>
             </div>
-            <div style={{ background:'#161a1e', borderRadius:14, border:'1px solid #1e2329', overflow:'hidden', marginBottom:20 }}>
-              {tokenUnlocks.map((u, i) => {
-                const c = prices[`${u.sym}USDT`];
-                return (
-                  <div key={u.sym} style={{ display:'flex', alignItems:'center', gap:14, padding:'16px 20px', borderBottom:i < tokenUnlocks.length-1?'1px solid #1e2329':'none', flexWrap:'wrap' }}>
-                    <div style={{ width:38, height:38, borderRadius:'50%', background:COIN_COLORS[u.sym]||'#2b3139', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:800, color:'#fff', flexShrink:0 }}>
-                      {u.sym[0]}
-                    </div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4, flexWrap:'wrap' }}>
-                        <span style={{ fontWeight:700, fontSize:14, color:'#eaecef' }}>{u.sym}</span>
-                        <span style={{ fontSize:12, color:'#848e9c' }}>{u.name}</span>
-                        <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:10, background:RISK_C[u.risk]+'18', color:RISK_C[u.risk] }}>
-                          {u.risk} Risk
-                        </span>
-                      </div>
-                      <div style={{ display:'flex', gap:20, fontSize:12, color:'#848e9c', flexWrap:'wrap' }}>
-                        <span>📅 {u.date}</span>
-                        <span>🔓 {u.amount}</span>
-                        <span>💵 {u.usd}</span>
-                        <span>📊 Supply: {u.pct}</span>
-                      </div>
-                    </div>
-                    <div style={{ textAlign:'right', flexShrink:0 }}>
-                      <div style={{ fontWeight:700, fontSize:14, color:'#eaecef' }}>${fmtP(c?.price)}</div>
-                      <div style={{ fontSize:12, fontWeight:700, color:c?.up?'#0ecb81':'#f6465d' }}>
-                        {c ? `${c.up?'+':''}${c.change.toFixed(2)}%` : '—'}
-                      </div>
-                    </div>
-                    <button className="trade-btn" onClick={() => navigate(`/trade/${u.sym.toLowerCase()}`)}>
-                      Trade
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-            <div style={{ background:'rgba(246,70,93,.05)', border:'1px solid rgba(246,70,93,.15)', borderRadius:12, padding:'14px 18px', display:'flex', gap:10 }}>
-              <AlertCircle size={15} style={{ color:'#f6465d', flexShrink:0, marginTop:2 }}/>
-              <p style={{ fontSize:12, color:'#848e9c', lineHeight:1.7 }}>
-                <strong style={{ color:'#f6465d' }}>Risk Notice:</strong> Token unlocks can cause significant price drops as early investors may sell. Always DYOR before trading around unlock events.
-              </p>
+            <div className="mk-table-container">
+              <table className="mk-table">
+                <thead>
+                  <tr>
+                    <th>Asset</th>
+                    <th>Unlock Date</th>
+                    <th>Amount Token</th>
+                    <th>Value (USD)</th>
+                    <th>% Circulating</th>
+                    <th style={{ textAlign:'right' }}>Dilution Risk</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tokenUnlocks.map(u => (
+                    <tr key={u.sym}>
+                      <td>
+                        <span style={{ fontWeight:700, color:'#eaecef' }}>{u.sym}</span>
+                        <span style={{ color:'#5e6673', fontSize:11, marginLeft:4 }}>{u.name}</span>
+                      </td>
+                      <td>{u.date}</td>
+                      <td style={{ fontWeight:600 }}>{u.amount}</td>
+                      <td style={{ color:'#0ecb81', fontWeight:600 }}>{u.usd}</td>
+                      <td>{u.pct}</td>
+                      <td style={{ textAlign:'right', fontWeight:700, color:RISK_C[u.risk] }}>{u.risk}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
+
       </div>
     </>
   );
