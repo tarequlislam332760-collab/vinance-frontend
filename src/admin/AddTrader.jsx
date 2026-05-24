@@ -1,7 +1,7 @@
 import React, { useState, useContext, useRef } from 'react';
 import { UserContext } from '../context/UserContext';
 import { UserPlus, Save, Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
-import axios from 'axios'; // ক্লাউডিনারি এপিআই কল করার জন্য axios প্রয়োজন
+import axios from 'axios'; // ক্লাউডিনারি এপিআই কল করার জন্য axios প্রয়োজন
 import API from '../api';
 
 const AddTrader = ({ fetchData }) => {
