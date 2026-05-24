@@ -1,13 +1,16 @@
 import React, { useState, useContext, useRef } from 'react';
 import { UserContext } from '../context/UserContext';
 import { UserPlus, Save, Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
-import axios from 'axios'; // ক্লাউডিনারি এপিআই কল করার জন্য axios প্রয়োজন
+import axios from 'axios'; 
 import API from '../api';
 
 const AddTrader = ({ fetchData }) => {
   const { token } = useContext(UserContext);
-  const fileInputRef = useRef(null); // হিডেন ফাইল ইনপুট কন্ট্রোল করার জন্য
-  const [uploading, setUploading] = useState(false); // আপলোডিং স্পিনারের জন্য
+  const fileInputRef = useRef(null); 
+  const [uploading, setUploading] = useState(false); 
+  
+  // 🔗 ইমেজের টেক্সট লিংক আলাদাভাবে ট্র্যাক করার জন্য (413 Error ফিক্স করার জন্য)
+  const [imgUrlText, setImgUrlText] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -26,7 +29,7 @@ const AddTrader = ({ fetchData }) => {
 
     setUploading(true);
     const cloudName = 'dfe3wlx4u'; 
-    const uploadPreset = 'trader_preset'; // আপনার তৈরি করা Unsigned Preset নাম
+    const uploadPreset = 'trader_preset'; 
 
     const data = new FormData();
     data.append('file', file);
@@ -37,11 +40,15 @@ const AddTrader = ({ fetchData }) => {
         `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
         data
       );
-      // আপলোড সফল হলে secure_url টি ইমেজ ফিল্ডে সেট হবে
-      setFormData({ ...formData, image: res.data.secure_url });
+      
+      const uploadedSecureUrl = res.data.secure_url;
+      // সফলভাবে আপলোড হলে শুধুমাত্র টেক্সট ইউআরএলটি সেভ হবে
+      setImgUrlText(uploadedSecureUrl);
+      setFormData((prev) => ({ ...prev, image: uploadedSecureUrl }));
+      
     } catch (err) {
       console.error('Cloudinary upload error:', err);
-      alert('❌ Image upload failed. Please try again.');
+      alert('❌ Image upload failed. check console or preset configuration.');
     } finally {
       setUploading(false);
     }
@@ -49,9 +56,17 @@ const AddTrader = ({ fetchData }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // সেফটি চেক: কোনো করাপ্টেড ফাইল বা বেস৬৪ ডাটা যেন সাবমিট না হয়
+    if (!imgUrlText) {
+      alert("❌ Please upload an image or paste a valid URL link first!");
+      return;
+    }
+
     try {
       const processedData = {
         ...formData,
+        image: imgUrlText, // এখানে কনফার্ম শুধু ইমেজের টেক্সট লিংকটি যাচ্ছে
         chartData: formData.chartData.split(',').map(Number),
         profit: Number(formData.profit),
         winRate: Number(formData.winRate),
@@ -62,6 +77,9 @@ const AddTrader = ({ fetchData }) => {
       await API.post('/api/admin/create-trader', processedData);
 
       alert("✅ Trader Created Successfully!");
+      
+      // স্টেট রিসেট
+      setImgUrlText('');
       setFormData({
         name: '',
         image: '',
@@ -72,7 +90,6 @@ const AddTrader = ({ fetchData }) => {
         chartData: '10, 25, 20, 45, 30, 60'
       });
 
-      // ✅ FIX: list এখন সাথে সাথে refresh হবে
       if (fetchData) fetchData();
 
     } catch (err) {
@@ -103,7 +120,6 @@ const AddTrader = ({ fetchData }) => {
               <ImageIcon size={12} /> Trader Image URL or Upload
             </label>
             <div className="flex gap-2">
-              {/* হিডেন ফাইল ইনপুট */}
               <input 
                 type="file" 
                 accept="image/*" 
@@ -114,11 +130,14 @@ const AddTrader = ({ fetchData }) => {
               
               <input
                 type="text" placeholder="https://imgur.com/photo.jpg"
-                value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                value={imgUrlText} 
+                onChange={(e) => {
+                  setImgUrlText(e.target.value);
+                  setFormData({ ...formData, image: e.target.value });
+                }}
                 className="flex-1 bg-[#0b0e11] border border-gray-700 p-3 rounded-xl focus:border-[#f0b90b] outline-none text-white text-sm"
               />
               
-              {/* আপলোড বাটন */}
               <button
                 type="button"
                 disabled={uploading}
@@ -132,9 +151,9 @@ const AddTrader = ({ fetchData }) => {
                 )}
               </button>
 
-              {formData.image && !uploading && (
+              {imgUrlText && !uploading && (
                 <div className="w-12 h-12 rounded-xl border border-gray-700 overflow-hidden bg-black flex-shrink-0">
-                  <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                  <img src={imgUrlText} alt="Preview" className="w-full h-full object-cover" />
                 </div>
               )}
             </div>
